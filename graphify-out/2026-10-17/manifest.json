@@ -12,10 +12,10 @@
     "semantic_hash": "0b97c6e850da3e507a09b2ba38b291e2"
   },
   "App.tsx": {
-    "mtime": 1792069104.2248309,
-    "seen": 1792162215.151026,
-    "ast_hash": "e578df8fb16822ae24fa53905c4568c3",
-    "semantic_hash": "e578df8fb16822ae24fa53905c4568c3"
+    "mtime": 1792234812.7917147,
+    "seen": 1792234866.581702,
+    "ast_hash": "014e176730774171e40029e2fe622941",
+    "semantic_hash": ""
   },
   "__tests__/App.test.tsx": {
     "mtime": 1792135041.136418,
@@ -138,10 +138,10 @@
     "semantic_hash": "a99dad35a61314765a038be702dfd5b3"
   },
   "android/app/src/main/java/com/telebotbackuprn/MainActivity.kt": {
-    "mtime": 1791970768.0257156,
-    "seen": 1792162215.151026,
-    "ast_hash": "95e397d20828c400e3074b284ec571a4",
-    "semantic_hash": "95e397d20828c400e3074b284ec571a4"
+    "mtime": 1792234803.924162,
+    "seen": 1792234866.581702,
+    "ast_hash": "abcdd96233ba0eb5dede42223dfc89d8",
+    "semantic_hash": ""
   },
   "android/app/src/main/java/com/telebotbackuprn/MainApplication.kt": {
     "mtime": 1791970768.023717,
@@ -162,16 +162,16 @@
     "semantic_hash": "65578da0358a01f31a6a78dfcf47e2bf"
   },
   "android/settings.gradle": {
-    "mtime": 1791970767.9931462,
-    "seen": 1792162215.151026,
-    "ast_hash": "febf8e8dee0f54a4fd504097b3017694",
-    "semantic_hash": "febf8e8dee0f54a4fd504097b3017694"
+    "mtime": 1792234803.9273267,
+    "seen": 1792234866.581702,
+    "ast_hash": "22ecb05a6b2a1345a44035b3b73bece9",
+    "semantic_hash": ""
   },
   "app.json": {
-    "mtime": 1791970767.9921467,
-    "seen": 1792162215.151026,
-    "ast_hash": "845b5413ed003e1e49b851656cb14eed",
-    "semantic_hash": "845b5413ed003e1e49b851656cb14eed"
+    "mtime": 1792234803.4287188,
+    "seen": 1792234866.581702,
+    "ast_hash": "3089e809f4b4f442716fd042e58b3115",
+    "semantic_hash": ""
   },
   "babel.config.js": {
     "mtime": 1791970767.9270005,
@@ -186,10 +186,10 @@
     "semantic_hash": "57ea2adf3c69029b4d425564d0c4c2ae"
   },
   "ios/TelebotBackupRN/AppDelegate.swift": {
-    "mtime": 1791970767.985132,
-    "seen": 1792162215.151026,
-    "ast_hash": "9e3d7613e7645b8d371f87f1212fe3d9",
-    "semantic_hash": "9e3d7613e7645b8d371f87f1212fe3d9"
+    "mtime": 1792234803.9320009,
+    "seen": 1792234866.581702,
+    "ast_hash": "aa5e403da331900e3aaede43cc91834c",
+    "semantic_hash": ""
   },
   "ios/TelebotBackupRN/Images.xcassets/AppIcon.appiconset/Contents.json": {
     "mtime": 1791970767.9270005,
@@ -222,15 +222,15 @@
     "semantic_hash": "0783b3967cccd36a5178af469efd5e1e"
   },
   "package.json": {
-    "mtime": 1792055201.8675668,
-    "seen": 1792162215.151026,
-    "ast_hash": "75778521b484438a3a981dd5de08c88b",
-    "semantic_hash": "75778521b484438a3a981dd5de08c88b"
+    "mtime": 1792234803.860034,
+    "seen": 1792234866.581702,
+    "ast_hash": "272317b71c36712f72731dc2ae121faa",
+    "semantic_hash": ""
   },
   "src/background/foregroundService.ts": {
-    "mtime": 1792231757.9304652,
-    "seen": 1792234320.1355376,
-    "ast_hash": "d079d13c1d36623fd44978d92e849849",
+    "mtime": 1792234803.938111,
+    "seen": 1792234866.581702,
+    "ast_hash": "6276b5c8cd9e2dc4d8eb3eab714e57ef",
     "semantic_hash": ""
   },
   "src/background/headless.ts": {
@@ -288,9 +288,9 @@
     "semantic_hash": "578a404b59222caec9f6da42c19f84c2"
   },
   "src/backup/manifest.ts": {
-    "mtime": 1792233280.2986276,
-    "seen": 1792234320.1355376,
-    "ast_hash": "819020e1b139f22920188cb75e303091",
+    "mtime": 1792234812.7875636,
+    "seen": 1792234866.581702,
+    "ast_hash": "548f64c30f2dcc0037fb2948419cef86",
     "semantic_hash": ""
   },
   "src/backup/permissions.ts": {
@@ -330,10 +330,10 @@
     "semantic_hash": "256cf8f69189b590c344e9cf28eccd80"
   },
   "src/components/ui.tsx": {
-    "mtime": 1792062284.5494196,
-    "seen": 1792162215.151026,
-    "ast_hash": "591012b3c5ffd324981b5135547d3712",
-    "semantic_hash": "591012b3c5ffd324981b5135547d3712"
+    "mtime": 1792234421.2896767,
+    "seen": 1792234866.581702,
+    "ast_hash": "a494fb0946ae8e5ea6e70412d9686c04",
+    "semantic_hash": ""
   },
   "src/db/db.ts": {
     "mtime": 1792059605.18692,
@@ -384,9 +384,9 @@
     "semantic_hash": "0acd1e5617d9b2ab648efe49f3bb89dd"
   },
   "src/screens/HomeScreen.tsx": {
-    "mtime": 1792231748.4654167,
-    "seen": 1792234320.1355376,
-    "ast_hash": "4717a2c28bc61d8d5a9c225c187ef58b",
+    "mtime": 1792234430.659906,
+    "seen": 1792234866.581702,
+    "ast_hash": "9dceebf80106f9890a54cf2ce687b425",
     "semantic_hash": ""
   },
   "src/screens/RestoreScreen.tsx": {
@@ -396,22 +396,22 @@
     "semantic_hash": ""
   },
   "src/screens/SettingsScreen.tsx": {
-    "mtime": 1792140049.8026757,
-    "seen": 1792162215.151026,
-    "ast_hash": "e6838a852f2e162afffbe132da0d1023",
-    "semantic_hash": "e6838a852f2e162afffbe132da0d1023"
+    "mtime": 1792234428.5983553,
+    "seen": 1792234866.581702,
+    "ast_hash": "9a226ce5087a739970530521e46467a8",
+    "semantic_hash": ""
   },
   "src/screens/SetupScreen.tsx": {
-    "mtime": 1792062322.2744853,
-    "seen": 1792162215.151026,
-    "ast_hash": "a0386e9a06c94a766d0d3f6a59f9649b",
-    "semantic_hash": "a0386e9a06c94a766d0d3f6a59f9649b"
+    "mtime": 1792234428.5993612,
+    "seen": 1792234866.581702,
+    "ast_hash": "37c818ae5048c8c8ec62bb620cc795b6",
+    "semantic_hash": ""
   },
   "src/screens/StatsScreen.tsx": {
-    "mtime": 1792069640.7888815,
-    "seen": 1792162215.151026,
-    "ast_hash": "0749e61f420cc17a22bfaf379d367b57",
-    "semantic_hash": "0749e61f420cc17a22bfaf379d367b57"
+    "mtime": 1792234428.5993612,
+    "seen": 1792234866.581702,
+    "ast_hash": "24fbb33bddaf21130d7855d1ff7dd9c2",
+    "semantic_hash": ""
   },
   "src/screens/TroubleshootScreen.tsx": {
     "mtime": 1792140083.8310115,
@@ -480,10 +480,10 @@
     "semantic_hash": "b5783f87a2a7475a698005e681560a34"
   },
   "README.md": {
-    "mtime": 1791970767.9270005,
-    "seen": 1792162215.151026,
-    "ast_hash": "d45b78ef50ead1fe965f9e84f45f5601",
-    "semantic_hash": "d45b78ef50ead1fe965f9e84f45f5601"
+    "mtime": 1792234824.3663616,
+    "seen": 1792234866.581702,
+    "ast_hash": "c9341673c58a3a3a511c15f96726e681",
+    "semantic_hash": ""
   },
   "android/app/src/main/res/mipmap-hdpi/ic_launcher.png": {
     "mtime": 1791970767.9254954,
@@ -546,9 +546,9 @@
     "semantic_hash": "250b231d6a4989ba507ae9b02db6b0dd"
   },
   "AGENTS.md": {
-    "mtime": 1792162852.3724031,
-    "seen": 1792234320.1355376,
-    "ast_hash": "f36539ecc9af68f33ebd72770ce4a19e",
+    "mtime": 1792234642.6498628,
+    "seen": 1792234866.581702,
+    "ast_hash": "1c52324abbc0ecc12f18f8bc310ad17d",
     "semantic_hash": ""
   }
 }
