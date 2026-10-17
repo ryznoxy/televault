@@ -135,7 +135,12 @@ export class TelegramBotApi {
 
   /** Drop the `bot<token>` segment so a URL echoed in an error never leaks it. */
   private redact(message: string): string {
-    return message.split(this.baseUrl).join(this.redactedUrl);
+    return message
+      .split(this.baseUrl)
+      .join(this.redactedUrl)
+      // A transport error can echo the request URL in another shape (encoded,
+      // truncated, re-ordered), so also strip any bare `bot<digits>:<token>` run.
+      .replace(/bot\d{5,}:[A-Za-z0-9_-]+/g, 'bot<token>');
   }
 
   /**
