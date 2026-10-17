@@ -82,7 +82,7 @@ export function reassemblyScripts(
   const encrypted = manifest.encryption !== undefined || manifest.files.some(file => file.encrypted);
   const shLines = [
     '#!/bin/bash',
-    `# TelebotBackup reassembly for ${manifestName}`,
+    `# TeleVault reassembly for ${manifestName}`,
     '# Place this script beside the downloaded chunks, then run it with bash.',
     ...(encrypted ? [DECRYPT_NOTE(manifestName)] : []),
     'set -e',
@@ -99,7 +99,7 @@ export function reassemblyScripts(
   ];
   const batLines = [
     '@echo off',
-    `REM TelebotBackup reassembly for ${manifestName}`,
+    `REM TeleVault reassembly for ${manifestName}`,
     'REM Place this script beside the downloaded chunks, then run it.',
     ...(encrypted
       ? [

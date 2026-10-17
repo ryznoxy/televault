@@ -1,5 +1,5 @@
 /**
- * Telebot Backup - React Native
+ * TeleVault - encrypted phone backup to Telegram
  *
  * @format
  */
