@@ -20,6 +20,8 @@ Dipakai sekali per rilis. Centang berurutan; jangan lompat ke Play Console sebel
 - [ ] Sertifikat AAB/APK adalah upload key, bukan debug:
       `apksigner verify --print-certs app-release.apk` → SHA-256 bukan `FA:C6:17:...:3B:9C`
 - [ ] `aapt2 dump badging app-release.apk | Select-String package` → `com.televault.app`, versi benar
+- [ ] `aapt2 dump permissions app-release.apk` → tidak ada `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`, `USE_BIOMETRIC`, `WRITE_EXTERNAL_STORAGE`
+- [ ] Ikon launcher bukan robot React Native (violet + gembok), ikon adaptif bulat benar di Android 8+
 - [ ] Upload key + password tersimpan di dua tempat (password manager + cadangan offline). Hilang = tidak bisa merilis update lagi.
 
 ## 3. Uji di device (wajib, tidak bisa didelegasikan)

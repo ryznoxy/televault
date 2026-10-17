@@ -105,6 +105,7 @@ Bundle id `com.televault.app`, `MARKETING_VERSION` di `ios/TelebotBackupRN.xcode
 - **Contacts & SMS belum ada** — barisnya tampil nonaktif ("Segera hadir"); belum ada reader-nya.
 - **Folder custom belum jalan di Android** — SAF hanya memberi `content://` yang tidak bisa ditelusuri `ls`, jadi kategorinya dinonaktifkan di Android dan folder bebas dipakai di iOS.
 - **Documents di Android 11+ bisa kosong** — scoped storage membatasi folder `Download`/`Documents`. Kategori yang terbaca 0 berkas akan memberitahukannya di ringkasan backup.
+- **Android 15+ membatasi foreground service `dataSync` ±6 jam per hari** — backup yang lebih lama dari itu bisa dihentikan sistem; jalankan ulang atau kecilkan jumlah berkas per run (`maxFilesPerRun`).
 - **Jadwal global, bukan per folder** — satu jadwal untuk semua kategori terpilih.
 - **Tema masih terang saja** — baris "Tampilan gelap" nonaktif.
 - **iOS belum diuji di device.**
