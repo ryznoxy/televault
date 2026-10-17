@@ -2,7 +2,7 @@ import ReactNativeBlobUtil from 'react-native-blob-util';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { bytesToHex, utf8ToBytes } from '@noble/hashes/utils.js';
 import { createManifest, manifestToJson, type ManifestFile } from '../src/backup/manifest';
-import { encryptFile, fromBase64, toBase64 } from '../src/backup/crypto';
+import { encryptFile, encryptFileWithKey, fromBase64, keyFromPassphrase, toBase64 } from '../src/backup/crypto';
 import {
   findManifestPath,
   findManifestPaths,
@@ -174,6 +174,76 @@ test('encrypted roundtrip: encrypt, chunk, verify, decrypt and write out', async
   expect(Array.from(fromBase64(out))).toEqual(Array.from(utf8ToBytes(plaintext)));
 });
 
+test('P0-1: v2 parts are encrypted one by one and still restore byte for byte', async () => {
+  const dir = '/restore/enc-v2';
+  // 24 bytes, split 12/12: both parts then fit base64 without padding, which is
+  // what lets the parts be appended as text in the fs mock.
+  const plaintext = 'hello tele vault part 22';
+  const salt = 'c2FsdHNhbHRzYWx0c2FsdA==';
+  const key = keyFromPassphrase('correct horse battery staple', salt);
+  const split = 12;
+
+  const encryptPart = async (partName: string, bytes: Uint8Array): Promise<string> => {
+    const source = `${dir}/${partName}.plain`;
+    await fs.writeFile(source, toBase64(bytes));
+    const enc = await encryptFileWithKey(source, key, `${dir}/${partName}`);
+    return enc.ivB64;
+  };
+  // Each part is its own AES-GCM message, which is what a backup run now uploads.
+  const ivs = [
+    await encryptPart('note.txt.enc.001', utf8ToBytes(plaintext.slice(0, split))),
+    await encryptPart('note.txt.enc.002', utf8ToBytes(plaintext.slice(split))),
+  ];
+  await writeManifest(
+    dir,
+    [
+      {
+        name: 'note.txt.enc',
+        size: plaintext.length,
+        chunks: 2,
+        encrypted: true,
+        // The fs mock keeps files as text, so the reassembled file is the
+        // concatenated base64 and that is what the runner hashes.
+        sha256: shaOf(toBase64(utf8ToBytes(plaintext))),
+        ivs,
+      },
+    ],
+    {
+      algorithm: 'AES-256-GCM',
+      kdf: 'PBKDF2-SHA256',
+      iterations: 210000,
+      salt,
+    },
+  );
+
+  const result = await restoreFromFolder(dir, { passphrase: 'correct horse battery staple' });
+
+  expect(result.files[0].status).toBe('ok');
+  const out = await fs.readFile(`${dir}/restored/note.txt`, 'base64');
+  expect(Array.from(fromBase64(out))).toEqual(Array.from(utf8ToBytes(plaintext)));
+});
+
+test('P0-1: a v2 entry whose IV count does not match its part count is rejected', () => {
+  const entry = {
+    version: '2.0',
+    session_id: 's',
+    device: 'd',
+    created_at: 0,
+    total_size: 1,
+    files: [
+      {
+        name: 'a.zip.enc',
+        size: 1,
+        chunks: 2,
+        encrypted: true,
+        sha256: 'x',
+        ivs: ['aXYtMQ=='],
+      },
+    ],
+  };
+  expect(() => parseManifest(JSON.stringify(entry))).toThrow(/jumlah IV/);
+});
+
 test('restore decrypts with the iteration count recorded in the manifest', async () => {
   const dir = '/restore/iters';
   const source = `${dir}/note.txt`;
@@ -265,8 +335,11 @@ test('a missing part fails that file while the other still succeeds', async () =
 
 test('malformed manifests are rejected with a clear error', () => {
   expect(() => parseManifest('not json')).toThrow(/JSON/);
-  expect(() => parseManifest(JSON.stringify({ version: '2.0', files: [] }))).toThrow(/Versi/);
+  expect(() => parseManifest(JSON.stringify({ version: '3.0', files: [] }))).toThrow(/Versi/);
   expect(() => parseManifest(JSON.stringify({ version: '1.0' }))).toThrow(/session_id/);
+  // 2.0 (per-part encryption) is a supported version, so it must get past the
+  // version gate and fail on the missing session_id instead.
+  expect(() => parseManifest(JSON.stringify({ version: '2.0' }))).toThrow(/session_id/);
   expect(() =>
     parseManifest(
       JSON.stringify({
@@ -303,6 +376,26 @@ test('P2: a manifest file name that could escape the output directory is rejecte
 test('P2: an ordinary manifest file name still parses', () => {
   const manifest = parseManifest(manifestWithName('DCIM_123.zip'));
   expect(manifest.files[0].name).toBe('DCIM_123.zip');
+});
+
+test('P1-6: a name that merely contains ".." is a normal file name', () => {
+  // Rejecting it made a whole manifest unrestorable even though the name can
+  // never escape the output directory (no separator, not exactly "..").
+  const manifest = parseManifest(manifestWithName('backup..2024.pdf'));
+  expect(manifest.files[0].name).toBe('backup..2024.pdf');
+});
+
+test('P1-6: a file named "backup..2024.txt" restores instead of failing the manifest', async () => {
+  const dir = '/restore/dots';
+  await fs.writeFile(`${dir}/backup..2024.txt.001`, 'ABC');
+  await writeManifest(dir, [
+    { name: 'backup..2024.txt', size: 3, chunks: 1, encrypted: false, sha256: shaOf('ABC') },
+  ]);
+
+  const result = await restoreFromFolder(dir);
+
+  expect(result.status).toBe('success');
+  expect(await fs.readFile(`${dir}/restored/backup..2024.txt`)).toBe('ABC');
 });
 
 test('P1-5: toFileUri turns a bare path into a file:// uri and leaves real uris alone', () => {
