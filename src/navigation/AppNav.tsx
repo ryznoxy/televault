@@ -1,0 +1,101 @@
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import {
+  createNativeStackNavigator,
+  type NativeStackNavigationProp,
+} from '@react-navigation/native-stack';
+import { BottomNav, type TabKey } from '../components/ui';
+import { useTheme } from '../theme/ThemeProvider';
+import { RootStackParamList, Routes } from './Routes';
+import { useSettingsStore } from '../state/settingsStore';
+import SetupScreen from '../screens/SetupScreen';
+import HomeScreen from '../screens/HomeScreen';
+import SettingsScreen from '../screens/SettingsScreen';
+import StatsScreen from '../screens/StatsScreen';
+import TroubleshootScreen from '../screens/TroubleshootScreen';
+import RestoreScreen from '../screens/RestoreScreen';
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+const TAB_ROUTES: Record<TabKey, keyof RootStackParamList> = {
+  home: Routes.Home,
+  setup: Routes.Setup,
+  settings: Routes.Settings,
+  stats: Routes.Stats,
+};
+
+function TabShell({
+  tab,
+  navigation,
+  children,
+}: {
+  tab: TabKey;
+  navigation: NativeStackNavigationProp<RootStackParamList>;
+  children: React.ReactNode;
+}) {
+  return (
+    <View style={styles.shell}>
+      {children}
+      <BottomNav
+        active={tab}
+        onChange={next => {
+          if (next !== tab) {
+            navigation.navigate(TAB_ROUTES[next] as never);
+          }
+        }}
+      />
+    </View>
+  );
+}
+
+export default function AppNav() {
+  const { theme } = useTheme();
+  const setupDone = useSettingsStore(state => state.setupDone);
+  return (
+    <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName={setupDone ? Routes.Home : Routes.Setup}
+        screenOptions={{
+          headerShown: false,
+          animation: 'slide_from_right',
+          contentStyle: { backgroundColor: theme.bg },
+        }}>
+        <Stack.Screen name={Routes.Home}>
+          {props => (
+            <TabShell tab="home" navigation={props.navigation}>
+              <HomeScreen {...props} />
+            </TabShell>
+          )}
+        </Stack.Screen>
+        <Stack.Screen name={Routes.Stats}>
+          {props => (
+            <TabShell tab="stats" navigation={props.navigation}>
+              <StatsScreen {...props} />
+            </TabShell>
+          )}
+        </Stack.Screen>
+        <Stack.Screen name={Routes.Settings}>
+          {props => (
+            <TabShell tab="settings" navigation={props.navigation}>
+              <SettingsScreen {...props} />
+            </TabShell>
+          )}
+        </Stack.Screen>
+        <Stack.Screen name={Routes.Setup}>
+          {props => (
+            <TabShell tab="setup" navigation={props.navigation}>
+              <SetupScreen {...props} />
+            </TabShell>
+          )}
+        </Stack.Screen>
+        <Stack.Screen name={Routes.Troubleshoot} component={TroubleshootScreen} />
+        <Stack.Screen name={Routes.Restore} component={RestoreScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+
+const styles = StyleSheet.create({
+  shell: { flex: 1 },
+});

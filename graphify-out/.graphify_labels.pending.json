@@ -1,0 +1,19 @@
+{
+  "0": "SettingsScreen.tsx",
+  "1": "restoreRunner.ts",
+  "5": "backupRunner.ts",
+  "28": "restoreRunner.test.ts",
+  "29": "RestoreScreen.tsx",
+  "30": "HomeScreen.tsx",
+  "31": "SetupScreen.tsx",
+  "32": "TroubleshootScreen.tsx",
+  "33": "crypto.ts",
+  "34": "AppNav.tsx",
+  "35": "fileScanner.ts",
+  "36": "secureStore.ts",
+  "37": "foregroundService.test.ts",
+  "38": "chunker.ts",
+  "39": "incremental.ts",
+  "40": "react",
+  "41": "AGENTS.md"
+}
