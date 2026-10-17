@@ -5,6 +5,7 @@ import {
   encryptFileWithKey,
   isCryptoAvailable,
   keyFromPassphrase,
+  MAX_ENCRYPTED_PART_SIZE,
   newSaltB64,
 } from './crypto';
 import { scanCategory, scanCustomFolders, ensureLocalPath, type ScanResult } from './fileScanner';
@@ -127,7 +128,7 @@ function mimeFor(name: string): string {
  * One bounded reason for the session row: History shows a single line, and a
  * run can lose hundreds of parts.
  */
-function summarizeErrors(errors: string[]): string | null {
+export function summarizeErrors(errors: string[]): string | null {
   if (errors.length === 0) {
     return null;
   }
@@ -319,9 +320,10 @@ export async function runBackup(
    * uploaded as `chunkName(entryName, index)` so both the reassembly script and
    * the restore find it back by name.
    *
-   * Encrypting per part keeps peak RAM at one part (49 MB) instead of the whole
-   * archive, which is what the old whole-archive encryption needed and what
-   * killed the app on real photo libraries (P0-1).
+   * Encrypting per part keeps peak RAM at one part instead of the whole archive,
+   * which is what the old whole-archive encryption needed and what killed the
+   * app on real photo libraries (P0-1). Encrypted parts are smaller than the Bot
+   * API limit because the JS crypto path needs several copies of one part.
    */
   const uploadParts = async (
     sourcePath: string,
@@ -331,7 +333,11 @@ export async function runBackup(
     /** Fraction (0–1) of the whole archive sent so far, across every chunk. */
     onBytes?: (fraction: number) => void,
   ): Promise<{ chunks: ChunkFile[]; failed: ChunkFile[]; ivs: string[] }> => {
-    const chunks = await chunkFile(sourcePath, MAX_CHUNK_SIZE, stagingDir);
+    const chunks = await chunkFile(
+      sourcePath,
+      key ? MAX_ENCRYPTED_PART_SIZE : MAX_CHUNK_SIZE,
+      stagingDir,
+    );
     const chunkIds = new Map<number, number>();
     for (const chunk of chunks) {
       const rowId = await chunksRepo.insert({
@@ -452,7 +458,12 @@ export async function runBackup(
   const queue: Queued[] = [];
   // One read of the tracking table instead of two queries per scanned file: a
   // large library spent minutes in SQLite round-trips before any upload (P1-9).
-  const tracked = new Map((await filesRepo.listAll()).map(row => [row.path, row]));
+  const trackedRows = await filesRepo.listAll();
+  const tracked = new Map(trackedRows.map(row => [row.path, row]));
+  const trackedPerCategory = new Map<string, number>();
+  for (const row of trackedRows) {
+    trackedPerCategory.set(row.category, (trackedPerCategory.get(row.category) ?? 0) + 1);
+  }
   for (const category of categories) {
     const customUris = config.watchedFolders.map(folder => folder.uri);
     if (category === Category.CUSTOM && customUris.length === 0 && !config.customFolderUri) {
@@ -466,14 +477,17 @@ export async function runBackup(
           : await scanCategory(category, config.customFolderUri);
 
       // A category that reads nothing is not an error, but it must not look
-      // like a successful backup either: on Android 11+ the Documents walk
-      // legitimately sees nothing (P1-7).
+      // like a successful backup either. Only speak up when it matters: DOC on
+      // Android 11+ legitimately sees nothing (scoped storage), and a category
+      // that used to hold tracked files is a real regression. An empty gallery
+      // stays quiet instead of nagging on every run (P1-7).
       if (scanned.length === 0) {
-        notes.push(
-          category === Category.DOC
-            ? 'Dokumen: 0 berkas terbaca. Android 11+ membatasi akses folder Download.'
-            : `${CATEGORY_NAMES_ID[category]}: 0 berkas terbaca.`,
-        );
+        const trackedHere = trackedPerCategory.get(category) ?? 0;
+        if (category === Category.DOC) {
+          notes.push('Dokumen: 0 berkas terbaca. Android 11+ membatasi akses folder Download.');
+        } else if (trackedHere > 0) {
+          notes.push(`${CATEGORY_NAMES_ID[category]}: 0 berkas terbaca, padahal sebelumnya ada.`);
+        }
       }
 
       const pending: QueuedFile[] = [];

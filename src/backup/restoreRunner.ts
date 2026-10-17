@@ -251,16 +251,26 @@ export function mergeManifests(manifests: Manifest[]): Manifest {
       throw new Error('Manifest dengan parameter enkripsi berbeda tidak dapat digabung');
     }
   }
-  const seen = new Set<string>();
-  const files: ManifestFile[] = [];
+  const byName = new Map<string, ManifestFile>();
   for (const manifest of manifests) {
     for (const file of manifest.files) {
-      if (!seen.has(file.name)) {
-        seen.add(file.name);
-        files.push(file);
+      const seen = byName.get(file.name);
+      if (!seen) {
+        byName.set(file.name, file);
+        continue;
+      }
+      // Same name, different content: two runs backed up different files under
+      // one name (a deleted photo replaced by another with the same name).
+      // Silently keeping the first one lost the other, so refuse the merge and
+      // let the user restore each session on its own.
+      if (seen.sha256 !== file.sha256 || seen.size !== file.size || seen.chunks !== file.chunks) {
+        throw new Error(
+          `Dua berkas berbeda memakai nama yang sama: ${file.name}. Pulihkan tiap sesi secara terpisah.`,
+        );
       }
     }
   }
+  const files = [...byName.values()];
   return {
     ...first,
     files,

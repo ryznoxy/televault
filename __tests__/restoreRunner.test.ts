@@ -223,6 +223,40 @@ test('P0-1: v2 parts are encrypted one by one and still restore byte for byte', 
   expect(Array.from(fromBase64(out))).toEqual(Array.from(utf8ToBytes(plaintext)));
 });
 
+test('P0-1: a v2 part with the wrong passphrase fails that file, not the run', async () => {
+  const dir = '/restore/enc-v2-wrong';
+  const salt = 'c2FsdHNhbHRzYWx0c2FsdA==';
+  const key = keyFromPassphrase('right passphrase', salt);
+  const plaintext = 'part one, part two';
+  const source = `${dir}/note.txt.enc.001.plain`;
+  await fs.writeFile(source, toBase64(utf8ToBytes(plaintext)));
+  const enc = await encryptFileWithKey(source, key, `${dir}/note.txt.enc.001`);
+  await writeManifest(
+    dir,
+    [
+      {
+        name: 'note.txt.enc',
+        size: plaintext.length,
+        chunks: 1,
+        encrypted: true,
+        sha256: shaOf(toBase64(utf8ToBytes(plaintext))),
+        ivs: [enc.ivB64],
+      },
+    ],
+    {
+      algorithm: 'AES-256-GCM',
+      kdf: 'PBKDF2-SHA256',
+      iterations: 210000,
+      salt,
+    },
+  );
+
+  const result = await restoreFromFolder(dir, { passphrase: 'wrong passphrase' });
+
+  expect(result.status).toBe('failed');
+  expect(result.files[0].error).toContain('Passphrase');
+});
+
 test('P0-1: a v2 entry whose IV count does not match its part count is rejected', () => {
   const entry = {
     version: '2.0',
@@ -516,6 +550,33 @@ test('manifests with different encryption parameters do not merge', () => {
       }),
     ]),
   ).toThrow(/parameter enkripsi/i);
+});
+
+test('P0-3: two different files sharing a name are refused, not silently dropped', () => {
+  const entry = (sha256: string, size: number): ManifestFile => ({
+    name: 'IMG_0001.jpg',
+    size,
+    chunks: 1,
+    encrypted: false,
+    sha256,
+  });
+
+  // Same name, different content: two runs backed up different photos under one
+  // name. Merging used to keep the first and lose the second without a word.
+  expect(() =>
+    mergeManifests([
+      createManifest('Pixel 7', 1, [entry('aaaa', 10)], 'session-1'),
+      createManifest('Pixel 7', 2, [entry('bbbb', 20)], 'session-2'),
+    ]),
+  ).toThrow(/nama yang sama/i);
+
+  // The same entry repeated (one archive split over two manifests) still merges.
+  const merged = mergeManifests([
+    createManifest('Pixel 7', 1, [entry('aaaa', 10)], 'session-1'),
+    createManifest('Pixel 7', 1, [entry('aaaa', 10)], 'session-1'),
+  ]);
+  expect(merged.files).toHaveLength(1);
+  expect(merged.totalSize).toBe(10);
 });
 
 test('restoreFromFolder finds a manifest named after its archive', async () => {

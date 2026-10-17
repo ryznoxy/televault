@@ -100,15 +100,23 @@ export function keyFromPassphrase(
 }
 
 /**
+ * Part size used when encryption is on. The Bot API allows 49 MB, but the JS
+ * crypto path holds the base64 text, the decoded bytes and the ciphertext at
+ * once (≈4x the part), so a 49 MB part peaked near 250 MB and could OOM a 2 GB
+ * device mid-run. 16 MB keeps the peak around 80 MB at the cost of more parts.
+ */
+export const MAX_ENCRYPTED_PART_SIZE = 16 * 1024 * 1024;
+
+/**
  * Encrypt one file with an already-derived key and write the ciphertext to
  * `outPath`.
  *
- * Callers pass one 49 MB upload part at a time, so peak RAM is bounded by the
- * part, not by the archive: whole-archive encryption needed the plaintext, the
+ * Callers pass one upload part at a time, so peak RAM is bounded by the part,
+ * not by the archive: whole-archive encryption needed the plaintext, the
  * ciphertext and both base64 copies of a multi-GB zip in the JS heap at once
  * and killed the app on real photo libraries (P0).
  *
- * ponytail: one part in RAM at a time (base64 + plaintext + ciphertext ≈ 3x the
+ * ponytail: one part in RAM at a time (base64 + plaintext + ciphertext ≈ 4x the
  * part). Upgrade path: a small native module that streams AES-GCM.
  */
 export async function encryptFileWithKey(

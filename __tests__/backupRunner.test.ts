@@ -1,4 +1,4 @@
-import { runBackup } from '../src/backup/backupRunner';
+import { runBackup, summarizeErrors } from '../src/backup/backupRunner';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import { PermissionsAndroid, Platform } from 'react-native';
 import { filesRepo, type FileRecord } from '../src/db/repositories/files';
@@ -674,6 +674,14 @@ describe('P2-g: requestBackupPermissions asks only for what the categories need'
     expect(request).not.toHaveBeenCalled();
   });
 
+  test('P2-4: iOS has no runtime notification permission to ask for', async () => {
+    Platform.OS = 'ios';
+
+    await requestNotificationPermission();
+
+    expect(request).not.toHaveBeenCalled();
+  });
+
   test('a docs-only runBackup never touches the media permissions', async () => {
     useSettingsStore.getState().setCategories([Category.DOC]);
     scanMock.mockResolvedValue([]);
@@ -754,8 +762,9 @@ test('P0-1: an encrypted run stores one IV per part and hashes the plaintext arc
     encryptionPassword: 'correct horse battery staple',
   });
   scanMock.mockImplementation(async (category: string) => (category === 'photo' ? [PHOTO_ITEM] : []));
-  // 60 MB → two parts, so the manifest must carry two IVs.
-  statMock.mockResolvedValue({ size: 60 * 1024 * 1024, lastModified: 0, type: 'file' });
+  // 32 MB → two 16 MB parts, so the manifest must carry two IVs. Encrypted runs
+  // use the smaller part size to keep the JS crypto peak RAM bounded.
+  statMock.mockResolvedValue({ size: 32 * 1024 * 1024, lastModified: 0, type: 'file' });
 
   const result = await runBackup();
 
@@ -812,4 +821,45 @@ test('P2-6: a zip run keeps every manifest message id for the history deep link'
   const finishCalls = (sessionsRepo.finishSession as unknown as jest.Mock).mock.calls;
   // Two archives → two manifests → both ids, so History can link either one.
   expect(finishCalls[0][7]).toBe('7,7');
+});
+
+test('P1: an empty gallery stays quiet, a category that lost its files is reported', async () => {
+  useSettingsStore.getState().setCategories([Category.PHOTO]);
+  scanMock.mockResolvedValue([]);
+
+  const quiet = await runBackup();
+
+  // Nothing was ever tracked for this category, so there is nothing to warn about.
+  expect(quiet.notes).toBeUndefined();
+
+  filesMock.listAll.mockResolvedValue([
+    {
+      id: 1,
+      path: '/photo/a.jpg',
+      category: 'photo',
+      hash: null,
+      size: 10,
+      modified_at: 200,
+      last_backup: 1,
+      status: 'uploaded',
+    },
+  ]);
+
+  const regression = await runBackup();
+
+  // The category used to hold files and now reads none: say so.
+  expect(regression.notes?.some(note => note.includes('Photos'))).toBe(true);
+});
+
+test('P1: the session reason keeps a bounded number of failures', () => {
+  const many = Array.from({ length: 6 }, (_, index) => `potongan ${index} gagal`);
+
+  const summary = summarizeErrors(many);
+
+  expect(summary).toContain('potongan 0 gagal');
+  expect(summary).toContain('(+3 lainnya)');
+  expect(summary?.length).toBeLessThanOrEqual(500);
+  expect(summarizeErrors([])).toBeNull();
+  // A single huge error is truncated too, so the row stays one line.
+  expect(summarizeErrors(['x'.repeat(600)])?.length).toBe(498);
 });
