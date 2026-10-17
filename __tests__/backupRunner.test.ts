@@ -5,7 +5,11 @@ import { filesRepo, type FileRecord } from '../src/db/repositories/files';
 import { sessionsRepo } from '../src/db/repositories/sessions';
 import { chunksRepo } from '../src/db/repositories/chunks';
 import { scanCategory, ensureLocalPath, type ScanResult } from '../src/backup/fileScanner';
-import { needsMediaPermissions, requestBackupPermissions } from '../src/backup/permissions';
+import {
+  needsMediaPermissions,
+  requestBackupPermissions,
+  requestNotificationPermission,
+} from '../src/backup/permissions';
 import { TelegramBotApi } from '../src/net/telegramApi';
 import { secureStore } from '../src/state/secureStore';
 import { useSettingsStore } from '../src/state/settingsStore';
@@ -14,6 +18,8 @@ import { Category } from '../src/types/models';
 jest.mock('../src/db/repositories/files', () => ({
   filesRepo: {
     upsert: jest.fn(async () => undefined),
+    upsertMany: jest.fn(async () => undefined),
+    listAll: jest.fn(async () => []),
     getByPath: jest.fn(async () => null),
     markBackup: jest.fn(async () => undefined),
     count: jest.fn(async () => 0),
@@ -57,6 +63,8 @@ jest.mock('../src/backup/fileScanner', () => ({
 
 const filesMock = filesRepo as unknown as {
   upsert: jest.Mock;
+  upsertMany: jest.Mock;
+  listAll: jest.Mock;
   getByPath: jest.Mock;
   markBackup: jest.Mock;
   count: jest.Mock;
@@ -97,8 +105,7 @@ type NewFileInput = {
 function installStatefulFilesRepo(): Map<string, FileRecord> {
   const store = new Map<string, FileRecord>();
   let nextId = 1;
-  filesMock.getByPath.mockImplementation(async (path: string) => store.get(path) ?? null);
-  filesMock.upsert.mockImplementation(async (file: NewFileInput) => {
+  const upsertOne = (file: NewFileInput): void => {
     const existing = store.get(file.path);
     if (existing) {
       store.set(file.path, { ...existing, category: file.category, size: file.size });
@@ -115,7 +122,13 @@ function installStatefulFilesRepo(): Map<string, FileRecord> {
       status: 'pending',
     });
     nextId += 1;
+  };
+  filesMock.listAll.mockImplementation(async () => [...store.values()]);
+  filesMock.upsertMany.mockImplementation(async (rows: NewFileInput[]) => {
+    rows.forEach(upsertOne);
   });
+  filesMock.upsert.mockImplementation(async (file: NewFileInput) => upsertOne(file));
+  filesMock.getByPath.mockImplementation(async (path: string) => store.get(path) ?? null);
   filesMock.markBackup.mockImplementation(
     async (path: string, hash: string, backupTime: number, modifiedAt: number) => {
       const existing = store.get(path);
@@ -146,6 +159,8 @@ beforeEach(() => {
   jest.clearAllMocks();
   delete fsMock.df;
   filesMock.upsert.mockResolvedValue(undefined);
+  filesMock.upsertMany.mockResolvedValue(undefined);
+  filesMock.listAll.mockResolvedValue([]);
   filesMock.getByPath.mockResolvedValue(null);
   filesMock.markBackup.mockResolvedValue(undefined);
   chunksMock.insert.mockResolvedValue(1);
@@ -163,6 +178,7 @@ beforeEach(() => {
   });
   useSettingsStore.getState().setMaxFilesPerRun(500);
   useSettingsStore.getState().setEncryptionEnabled(false);
+  useSettingsStore.getState().setCompressZip(true);
 });
 
 test('re-uploads a changed file because existing state is read before upsert', async () => {
@@ -177,22 +193,7 @@ test('re-uploads a changed file because existing state is read before upsert', a
     last_backup: 50,
     status: 'uploaded',
   });
-  filesMock.getByPath.mockImplementation(async (path: string) => store.get(path) ?? null);
-  filesMock.upsert.mockImplementation(
-    async (file: { path: string; category: string; size: number; modifiedAt: number }) => {
-      const existing = store.get(file.path);
-      store.set(file.path, {
-        id: existing?.id ?? 1,
-        path: file.path,
-        category: file.category,
-        hash: existing?.hash ?? null,
-        size: file.size,
-        modified_at: file.modifiedAt,
-        last_backup: existing?.last_backup ?? null,
-        status: existing?.status ?? 'pending',
-      });
-    },
-  );
+  filesMock.listAll.mockImplementation(async () => [...store.values()]);
   scanMock.mockImplementation(async (category: string) => (category === 'photo' ? [PHOTO_ITEM] : []));
 
   const result = await runBackup();
@@ -214,7 +215,7 @@ test('unchanged file is skipped', async () => {
     last_backup: 50,
     status: 'uploaded',
   });
-  filesMock.getByPath.mockImplementation(async (path: string) => store.get(path) ?? null);
+  filesMock.listAll.mockImplementation(async () => [...store.values()]);
   scanMock.mockImplementation(async (category: string) => (category === 'photo' ? [PHOTO_ITEM] : []));
 
   const result = await runBackup();
@@ -660,13 +661,17 @@ describe('P2-g: requestBackupPermissions asks only for what the categories need'
     expect(state.denied).toEqual([PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO]);
   });
 
-  test('a denied notification request never blocks the backup', async () => {
+  test('P2-4: notifications are asked for from a screen, never from inside a run', async () => {
     request.mockResolvedValue(PermissionsAndroid.RESULTS.DENIED);
 
-    const state = await requestBackupPermissions([Category.DOC]);
-
-    expect(state).toEqual({ granted: true, denied: [] });
+    // A denial changes nothing: the notification is cosmetic.
+    await requestNotificationPermission();
     expect(request).toHaveBeenCalledWith(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
+
+    request.mockClear();
+    await requestBackupPermissions([Category.DOC]);
+    // A headless run has no activity to show the dialog on, so it must not ask.
+    expect(request).not.toHaveBeenCalled();
   });
 
   test('a docs-only runBackup never touches the media permissions', async () => {
@@ -692,4 +697,119 @@ describe('P2-g: requestBackupPermissions asks only for what the categories need'
     expect(result.status).toBe('failed');
     expect(result.error).toMatch(/permissions/i);
   });
+});
+
+test('P0-3: two files with the same name get distinct entries and part names', async () => {
+  // The collision only exists without zipping: with zipping every category is a
+  // single archive whose name is unique per run.
+  useSettingsStore.getState().setCompressZip(false);
+  const store = installStatefulFilesRepo();
+  const first: ScanResult = { ...PHOTO_ITEM, path: '/photo/IMG_0001.jpg', displayName: 'IMG_0001.jpg' };
+  const second: ScanResult = {
+    ...PHOTO_ITEM,
+    path: '/other/IMG_0001.jpg',
+    displayName: 'IMG_0001.jpg',
+    size: 20,
+  };
+  scanMock.mockImplementation(async (category: string) => (category === 'photo' ? [first, second] : []));
+
+  const result = await runBackup();
+
+  expect(result.status).toBe('success');
+  expect(result.files).toBe(2);
+  const names = latestApi().sendDocument.mock.calls.map(call => String(call[0].name));
+  // Distinct part names, so restore finds both sets back instead of matching one
+  // set for both entries and overwriting the output.
+  expect(names).toContain('IMG_0001.jpg.001');
+  expect(names).toContain('IMG_0001 (2).jpg.001');
+
+  const manifestName = names.find(name => name.endsWith('.manifest.json')) as string;
+  const manifestRaw = await ReactNativeBlobUtil.fs.readFile(`/cache/meta_1/${manifestName}`, 'utf8');
+  const manifest = JSON.parse(String(manifestRaw)) as { files: { name: string }[] };
+  expect(manifest.files.map(file => file.name)).toEqual(['IMG_0001.jpg', 'IMG_0001 (2).jpg']);
+  // Both sources are tracked, so neither is re-uploaded forever.
+  expect(store.get('/photo/IMG_0001.jpg')?.last_backup).not.toBeNull();
+  expect(store.get('/other/IMG_0001.jpg')?.last_backup).not.toBeNull();
+});
+
+test('P1-7: a category that reads no files is reported instead of staying silent', async () => {
+  useSettingsStore.getState().setCategories([Category.PHOTO, Category.DOC]);
+  scanMock.mockImplementation(async (category: string) => (category === 'photo' ? [PHOTO_ITEM] : []));
+
+  const result = await runBackup();
+
+  expect(result.status).toBe('success');
+  expect(result.notes?.some(note => note.includes('Dokumen'))).toBe(true);
+  const summary = latestApi()
+    .sendMessage.mock.calls.map(call => String(call[0]))
+    .join(' ');
+  expect(summary).toContain('0 berkas terbaca');
+});
+
+test('P0-1: an encrypted run stores one IV per part and hashes the plaintext archive', async () => {
+  useSettingsStore.getState().setEncryptionEnabled(true);
+  (secureStore.get as unknown as jest.Mock).mockResolvedValue({
+    botToken: 'token',
+    chatId: '42',
+    encryptionPassword: 'correct horse battery staple',
+  });
+  scanMock.mockImplementation(async (category: string) => (category === 'photo' ? [PHOTO_ITEM] : []));
+  // 60 MB → two parts, so the manifest must carry two IVs.
+  statMock.mockResolvedValue({ size: 60 * 1024 * 1024, lastModified: 0, type: 'file' });
+
+  const result = await runBackup();
+
+  expect(result.status).toBe('success');
+  const names = latestApi().sendDocument.mock.calls.map(call => String(call[0].name));
+  // Each part is encrypted on its own, so the uploaded name keeps its part index.
+  expect(names.filter(name => /^photo_\d+\.zip\.enc\.\d{3}$/.test(name))).toHaveLength(2);
+
+  const manifestName = names.find(name => name.endsWith('.manifest.json')) as string;
+  const manifestRaw = await ReactNativeBlobUtil.fs.readFile(`/cache/meta_1/${manifestName}`, 'utf8');
+  const manifest = JSON.parse(String(manifestRaw)) as {
+    version: string;
+    files: {
+      name: string;
+      chunks: number;
+      encrypted: boolean;
+      sha256: string;
+      ivs?: string[];
+      iv?: string;
+    }[];
+  };
+  const entry = manifest.files[0];
+  expect(manifest.version).toBe('2.0');
+  expect(entry.name).toMatch(/^photo_\d+\.zip\.enc$/);
+  expect(entry.encrypted).toBe(true);
+  expect(entry.ivs).toHaveLength(entry.chunks);
+  expect(entry.ivs?.every(iv => typeof iv === 'string' && iv.length > 0)).toBe(true);
+  // v1 wrote a single IV for the whole archive; v2 must not.
+  expect(entry.iv).toBeUndefined();
+  // The hash describes what the user gets back (the plaintext zip).
+  expect(entry.sha256).toBe('deadbeef');
+});
+
+test('P2-6: a zip run keeps every manifest message id for the history deep link', async () => {
+  useSettingsStore.getState().setCategories([Category.PHOTO, Category.VIDEO]);
+  const photo: ScanResult = { ...PHOTO_ITEM, path: '/photo/a.jpg', category: 'photo' };
+  const video: ScanResult = { ...PHOTO_ITEM, path: '/video/b.mp4', category: 'video' };
+  scanMock.mockImplementation(async (category: string) => {
+    if (category === 'photo') {
+      return [photo];
+    }
+    if (category === 'video') {
+      return [video];
+    }
+    return [];
+  });
+  apiMock.mockImplementation(() => ({
+    sendDocument: jest.fn(async () => ({ messageId: 7, date: 1 })),
+    sendMessage: jest.fn(async () => ({ messageId: 8, date: 1 })),
+  }));
+
+  await runBackup();
+
+  const finishCalls = (sessionsRepo.finishSession as unknown as jest.Mock).mock.calls;
+  // Two archives → two manifests → both ids, so History can link either one.
+  expect(finishCalls[0][7]).toBe('7,7');
 });

@@ -18,6 +18,16 @@ export const CATEGORY_LABELS: Record<CategoryKey, string> = {
   custom: 'Custom Folder',
 };
 
+/** Indonesian names for user-facing messages. */
+export const CATEGORY_NAMES_ID: Record<CategoryKey, string> = {
+  photo: 'Photos',
+  video: 'Videos',
+  doc: 'Dokumen',
+  contact: 'Kontak',
+  sms: 'SMS',
+  custom: 'Folder kustom',
+};
+
 export const ALL_CATEGORIES: CategoryKey[] = [
   Category.PHOTO,
   Category.VIDEO,

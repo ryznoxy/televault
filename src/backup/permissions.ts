@@ -18,6 +18,21 @@ export function needsMediaPermissions(categories: CategoryKey[]): boolean {
   return categories.includes(Category.PHOTO) || categories.includes(Category.VIDEO);
 }
 
+/**
+ * Notifications power the foreground service. Asked from a screen the user is
+ * looking at, never from inside a run: a scheduled/headless run has no activity
+ * to show the dialog on, so the request there did nothing (P2-4).
+ */
+export async function requestNotificationPermission(): Promise<void> {
+  if (Platform.OS !== 'android' || Platform.Version < 33) {
+    return;
+  }
+  const permission = PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS;
+  if (permission) {
+    await PermissionsAndroid.request(permission).catch(() => undefined);
+  }
+}
+
 export async function requestBackupPermissions(
   categories: CategoryKey[],
 ): Promise<PermissionState> {
@@ -39,13 +54,6 @@ export async function requestBackupPermissions(
     const result = await PermissionsAndroid.requestMultiple(mediaPermissions);
     denied = mediaPermissions.filter(
       permission => result[permission] !== PermissionsAndroid.RESULTS.GRANTED,
-    );
-  }
-
-  // Notifications power the foreground service; best-effort, never blocks a backup.
-  if (Platform.Version >= 33 && PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS) {
-    await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS).catch(
-      () => undefined,
     );
   }
 

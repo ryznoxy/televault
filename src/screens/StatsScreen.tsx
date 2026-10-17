@@ -193,7 +193,7 @@ export default function StatsScreen({ navigation }: Props) {
       return;
     }
     clipboard.setString(session.manifest_id);
-    showToast('Disalin', 'Hash manifest disalin.', 'success');
+    showToast('Disalin', 'ID pesan manifest disalin.', 'success');
   };
 
   const onDeleteSession = (session: SessionRecord) => {
