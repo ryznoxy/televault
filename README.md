@@ -1,97 +1,87 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# TeleVault
 
-# Getting Started
+Backup terenkripsi dari HP Android/iOS langsung ke **Telegram** — tanpa server, tanpa langganan cloud. TeleVault memotong file besar jadi beberapa bagian, mengenkripsinya di perangkat, lalu mengirimkannya sebagai dokumen ke chat bot pribadi kamu. Dari chat itu semuanya bisa dipulihkan lagi lewat aplikasi.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+Status: aplikasi React Native 0.87, Android jadi target utama, iOS ikut terbangun tapi belum diuji di device.
 
-## Step 1: Start Metro
+## Fitur
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+- **Kategori backup** — Photos, Videos, Documents, Contacts, SMS, dan folder custom (bisa lebih dari satu, masing-masing punya jadwal sendiri).
+- **Enkripsi di perangkat** — AES-256-GCM, kunci dari PBKDF2-SHA256 (210.000 iterasi, salt 16 byte, IV 12 byte per file). Passphrase tidak pernah dikirim atau disimpan; hanya salt-nya.
+- **Chunking** — file dipecah maksimal 49 MB per bagian (`nama.zip.001`, `.002`, …) supaya lolos batas 50 MB Bot API.
+- **Backup inkremental** — file yang `mtime`-nya tidak berubah dilewati, jadi backup harian hanya mengunggah yang baru.
+- **Manifest + skrip reassembly** — setiap sesi mengirim `manifest.json` (ukuran, jumlah chunk, SHA-256, info enkripsi) plus skrip `.sh`/`.bat` untuk menyatukan potongan tanpa aplikasi.
+- **Restore dari Telegram** — gabung chunk → verifikasi SHA-256 → dekripsi → ekstrak zip, dengan status per file.
+- **Penjadwalan** — manual, interval (jam), jam tertentu tiap hari, atau hanya saat charging.
+- **Jalan di background** — `react-native-background-fetch` + foreground service, termasuk headless task saat aplikasi tertutup.
+- **Upload tahan putus** — retry dengan backoff; progres, riwayat sesi, dan statistik tersimpan lokal (SQLite) dan bisa diekspor CSV.
+- **Troubleshoot** — layar diagnostik untuk izin, koneksi bot, dan panduan baterai per OEM.
+- **Wifi-only, tema terang/gelap**, dan passphrase strength check.
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+## Alur backup
 
-```sh
-# Using npm
-npm start
-
-# OR using Yarn
-yarn start
+```
+scan kategori → saring file berubah → (opsional) zip → enkripsi → potong 49 MB
+   → upload sendDocument ke chat bot → upload manifest.json + skrip → catat sesi di SQLite
 ```
 
-## Step 2: Build and run your app
+## Prasyarat
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+- Node.js >= 22.11, JDK 17, Android SDK (mengikuti [set up environment](https://reactnative.dev/docs/set-up-your-environment)).
+- Bot Telegram: buat lewat [@BotFather](https://t.me/BotFather), lalu ambil **chat ID** (kirim pesan ke bot, buka `https://api.telegram.org/bot<TOKEN>/getUpdates`).
+- Untuk iOS: Xcode + CocoaPods (`bundle install && bundle exec pod install`).
 
-### Android
+Token bot dan chat ID disimpan di keychain/keystore lewat `react-native-keychain`, bukan di source atau `.env`.
 
-```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
-```
-
-### iOS
-
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+## Menjalankan
 
 ```sh
-bundle install
-```
-
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
-```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
+npm install
+npm start          # Metro
+npm run android    # terminal lain
 npm run ios
-
-# OR using Yarn
-yarn ios
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+Di aplikasi: layar Setup → tempel token bot → validasi → tempel chat ID → kirim pesan tes → pilih kategori, jadwal, dan passphrase → backup pertama.
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+## Pengembangan
 
-## Step 3: Modify your app
+```sh
+npm test           # Jest
+npm run typecheck  # tsc --noEmit
+npm run lint       # ESLint
+```
 
-Now that you have successfully run the app, let's make changes!
+Struktur:
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+```
+src/
+  backup/     scan, chunker, crypto, hasher, manifest, zip, upload retry, runner backup & restore
+  background/ scheduler, foreground service, headless task, aturan kapan backup jalan
+  db/         op-sqlite: schema + repository sessions/files/chunks
+  net/        klien Bot API (token selalu di-redact dari error)
+  screens/    Home, Setup, Restore, Settings, Stats, Troubleshoot
+  state/      zustand store (MMKV persist), secure store, riwayat
+  theme/      token warna terang/gelap
+__tests__/    unit test per modul
+```
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+## Batasan yang diketahui
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+- **7z belum didukung** — writer 7z tidak tersedia di Hermes; opsi format ditampilkan tapi dinonaktifkan (`src/backup/zipper.ts`).
+- **49 MB per chunk** — batas Bot API publik. Server Bot API lokal bisa menaikkan ini, tapi belum jadi target build.
+- **Package ID Android masih `com.telebotbackuprn`** dan target Xcode masih `TelebotBackupRN`; nama tampilan aplikasi sudah TeleVault. Mengganti package ID akan membuat instalasi lama terlihat sebagai aplikasi berbeda (data hilang), jadi sengaja dibiarkan.
 
-## Congratulations! :tada:
+## Git
 
-You've successfully run and modified your React Native App. :partying_face:
+`main` stabil. Setiap fitur/perbaikan di branch sendiri:
 
-### Now what?
+```sh
+git switch main && git pull --ff-only
+git switch -c feat/<slug>
+# ... commit kecil, Conventional Commits: feat(backup): ...
+git push -u origin feat/<slug>
+git switch main && git merge --no-ff feat/<slug>
+```
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+Branch tidak dihapus sampai fitur terverifikasi di device, supaya bug susulan bisa di-fix di branch yang sama.

@@ -2,7 +2,7 @@ import BackgroundService from 'react-native-background-actions';
 import { runBackup, type BackupProgress, type BackupResult } from '../backup/backupRunner';
 
 const OPTIONS = {
-  taskName: 'TelebotBackup',
+  taskName: 'TeleVault',
   taskTitle: 'Backup running',
   taskDesc: 'Preparing\u2026',
   taskIcon: { name: 'ic_launcher', type: 'mipmap' },
