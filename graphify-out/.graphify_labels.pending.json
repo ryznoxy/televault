@@ -1,9 +1,9 @@
 {
-  "0": "SettingsScreen.tsx",
+  "0": "StatsScreen.tsx",
   "1": "restoreRunner.ts",
   "5": "backupRunner.ts",
   "7": "HomeScreen.tsx",
-  "31": "SetupScreen.tsx",
+  "28": "Checklist rilis",
   "40": "react",
   "41": "AGENTS.md"
 }

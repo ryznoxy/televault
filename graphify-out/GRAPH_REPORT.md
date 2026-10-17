@@ -1,22 +1,22 @@
 # Graph Report - rn  (2026-10-17)
 
 ## Corpus Check
-- 83 files · ~54,561 words
+- 84 files · ~54,718 words
 - Verdict: corpus is large enough that graph structure adds value.
-- Unclassified: 22 file(s) not represented in the graph (top: (none) 6, .xml 4, .properties 2)
+- Unclassified: 25 file(s) not represented in the graph (top: .xml 7, (none) 6, .properties 2)
 
 ## Summary
-- 608 nodes · 1426 edges · 31 communities (19 shown, 12 thin omitted)
+- 617 nodes · 1436 edges · 31 communities (19 shown, 12 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 31 edges (avg confidence: 0.89)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `448a3baa`
+- Built from commit: `c4b47040`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- SettingsScreen.tsx
+- StatsScreen.tsx
 - restoreRunner.ts
 - Theme, UI Kit & App Entry
 - Background Scheduling & Settings State
@@ -36,7 +36,7 @@
 - Metro Bundler Config
 - TypeScript Config
 - Node Engine Constraint
-- SetupScreen.tsx
+- Checklist rilis
 - react
 - AGENTS.md
 
@@ -74,41 +74,41 @@
 
 ## Communities (31 total, 12 thin omitted)
 
-### Community 0 - "SettingsScreen.tsx"
-Cohesion: 0.11
-Nodes (28): @noble/hashes, isCryptoAvailable(), newSaltB64(), isActiveTempDir(), SectionLabel(), TgSwitch(), CARD_SHADOW, CATEGORY_HINTS (+20 more)
+### Community 0 - "StatsScreen.tsx"
+Cohesion: 0.14
+Nodes (26): TgIconName, SessionRecord, ActiveRunCard(), CARD_SHADOW, categoryLabel(), FILTER_DEFS, FLOAT_SHADOW, HIT_SLOP (+18 more)
 
 ### Community 1 - "restoreRunner.ts"
 Cohesion: 0.07
-Nodes (58): @noble/ciphers, CryptoLike, decryptFile(), decryptFileWithKey(), deriveKey(), EncryptedFile, encryptFile(), encryptFileWithKey() (+50 more)
+Nodes (64): @noble/hashes, react-native-blob-util, @react-native-documents/picker, CryptoLike, decryptFile(), decryptFileWithKey(), deriveKey(), EncryptedFile (+56 more)
 
 ### Community 2 - "Theme, UI Kit & App Entry"
-Cohesion: 0.09
-Nodes (34): parseClampedInt(), Badge(), Button(), Card(), Hint(), Icon(), IconName, NumberField() (+26 more)
+Cohesion: 0.05
+Nodes (50): mockBlobFiles, { webcrypto }, react-native-safe-area-context, stopScheduler(), parseClampedInt(), Badge(), BottomNav(), Button() (+42 more)
 
 ### Community 3 - "Background Scheduling & Settings State"
-Cohesion: 0.11
-Nodes (32): App(), displayName, name, ThemedStatusBar(), react-native, react-native-background-fetch, runBackupInForeground(), headlessTask() (+24 more)
+Cohesion: 0.10
+Nodes (34): App(), displayName, name, ThemedStatusBar(), react-native, react-native-background-fetch, runBackupInForeground(), headlessTask() (+26 more)
 
 ### Community 4 - "File Scanning & SQLite Persistence"
-Cohesion: 0.07
-Nodes (29): @op-engineering/op-sqlite, AndroidPermission, needsMediaPermissions(), PermissionState, requestBackupPermissions(), getDb(), chunksRepo, NewChunk (+21 more)
+Cohesion: 0.06
+Nodes (38): @op-engineering/op-sqlite, @react-native-camera-roll/camera-roll, DOC_EXTENSIONS, ensureLocalPath(), hasDocExtension(), scanCameraRoll(), scanCategory(), scanCustomFolder() (+30 more)
 
 ### Community 5 - "backupRunner.ts"
-Cohesion: 0.06
-Nodes (58): react-native-background-actions, react-native-blob-util, BACKUP_IN_FLIGHT_ERROR, IDLE_RESULT, OPTIONS, BackupProgress, BackupResult, baseName() (+50 more)
+Cohesion: 0.07
+Nodes (48): react-native-background-actions, react-native-zip-archive, BACKUP_IN_FLIGHT_ERROR, IDLE_RESULT, OPTIONS, BackupProgress, BackupResult, baseName() (+40 more)
 
 ### Community 6 - "Telegram Upload API"
-Cohesion: 0.12
-Nodes (21): react-native-blob-util, DocumentApi, httpCodeOf(), isRetryable(), retryAfterOf(), retryDelayMs(), sendDocumentWithRetry(), sleep() (+13 more)
+Cohesion: 0.10
+Nodes (23): react-native-blob-util, DocumentApi, httpCodeOf(), isRetryable(), retryAfterOf(), retryDelayMs(), sendDocumentWithRetry(), sleep() (+15 more)
 
 ### Community 7 - "HomeScreen.tsx"
 Cohesion: 0.05
-Nodes (73): mockBlobFiles, { webcrypto }, react-native-safe-area-context, @react-navigation/native, @react-navigation/native-stack, isFileUri(), requestNotificationPermission(), AppHeader() (+65 more)
+Nodes (70): react-native-keychain, @react-navigation/native, @react-navigation/native-stack, isFileUri(), requestNotificationPermission(), isActiveTempDir(), AppHeader(), ProgressRing() (+62 more)
 
 ### Community 8 - "Package Manifest References"
-Cohesion: 0.06
-Nodes (30): @react-native/typescript-config, name, private, version, @babel/core, @babel/preset-env, @babel/runtime, eslint (+22 more)
+Cohesion: 0.07
+Nodes (28): @react-native/typescript-config, name, private, version, @babel/core, @babel/preset-env, @babel/runtime, eslint (+20 more)
 
 ### Community 9 - "Runtime Dependencies"
 Cohesion: 0.09
@@ -142,9 +142,9 @@ Nodes (3): config, { getDefaultConfig, mergeConfig }, @react-native/metro-config
 Cohesion: 0.40
 Nodes (4): exclude, extends, include, @react-native/typescript-config
 
-### Community 31 - "SetupScreen.tsx"
-Cohesion: 0.10
-Nodes (17): react-native-keychain, stopScheduler(), TelegramBotApi, CARD_SHADOW, HIT_SLOP, Props, SaveStatus, SendStatus (+9 more)
+### Community 28 - "Checklist rilis"
+Cohesion: 0.25
+Nodes (7): 1. Kode, 2. Build Android, 3. Uji di device (wajib, tidak bisa didelegasikan), 4. Play Console, 5. iOS (belum untuk rilis ini), 6. Setelah rilis, Checklist rilis
 
 ### Community 40 - "react"
 Cohesion: 0.50
@@ -152,23 +152,23 @@ Nodes (3): react-test-renderer, react, react-test-renderer
 
 ## Knowledge Gaps
 - **31 isolated node(s):** `UIKit`, `React`, `React_RCTAppDelegate`, `ReactAppDependencyProvider`, `@react-native-clipboard/clipboard` (+26 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 227 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 234 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
 - **12 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `react-native-blob-util` connect `backupRunner.ts` to `SettingsScreen.tsx`, `restoreRunner.ts`, `File Scanning & SQLite Persistence`, `Telegram Upload API`, `HomeScreen.tsx`, `Package Manifest References`?**
-  _High betweenness centrality (0.089) - this node is a cross-community bridge._
+- **Why does `react-native-blob-util` connect `restoreRunner.ts` to `StatsScreen.tsx`, `File Scanning & SQLite Persistence`, `backupRunner.ts`, `Telegram Upload API`, `HomeScreen.tsx`, `Package Manifest References`?**
+  _High betweenness centrality (0.087) - this node is a cross-community bridge._
 - **Are the 2 inferred relationships involving `runBackup()` (e.g. with `.sendDocument()` and `.sendMessage()`) actually correct?**
   _`runBackup()` has 2 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `UIKit`, `React`, `React_RCTAppDelegate` to the rest of the system?**
   _31 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `SettingsScreen.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.11182795698924732 - nodes in this community are weakly interconnected._
-- **Why does `react-native` connect `Background Scheduling & Settings State` to `SettingsScreen.tsx`, `restoreRunner.ts`, `Theme, UI Kit & App Entry`, `File Scanning & SQLite Persistence`, `backupRunner.ts`, `HomeScreen.tsx`, `Package Manifest References`, `SetupScreen.tsx`?**
-  _High betweenness centrality (0.062) - this node is a cross-community bridge._
-- **Should `restoreRunner.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.07355769230769231 - nodes in this community are weakly interconnected._
-- **Why does `dependencies` connect `Runtime Dependencies` to `Package Manifest References`, `Telegram Upload API`?**
+- **Should `StatsScreen.tsx` be split into smaller, more focused modules?**
+  _Cohesion score 0.135632183908046 - nodes in this community are weakly interconnected._
+- **Why does `react-native` connect `Background Scheduling & Settings State` to `StatsScreen.tsx`, `restoreRunner.ts`, `Theme, UI Kit & App Entry`, `File Scanning & SQLite Persistence`, `backupRunner.ts`, `HomeScreen.tsx`, `Package Manifest References`?**
   _High betweenness centrality (0.060) - this node is a cross-community bridge._
+- **Should `restoreRunner.ts` be split into smaller, more focused modules?**
+  _Cohesion score 0.06924882629107981 - nodes in this community are weakly interconnected._
+- **Why does `dependencies` connect `Runtime Dependencies` to `Package Manifest References`, `Telegram Upload API`?**
+  _High betweenness centrality (0.059) - this node is a cross-community bridge._
