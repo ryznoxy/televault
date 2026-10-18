@@ -12,7 +12,11 @@ export type ManifestFile = {
   size: number;
   chunks: number;
   encrypted: boolean;
+  /** SHA-256 of the reassembled, decrypted file. */
   sha256: string;
+  /** v2: one AES-GCM IV per uploaded part, in part order. */
+  ivs?: string[];
+  /** v2 + `encrypted` only, written by builds that encrypted the whole archive. */
   iv?: string;
 };
 
@@ -65,11 +69,12 @@ function batQuote(value: string): string {
 }
 
 const DECRYPT_NOTE = (manifestName: string): string =>
-  `# AES-256-GCM encrypted archive: reassemble first, then decrypt with the KDF
-# parameters recorded in ${manifestName} (algorithm, kdf, iterations, salt, iv).
-# openssl cannot stream AES-256-GCM. Example with Python:
+  `# AES-256-GCM encrypted: every part is encrypted on its own with the IV listed
+# in ${manifestName} ("ivs": [ … ], one per part, in order). Decrypt each part
+# first, then join the plaintext parts — joining the ciphertext is not a file.
+# Example with Python:
 #   pip install cryptography
-#   python -c "import json,base64; from cryptography.hazmat.primitives.ciphers.aead import AESGCM; from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC; from cryptography.hazmat.primitives import hashes; m=json.load(open('${manifestName}')); salt=base64.b64decode(m['encryption']['salt']); k=PBKDF2HMAC(hashes.SHA256(),32,salt,m['encryption']['iterations']).derive(b'YOUR_PASSPHRASE'); [AESGCM(k).decrypt(base64.b64decode(f['iv']),open(f['name'],'rb').read(),None) for f in m['files']]"`;
+#   python -c "import json,base64; from cryptography.hazmat.primitives.ciphers.aead import AESGCM; from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC; from cryptography.hazmat.primitives import hashes; m=json.load(open('${manifestName}')); e=m['encryption']; k=PBKDF2HMAC(hashes.SHA256(),32,base64.b64decode(e['salt']),e['iterations']).derive(b'YOUR_PASSPHRASE'); [open(f['name'][:-4],'wb').write(b''.join(AESGCM(k).decrypt(base64.b64decode(iv),open('%s.%03d'%(f['name'],i),'rb').read(),None) for i,iv in enumerate(f['ivs'],1))) for f in m['files']]"`;
 
 /**
  * Reassembly scripts for one manifest. Every archive name and part count is
@@ -103,8 +108,8 @@ export function reassemblyScripts(
     'REM Place this script beside the downloaded chunks, then run it.',
     ...(encrypted
       ? [
-          `REM AES-256-GCM encrypted archive: reassemble, then decrypt with the KDF`,
-          `REM parameters recorded in ${manifestName} (algorithm, kdf, iterations, salt, iv).`,
+          `REM AES-256-GCM encrypted: each part is encrypted on its own.`,
+          `REM Decrypt every part with its IV from ${manifestName} ("ivs"), then join.`,
         ]
       : []),
     'setlocal',
@@ -135,9 +140,12 @@ function reassemblyCommand(files: ManifestFile[]): string {
     .join(' ');
 }
 
+/** Current manifest shape. `restoreRunner` still reads 1.0 for old backups. */
+export const MANIFEST_VERSION = '2.0';
+
 export function manifestToJson(manifest: Manifest): string {
   const payload: Record<string, unknown> = {
-    version: '1.0',
+    version: MANIFEST_VERSION,
     session_id: manifest.sessionId,
     device: manifest.device,
     created_at: manifest.createdAt,
@@ -149,6 +157,9 @@ export function manifestToJson(manifest: Manifest): string {
         encrypted: file.encrypted,
         sha256: file.sha256,
       };
+      if (file.ivs && file.ivs.length > 0) {
+        entry.ivs = file.ivs;
+      }
       if (file.iv) {
         entry.iv = file.iv;
       }

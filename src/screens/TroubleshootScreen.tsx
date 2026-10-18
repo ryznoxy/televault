@@ -37,10 +37,6 @@ const OEM_GUIDE: { oem: string; path: string }[] = [
   { oem: 'OnePlus', path: 'Setelan > Baterai > Optimasi baterai > Jangan optimalkan' },
 ];
 
-// applicationId from android/app/build.gradle. RN exposes no API for the package
-// name, and app.json carries none, so this is the one place it is spelled out.
-const ANDROID_PACKAGE = 'com.telebotbackuprn';
-
 function relativeTime(timestamp: number): string {
   const diff = Date.now() - timestamp;
   if (diff < 60_000) {
@@ -123,15 +119,17 @@ export default function TroubleshootScreen({ navigation }: Props) {
 
   // PRD §13 / §19 #11. Without this exemption, starting the foreground service
   // from a headless scheduled job can throw ForegroundServiceStartNotAllowedException
-  // on API 31+. The intent opens the OS "ignore battery optimizations" dialog;
-  // not every OEM resolves it, so fall back to the app settings page.
+  // on API 31+. Opens the system battery-optimization list, where the user picks
+  // TeleVault, then falls back to the app settings page.
+  //
+  // The direct `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` dialog was dropped: it
+  // needs a restricted permission Play only grants per app, and it needed the
+  // package id, which drifts as soon as the applicationId changes.
   const onOpenBatterySettings = () => {
     if (Platform.OS !== 'android') {
       return;
     }
-    Linking.sendIntent('android.settings.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS', [
-      { key: 'package', value: ANDROID_PACKAGE },
-    ]).catch(() =>
+    Linking.sendIntent('android.settings.IGNORE_BATTERY_OPTIMIZATION_SETTINGS').catch(() =>
       Linking.openSettings().catch(() =>
         showToast('Gagal', 'Tidak bisa membuka pengaturan baterai.', 'error'),
       ),

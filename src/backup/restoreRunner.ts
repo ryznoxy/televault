@@ -1,7 +1,7 @@
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import { unzip } from 'react-native-zip-archive';
 import { chunkName } from './chunker';
-import { decryptFile } from './crypto';
+import { decryptFile, decryptFileWithKey, keyFromPassphrase } from './crypto';
 import { sha256File } from './hasher';
 import { trackTempDir, untrackTempDir } from './tempDirs';
 import type { Manifest, ManifestEncryption, ManifestFile } from './manifest';
@@ -43,6 +43,8 @@ export type PartResolution = {
 };
 
 const MANIFEST_VERSION = '1.0';
+/** Backup builds since the per-part encryption change write 2.0 manifests. */
+const MANIFEST_VERSION_V2 = '2.0';
 const LEGACY_MANIFEST_NAME = 'manifest.json';
 
 /** A backup manifest, legacy (`manifest.json`) or named after its archive. */
@@ -81,15 +83,18 @@ function stripEnc(name: string): string {
 
 /**
  * A manifest file name is untrusted input interpolated straight into on-disk
- * paths during restore. Reject anything that could escape its target
- * directory: separators, `..`, and absolute paths / Windows drive letters.
+ * paths during restore. Reject anything that could escape its target directory:
+ * separators, `.`/`..`, and absolute paths / Windows drive letters. A `..` that
+ * is merely part of a longer name (`backup..2024.pdf`) is a normal file name and
+ * must be accepted — rejecting it made a whole manifest unrestorable.
  */
 function isSafeName(name: string): boolean {
   return (
     name !== '' &&
+    name !== '.' &&
+    name !== '..' &&
     !name.includes('/') &&
     !name.includes('\\') &&
-    !name.includes('..') &&
     !/^[a-zA-Z]:/.test(name)
   );
 }
@@ -134,7 +139,7 @@ function parseFileEntry(entry: unknown, index: number): ManifestFile {
     throw new Error(`Berkas ke-${index + 1} di manifest tidak valid`);
   }
   const record = entry as Record<string, unknown>;
-  const { name, size, chunks, encrypted, sha256, iv } = record;
+  const { name, size, chunks, encrypted, sha256, iv, ivs } = record;
   if (typeof name !== 'string' || !isSafeName(name)) {
     throw new Error(`Berkas ke-${index + 1}: nama berkas tidak valid`);
   }
@@ -157,7 +162,18 @@ function parseFileEntry(entry: unknown, index: number): ManifestFile {
     }
     file.iv = iv;
   }
-  if (encrypted && !file.iv) {
+  if (ivs !== undefined) {
+    if (!Array.isArray(ivs) || ivs.some(item => typeof item !== 'string' || item === '')) {
+      throw new Error(`Berkas ${name}: daftar IV tidak valid`);
+    }
+    if (ivs.length !== chunks) {
+      throw new Error(
+        `Berkas ${name}: jumlah IV (${ivs.length}) tidak cocok dengan jumlah potongan (${chunks})`,
+      );
+    }
+    file.ivs = ivs as string[];
+  }
+  if (encrypted && !file.iv && !file.ivs) {
     throw new Error(`Berkas ${name}: berkas terenkripsi tanpa IV`);
   }
   return file;
@@ -174,7 +190,7 @@ export function parseManifest(json: string): Manifest {
     throw new Error('manifest.json tidak valid');
   }
   const record = raw as Record<string, unknown>;
-  if (record.version !== MANIFEST_VERSION) {
+  if (record.version !== MANIFEST_VERSION && record.version !== MANIFEST_VERSION_V2) {
     throw new Error(`Versi manifest tidak didukung: ${String(record.version)}`);
   }
   if (typeof record.session_id !== 'string') {
@@ -235,16 +251,26 @@ export function mergeManifests(manifests: Manifest[]): Manifest {
       throw new Error('Manifest dengan parameter enkripsi berbeda tidak dapat digabung');
     }
   }
-  const seen = new Set<string>();
-  const files: ManifestFile[] = [];
+  const byName = new Map<string, ManifestFile>();
   for (const manifest of manifests) {
     for (const file of manifest.files) {
-      if (!seen.has(file.name)) {
-        seen.add(file.name);
-        files.push(file);
+      const seen = byName.get(file.name);
+      if (!seen) {
+        byName.set(file.name, file);
+        continue;
+      }
+      // Same name, different content: two runs backed up different files under
+      // one name (a deleted photo replaced by another with the same name).
+      // Silently keeping the first one lost the other, so refuse the merge and
+      // let the user restore each session on its own.
+      if (seen.sha256 !== file.sha256 || seen.size !== file.size || seen.chunks !== file.chunks) {
+        throw new Error(
+          `Dua berkas berbeda memakai nama yang sama: ${file.name}. Pulihkan tiap sesi secara terpisah.`,
+        );
       }
     }
   }
+  const files = [...byName.values()];
   return {
     ...first,
     files,
@@ -342,6 +368,23 @@ async function restoreEntries(
 
   const total = manifest.files.length;
   const files: RestoreFileResult[] = [];
+  // v2 parts are encrypted one by one, so the key is derived once per manifest
+  // instead of once per part (210k PBKDF2 iterations each).
+  let runKey: Uint8Array | null = null;
+  const keyFor = (): Uint8Array => {
+    if (!manifest.encryption) {
+      throw new Error('Manifest tidak memuat parameter enkripsi');
+    }
+    if (!options.passphrase) {
+      throw new Error('Passphrase diperlukan untuk membuka berkas terenkripsi');
+    }
+    runKey ??= keyFromPassphrase(
+      options.passphrase,
+      manifest.encryption.salt,
+      manifest.encryption.iterations,
+    );
+    return runKey;
+  };
 
   for (let index = 0; index < total; index += 1) {
     const file = manifest.files[index];
@@ -353,42 +396,75 @@ async function restoreEntries(
         throw new Error(`Potongan hilang: ${missing.join(', ')}`);
       }
 
-      emit('joining');
-      const joined = safeJoin(tempDir, file.name);
-      await joinChunks(parts, joined);
+      let joined = '';
+      let verified = '';
+      if (file.encrypted && file.ivs) {
+        // v2: every part is its own AES-GCM message, so decrypt each part with
+        // its IV, append the plaintext, and verify the reassembled file.
+        const key = keyFor();
+        emit('joining');
+        joined = safeJoin(tempDir, file.name);
+        await ReactNativeBlobUtil.fs.unlink(joined).catch(() => undefined);
+        for (let part = 0; part < parts.length; part += 1) {
+          const iv: string | undefined = file.ivs[part];
+          if (iv === undefined) {
+            throw new Error(`IV potongan ${part + 1} hilang di manifest`);
+          }
+          emit('decrypting');
+          const plain = safeJoin(tempDir, `${file.name}.${part + 1}.part`);
+          try {
+            await decryptFileWithKey(parts[part], key, iv, plain);
+          } catch {
+            throw new Error('Passphrase salah atau berkas rusak (gagal autentikasi AES-GCM)');
+          }
+          await ReactNativeBlobUtil.fs.appendFile(joined, plain, 'uri');
+          await ReactNativeBlobUtil.fs.unlink(plain).catch(() => undefined);
+        }
+        emit('verifying');
+        const hash = await sha256File(joined);
+        if (hash.toLowerCase() !== file.sha256.toLowerCase()) {
+          throw new Error('Checksum SHA-256 tidak cocok, berkas mungkin rusak');
+        }
+        verified = joined;
+      } else {
+        emit('joining');
+        joined = safeJoin(tempDir, file.name);
+        await joinChunks(parts, joined);
 
-      emit('verifying');
-      const hash = await sha256File(joined);
-      if (hash.toLowerCase() !== file.sha256.toLowerCase()) {
-        throw new Error('Checksum SHA-256 tidak cocok, berkas mungkin rusak');
-      }
+        emit('verifying');
+        const hash = await sha256File(joined);
+        if (hash.toLowerCase() !== file.sha256.toLowerCase()) {
+          throw new Error('Checksum SHA-256 tidak cocok, berkas mungkin rusak');
+        }
 
-      let verified = joined;
-      if (file.encrypted) {
-        if (!manifest.encryption) {
-          throw new Error('Manifest tidak memuat parameter enkripsi');
+        verified = joined;
+        if (file.encrypted) {
+          // v1 backup: the whole archive was one AES-GCM message.
+          if (!manifest.encryption) {
+            throw new Error('Manifest tidak memuat parameter enkripsi');
+          }
+          if (!file.iv) {
+            throw new Error('Berkas terenkripsi tanpa IV');
+          }
+          if (!options.passphrase) {
+            throw new Error('Passphrase diperlukan untuk membuka berkas terenkripsi');
+          }
+          emit('decrypting');
+          const decrypted = safeJoin(tempDir, stripEnc(file.name));
+          try {
+            await decryptFile(
+              joined,
+              options.passphrase,
+              manifest.encryption.salt,
+              file.iv,
+              decrypted,
+              manifest.encryption.iterations,
+            );
+          } catch {
+            throw new Error('Passphrase salah atau berkas rusak (gagal autentikasi AES-GCM)');
+          }
+          verified = decrypted;
         }
-        if (!file.iv) {
-          throw new Error('Berkas terenkripsi tanpa IV');
-        }
-        if (!options.passphrase) {
-          throw new Error('Passphrase diperlukan untuk membuka berkas terenkripsi');
-        }
-        emit('decrypting');
-        const decrypted = safeJoin(tempDir, stripEnc(file.name));
-        try {
-          await decryptFile(
-            joined,
-            options.passphrase,
-            manifest.encryption.salt,
-            file.iv,
-            decrypted,
-            manifest.encryption.iterations,
-          );
-        } catch {
-          throw new Error('Passphrase salah atau berkas rusak (gagal autentikasi AES-GCM)');
-        }
-        verified = decrypted;
       }
 
       const outputName = stripEnc(file.name);

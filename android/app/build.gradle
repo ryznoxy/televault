@@ -79,11 +79,14 @@ android {
 
     namespace "com.telebotbackuprn"
     defaultConfig {
-        applicationId "com.telebotbackuprn"
+        // The published id. Deliberately independent from `namespace` (the Kotlin
+        // package), so renaming the app never has to touch the id users install
+        // under. `namespace` stays as the template made it to avoid a source move.
+        applicationId "com.televault.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
     }
     signingConfigs {
         debug {
@@ -92,15 +95,31 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        // Populated from gradle.properties (project or ~/.gradle/gradle.properties).
+        // The keystore and its passwords are never committed. When any of the four
+        // properties is missing this config stays empty and Gradle refuses a
+        // release build instead of quietly signing it with the debug key.
+        release {
+            def storePath = project.findProperty('TELEVAULT_STORE_FILE')
+            def storePasswordValue = project.findProperty('TELEVAULT_STORE_PASSWORD')
+            def keyAliasValue = project.findProperty('TELEVAULT_KEY_ALIAS')
+            def keyPasswordValue = project.findProperty('TELEVAULT_KEY_PASSWORD')
+            if (storePath && storePasswordValue && keyAliasValue && keyPasswordValue) {
+                storeFile file(storePath)
+                storePassword storePasswordValue
+                keyAlias keyAliasValue
+                keyPassword keyPasswordValue
+            }
+        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            // Never the debug key: Play rejects a debug-signed upload, and the
+            // failure would only show after the first release went out.
+            signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }

@@ -2,8 +2,10 @@ import { Platform } from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import { chunkFile, chunkName, cleanupChunks, MAX_CHUNK_SIZE, type ChunkFile } from './chunker';
 import {
-  encryptFile,
+  encryptFileWithKey,
   isCryptoAvailable,
+  keyFromPassphrase,
+  MAX_ENCRYPTED_PART_SIZE,
   newSaltB64,
 } from './crypto';
 import { scanCategory, scanCustomFolders, ensureLocalPath, type ScanResult } from './fileScanner';
@@ -28,7 +30,7 @@ import { chunksRepo } from '../db/repositories/chunks';
 import { TelegramBotApi, type SendResult } from '../net/telegramApi';
 import { secureStore } from '../state/secureStore';
 import { getConfig } from '../state/settingsStore';
-import { Category, type CategoryKey } from '../types/models';
+import { CATEGORY_NAMES_ID, Category, type CategoryKey } from '../types/models';
 
 export type BackupProgress = {
   phase: 'scanning' | 'zipping' | 'uploading' | 'manifest' | 'done';
@@ -47,6 +49,11 @@ export type BackupResult = {
   /** Files found this run but postponed by `maxFilesPerRun`. */
   deferred: number;
   error?: string;
+  /**
+   * Non-fatal observations the user should see (a category that read no files,
+   * for instance). Present only when there is something to say.
+   */
+  notes?: string[];
 };
 
 const DEVICE = (() => {
@@ -115,6 +122,20 @@ function mimeFor(name: string): string {
   if (name.endsWith('.zip')) return 'application/zip';
   if (name.endsWith('.enc')) return 'application/octet-stream';
   return 'application/octet-stream';
+}
+
+/**
+ * One bounded reason for the session row: History shows a single line, and a
+ * run can lose hundreds of parts.
+ */
+export function summarizeErrors(errors: string[]): string | null {
+  if (errors.length === 0) {
+    return null;
+  }
+  const head = errors.slice(0, 3).join('; ');
+  const rest = errors.length > 3 ? ` (+${errors.length - 3} lainnya)` : '';
+  const text = `${head}${rest}`;
+  return text.length > 500 ? `${text.slice(0, 497)}\u2026` : text;
 }
 
 /**
@@ -213,6 +234,11 @@ export async function runBackup(
   const manifestEncryption: ManifestEncryption | undefined = wantEncryption
     ? { algorithm: 'AES-256-GCM', kdf: 'PBKDF2-SHA256', iterations: PBKDF2_ITERATIONS, salt: saltB64 }
     : undefined;
+  // Derive the run key once: 210k PBKDF2 iterations per 49 MB part would cost
+  // seconds on a large archive for the same salt and passphrase (P0-1).
+  const key = wantEncryption
+    ? keyFromPassphrase(credentials.encryptionPassword, saltB64, PBKDF2_ITERATIONS)
+    : null;
 
   let totalSent = 0;
   let totalChunks = 0;
@@ -222,6 +248,28 @@ export async function runBackup(
   let deferred = 0;
   let failure = false;
   const errors: string[] = [];
+  const notes: string[] = [];
+  // Upload names must be unique across the run: two photos called IMG_0001.jpg
+  // in different folders produced two manifest entries with the same name and
+  // identical part names, so the restore matched one part set for both, dropped
+  // the other entry while merging and overwrote the output path (P0-3).
+  const usedNames = new Set<string>();
+  const uniqueName = (name: string): string => {
+    if (!usedNames.has(name)) {
+      usedNames.add(name);
+      return name;
+    }
+    const dot = name.lastIndexOf('.');
+    const stem = dot > 0 ? name.slice(0, dot) : name;
+    const ext = dot > 0 ? name.slice(dot) : '';
+    for (let n = 2; ; n += 1) {
+      const candidate = `${stem} (${n})${ext}`;
+      if (!usedNames.has(candidate)) {
+        usedNames.add(candidate);
+        return candidate;
+      }
+    }
+  };
   const manifestFiles: ManifestFile[] = [];
   // One manifest per archive in zip mode, named after that archive, so a
   // downloaded manifest and its scripts say which zip they belong to.
@@ -265,15 +313,31 @@ export async function runBackup(
     overallCurrent = Math.max(overallCurrent, Math.min(overallTotal, value));
   };
 
-  const uploadChunks = async (
+  /**
+   * Slice one archive into upload parts, encrypt each part on its own when
+   * encryption is on, and send them. `entryName` is the name of the reassembled
+   * file in the manifest (ending in `.enc` when encrypted); every part is
+   * uploaded as `chunkName(entryName, index)` so both the reassembly script and
+   * the restore find it back by name.
+   *
+   * Encrypting per part keeps peak RAM at one part instead of the whole archive,
+   * which is what the old whole-archive encryption needed and what killed the
+   * app on real photo libraries (P0-1). Encrypted parts are smaller than the Bot
+   * API limit because the JS crypto path needs several copies of one part.
+   */
+  const uploadParts = async (
     sourcePath: string,
-    uploadName: string,
+    entryName: string,
     category: CategoryKey,
     progressOf: (chunkIndex: number, chunkCount: number) => { current: number; total: number },
     /** Fraction (0–1) of the whole archive sent so far, across every chunk. */
     onBytes?: (fraction: number) => void,
-  ): Promise<{ chunks: ChunkFile[]; failed: ChunkFile[] }> => {
-    const chunks = await chunkFile(sourcePath, MAX_CHUNK_SIZE, stagingDir);
+  ): Promise<{ chunks: ChunkFile[]; failed: ChunkFile[]; ivs: string[] }> => {
+    const chunks = await chunkFile(
+      sourcePath,
+      key ? MAX_ENCRYPTED_PART_SIZE : MAX_CHUNK_SIZE,
+      stagingDir,
+    );
     const chunkIds = new Map<number, number>();
     for (const chunk of chunks) {
       const rowId = await chunksRepo.insert({
@@ -289,13 +353,14 @@ export async function runBackup(
     await sessionsRepo.updateChunksTotal(sessionId, totalChunks);
 
     const failed: ChunkFile[] = [];
+    const ivs: string[] = [];
     for (const chunk of chunks) {
       const caption =
-        chunks.length === 1 ? uploadName : `${uploadName} part ${chunk.index}/${chunks.length}`;
-      // The manifest stores `uploadName` plus the part count, and the
-      // reassembly scripts rebuild `<uploadName>` from `<uploadName>.001`…, so
+        chunks.length === 1 ? entryName : `${entryName} part ${chunk.index}/${chunks.length}`;
+      // The manifest stores `entryName` plus the part count, and the
+      // reassembly scripts rebuild `<entryName>` from `<entryName>.001`…, so
       // every part carries that name — a single part included.
-      const partName = chunkName(uploadName, chunk.index);
+      const partName = chunkName(entryName, chunk.index);
       // `chunk.index` is 1-based, so the chunks already sent are `index - 1`.
       const sentBefore = chunk.index - 1;
       const reportBytes = onBytes
@@ -308,11 +373,19 @@ export async function runBackup(
             emit('uploading', category, progress.current, progress.total);
           }
         : undefined;
+      // The ciphertext lives in staging until it has been sent; the plaintext
+      // part stays until the category is done (cleanupChunks unlinks it).
+      let uploadPath = chunk.path;
+      if (key) {
+        const encPath = `${stagingDir}/${partName}.enc`;
+        ivs[chunk.index - 1] = (await encryptFileWithKey(chunk.path, key, encPath)).ivB64;
+        uploadPath = encPath;
+      }
       let result: SendResult;
       try {
         result = await sendDocumentWithRetry(
           api,
-          { path: chunk.path, name: partName, mime: mimeFor(uploadName) },
+          { path: uploadPath, name: partName, mime: mimeFor(entryName) },
           caption,
           silent,
           reportBytes,
@@ -327,6 +400,10 @@ export async function runBackup(
           })`,
         );
         continue;
+      } finally {
+        if (uploadPath !== chunk.path) {
+          await ReactNativeBlobUtil.fs.unlink(uploadPath).catch(() => undefined);
+        }
       }
       const rowId = chunkIds.get(chunk.index);
       if (rowId !== undefined) {
@@ -340,62 +417,53 @@ export async function runBackup(
       // backs off per Retry-After inside sendDocumentWithRetry.
       await sleep(CHUNK_THROTTLE_MS);
     }
-    return { chunks, failed };
+    return { chunks, failed, ivs };
   };
 
-  const encryptAndUpload = async (
+  /**
+   * Hash the archive, then slice + encrypt + upload it. The hash covers the
+   * file the user gets back from a restore (the plaintext archive), so a v2
+   * manifest entry can be verified after decryption and reassembly.
+   */
+  const stageAndUpload = async (
     sourcePath: string,
-    uploadName: string,
+    entryName: string,
     category: CategoryKey,
     progressOf: (chunkIndex: number, chunkCount: number) => { current: number; total: number },
     onBytes?: (fraction: number) => void,
   ): Promise<{
     chunks: ChunkFile[];
     failed: ChunkFile[];
+    ivs: string[];
     hash: string;
-    ivB64?: string;
-    /** The staged ciphertext path, so the caller can pass it to `cleanupChunks`. */
-    encPath?: string;
+    size: number;
   }> => {
-    if (!wantEncryption) {
-      const hash = await sha256File(sourcePath);
-      const { chunks, failed } = await uploadChunks(
-        sourcePath,
-        uploadName,
-        category,
-        progressOf,
-        onBytes,
-      );
-      return { chunks, failed, hash };
-    }
-    // P2-f: the ciphertext goes to the run's staging dir, never beside the
-    // source — DOC/CUSTOM sources are real public paths API 30+ blocks writes to.
-    const encPath = `${stagingDir}/${uploadName}.enc`;
-    const { path, ivB64 } = await encryptFile(
+    const hash = await sha256File(sourcePath);
+    const size = (await ReactNativeBlobUtil.fs.stat(sourcePath)).size;
+    const { chunks, failed, ivs } = await uploadParts(
       sourcePath,
-      credentials.encryptionPassword,
-      saltB64,
-      PBKDF2_ITERATIONS,
-      encPath,
-    );
-    const encName = `${uploadName}.enc`;
-    const encHash = await sha256File(path);
-    const { chunks, failed } = await uploadChunks(
-      path,
-      encName,
+      entryName,
       category,
       progressOf,
       onBytes,
     );
-    await ReactNativeBlobUtil.fs.unlink(path).catch(() => undefined);
-    return { chunks, failed, hash: encHash, ivB64, encPath: path };
+    return { chunks, failed, ivs, hash, size };
   };
 
   // Pass 1 — scan every selected category, record each scanned file, and build
   // the run's whole work list before any upload. Knowing the list up front is
   // what makes the overall counter honest and lets a capped run defer the rest.
-  type Queued = { category: CategoryKey; pending: ScanResult[] };
+  type QueuedFile = { item: ScanResult; uploadName: string };
+  type Queued = { category: CategoryKey; pending: QueuedFile[] };
   const queue: Queued[] = [];
+  // One read of the tracking table instead of two queries per scanned file: a
+  // large library spent minutes in SQLite round-trips before any upload (P1-9).
+  const trackedRows = await filesRepo.listAll();
+  const tracked = new Map(trackedRows.map(row => [row.path, row]));
+  const trackedPerCategory = new Map<string, number>();
+  for (const row of trackedRows) {
+    trackedPerCategory.set(row.category, (trackedPerCategory.get(row.category) ?? 0) + 1);
+  }
   for (const category of categories) {
     const customUris = config.watchedFolders.map(folder => folder.uri);
     if (category === Category.CUSTOM && customUris.length === 0 && !config.customFolderUri) {
@@ -408,19 +476,36 @@ export async function runBackup(
           ? await scanCustomFolders(customUris)
           : await scanCategory(category, config.customFolderUri);
 
-      const pending: ScanResult[] = [];
-      for (const item of scanned) {
-        const existing = await filesRepo.getByPath(item.path);
-        if (needsBackup(existing, item)) {
-          pending.push(item);
+      // A category that reads nothing is not an error, but it must not look
+      // like a successful backup either. Only speak up when it matters: DOC on
+      // Android 11+ legitimately sees nothing (scoped storage), and a category
+      // that used to hold tracked files is a real regression. An empty gallery
+      // stays quiet instead of nagging on every run (P1-7).
+      if (scanned.length === 0) {
+        const trackedHere = trackedPerCategory.get(category) ?? 0;
+        if (category === Category.DOC) {
+          notes.push('Dokumen: 0 berkas terbaca. Android 11+ membatasi akses folder Download.');
+        } else if (trackedHere > 0) {
+          notes.push(`${CATEGORY_NAMES_ID[category]}: 0 berkas terbaca, padahal sebelumnya ada.`);
         }
-        await filesRepo.upsert({
+      }
+
+      const pending: QueuedFile[] = [];
+      const rows: { path: string; category: string; size: number; modifiedAt: number }[] = [];
+      for (const item of scanned) {
+        if (needsBackup(tracked.get(item.path) ?? null, item)) {
+          // The name is fixed here, before anything is uploaded, so the same
+          // file keeps the same part names on every retry of this run.
+          pending.push({ item, uploadName: uniqueName(item.displayName) });
+        }
+        rows.push({
           path: item.path,
           category: item.category,
           size: item.size,
           modifiedAt: item.modifiedAt,
         });
       }
+      await filesRepo.upsertMany(rows);
       if (pending.length === 0) {
         continue;
       }
@@ -447,7 +532,7 @@ export async function runBackup(
     const categoryBase = overallCurrent;
     try {
       // P2-i: fail the category before staging rather than filling the disk.
-      const stagedBytes = pending.reduce((sum, item) => sum + item.size, 0);
+      const stagedBytes = pending.reduce((sum, entry) => sum + entry.item.size, 0);
       const free = await freeSpaceBytes();
       if (free !== null && free < stagedBytes * STAGING_SPACE_COPIES + STAGING_SPACE_MARGIN_BYTES) {
         throw new Error(
@@ -455,12 +540,12 @@ export async function runBackup(
         );
       }
       if (config.compressZip) {
-        const zipName = `${category}_${Date.now()}.zip`;
+        const zipName = uniqueName(`${category}_${Date.now()}.zip`);
         const zipPath = `${stagingDir}/${zipName}`;
         emit('zipping', category, 0, pending.length);
         const zipSources: string[] = [];
         const sourceHashes = new Map<string, string>();
-        for (const item of pending) {
+        for (const { item } of pending) {
           const local = await ensureLocalPath(item.path);
           if (local !== item.path) {
             localized.push(local);
@@ -471,9 +556,10 @@ export async function runBackup(
         }
         await zipFiles(zipSources, zipPath);
 
-        const { chunks, failed, hash, ivB64, encPath } = await encryptAndUpload(
+        const entryName = wantEncryption ? `${zipName}.enc` : zipName;
+        const { chunks, failed, ivs, hash, size } = await stageAndUpload(
           zipPath,
-          zipName,
+          entryName,
           category,
           (index, count) => ({ current: index, total: count }),
           fraction => setOverall(categoryBase + pending.length * fraction),
@@ -486,23 +572,23 @@ export async function runBackup(
         // they stay pending and the next run re-scans and retries them.
         if (failed.length === 0) {
           const entry: ManifestFile = {
-            name: wantEncryption ? `${zipName}.enc` : zipName,
-            size: chunks.reduce((sum, chunk) => sum + chunk.size, 0),
+            name: entryName,
+            size,
             chunks: chunks.length,
             encrypted: wantEncryption,
             sha256: hash,
           };
-          if (wantEncryption && ivB64) {
-            entry.iv = ivB64;
+          if (wantEncryption) {
+            entry.ivs = ivs;
           }
           manifestFiles.push(entry);
           archiveNames.push(entry.name);
           archiveGroups.push({ base: entry.name, files: [entry] });
-          totalSize += chunks.reduce((sum, chunk) => sum + chunk.size, 0);
+          totalSize += size;
           totalFiles += pending.length;
 
           const backupTime = Date.now();
-          for (const item of pending) {
+          for (const { item } of pending) {
             pendingMarks.push({
               path: item.path,
               hash: sourceHashes.get(item.path) ?? '',
@@ -512,24 +598,25 @@ export async function runBackup(
           }
 
           if (ALLOW_LOCAL_DELETE && config.deleteLocalAfterBackup && category === Category.CUSTOM) {
-            pendingDeletes.push(...pending);
+            pendingDeletes.push(...pending.map(entry => entry.item));
           }
         }
 
-        await cleanupChunks(chunks, encPath ?? zipPath);
+        await cleanupChunks(chunks, zipPath);
         setOverall(categoryBase + pending.length);
       } else {
         for (let index = 0; index < pending.length; index += 1) {
-          const item = pending[index];
+          const { item, uploadName } = pending[index];
           const fileBase = overallCurrent;
           const local = await ensureLocalPath(item.path);
           if (local !== item.path) {
             localized.push(local);
           }
           const sourceHash = await sha256File(local);
-          const { chunks, failed, hash, ivB64, encPath } = await encryptAndUpload(
+          const entryName = wantEncryption ? `${uploadName}.enc` : uploadName;
+          const { chunks, failed, ivs, hash, size } = await stageAndUpload(
             local,
-            item.displayName,
+            entryName,
             category,
             () => ({ current: index + 1, total: pending.length }),
             fraction => setOverall(fileBase + fraction),
@@ -540,18 +627,18 @@ export async function runBackup(
           // on the next run.
           if (failed.length === 0) {
             const entry: ManifestFile = {
-              name: wantEncryption ? `${item.displayName}.enc` : item.displayName,
-              size: chunks.reduce((sum, chunk) => sum + chunk.size, 0),
+              name: entryName,
+              size,
               chunks: chunks.length,
               encrypted: wantEncryption,
               sha256: hash,
             };
-            if (wantEncryption && ivB64) {
-              entry.iv = ivB64;
+            if (wantEncryption) {
+              entry.ivs = ivs;
             }
             manifestFiles.push(entry);
             archiveNames.push(entry.name);
-            totalSize += chunks.reduce((sum, chunk) => sum + chunk.size, 0);
+            totalSize += size;
             totalFiles += 1;
             pendingMarks.push({
               path: item.path,
@@ -563,7 +650,7 @@ export async function runBackup(
               pendingDeletes.push(item);
             }
           }
-          await cleanupChunks(chunks, encPath ?? local);
+          await cleanupChunks(chunks, local);
           setOverall(fileBase + 1);
         }
       }
@@ -628,9 +715,9 @@ export async function runBackup(
         sentIds.push(String(manifestResult.messageId));
       }
       emit('manifest', undefined, groups.length, groups.length);
-      // StatsScreen deep-links with a single numeric message id; the zip→manifest
-      // mapping already lives in the manifest file names.
-      manifestId = sentIds[0] ?? null;
+      // A zip run sends one manifest per archive; keep every id so Stats can
+      // deep-link as many messages as the run produced (P2-6).
+      manifestId = sentIds.length > 0 ? sentIds.join(',') : null;
       await ReactNativeBlobUtil.fs.unlink(metaDir).catch(() => undefined);
     } catch (error) {
       failure = true;
@@ -685,7 +772,7 @@ export async function runBackup(
     manifestId,
     archiveName,
     wantEncryption ? 1 : 0,
-    errors.length > 0 ? errors[0] : null,
+    summarizeErrors(errors),
     config.archiveFormat,
   );
 
@@ -696,10 +783,11 @@ export async function runBackup(
   if (config.notifyBotSummary && !suppressFailure) {
     try {
       const skippedNote = skippedChunks > 0 ? ` ${skippedChunks} potongan terlewat.` : '';
+      const notesNote = notes.length > 0 ? ` ${notes.join(' ')}` : '';
       await api.sendMessage(
         `Backup ${status}. ${totalSent} chunks uploaded, ${totalFiles} files, ${Math.round(
           totalSize / 1024,
-        )} KB total.${skippedNote}`,
+        )} KB total.${skippedNote}${notesNote}`,
         silent,
       );
     } catch {
@@ -716,5 +804,6 @@ export async function runBackup(
     totalSize,
     deferred,
     error: errors.length > 0 ? errors.join('; ') : undefined,
+    ...(notes.length > 0 ? { notes } : {}),
   };
 }

@@ -21,7 +21,7 @@ test('createManifest converts timestamp to seconds and sums sizes', () => {
 test('manifest JSON matches the locked PRD shape', () => {
   const manifest = createManifest('Pixel 7', 1694524800000, files, 'session-1');
   const json = JSON.parse(manifestToJson(manifest));
-  expect(json.version).toBe('1.0');
+  expect(json.version).toBe('2.0');
   expect(json.session_id).toBe('session-1');
   expect(json.device).toBe('Pixel 7');
   expect(json.files[0]).toEqual({
@@ -89,4 +89,37 @@ test('an encrypted manifest points its scripts at the decrypt parameters', () =>
   expect(scripts.sh).toContain('AES-256-GCM');
   expect(scripts.sh).toContain('DCIM.zip.enc.manifest.json');
   expect(scripts.bat).toContain('DCIM.zip.enc.manifest.json');
+});
+
+test('P0-1: a v2 entry serialises one IV per part and the scripts say so', () => {
+  const manifest = createManifest(
+    'Pixel 7',
+    0,
+    [
+      {
+        name: 'DCIM.zip.enc',
+        size: 10,
+        chunks: 2,
+        encrypted: true,
+        sha256: 'x',
+        ivs: ['aXYtMQ==', 'aXYtMg=='],
+      },
+    ],
+    's',
+    {
+      algorithm: 'AES-256-GCM',
+      kdf: 'PBKDF2-SHA256',
+      iterations: 210000,
+      salt: 'c2FsdHNhbHRzYWx0c2FsdA==',
+    },
+  );
+  const json = JSON.parse(manifestToJson(manifest));
+  expect(json.files[0].ivs).toEqual(['aXYtMQ==', 'aXYtMg==']);
+  expect(json.files[0].iv).toBeUndefined();
+
+  // The generated note must describe per-part decryption, not a single blob.
+  const scripts = reassemblyScripts(manifest, 'DCIM.zip.enc.manifest.json');
+  expect(scripts.sh).toContain('every part is encrypted on its own');
+  expect(scripts.sh).toContain('"ivs"');
+  expect(scripts.bat).toContain('Decrypt every part');
 });

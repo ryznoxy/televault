@@ -90,6 +90,62 @@ export type EncryptedFile = {
   size: number;
 };
 
+/** Derive the run's AES key from the passphrase and its stored salt. */
+export function keyFromPassphrase(
+  passphrase: string,
+  saltB64: string,
+  iterations: number = PBKDF2_ITERATIONS,
+): Uint8Array {
+  return deriveKey(passphrase, fromBase64(saltB64), iterations);
+}
+
+/**
+ * Part size used when encryption is on. The Bot API allows 49 MB, but the JS
+ * crypto path holds the base64 text, the decoded bytes and the ciphertext at
+ * once (≈4x the part), so a 49 MB part peaked near 250 MB and could OOM a 2 GB
+ * device mid-run. 16 MB keeps the peak around 80 MB at the cost of more parts.
+ */
+export const MAX_ENCRYPTED_PART_SIZE = 16 * 1024 * 1024;
+
+/**
+ * Encrypt one file with an already-derived key and write the ciphertext to
+ * `outPath`.
+ *
+ * Callers pass one upload part at a time, so peak RAM is bounded by the part,
+ * not by the archive: whole-archive encryption needed the plaintext, the
+ * ciphertext and both base64 copies of a multi-GB zip in the JS heap at once
+ * and killed the app on real photo libraries (P0).
+ *
+ * ponytail: one part in RAM at a time (base64 + plaintext + ciphertext ≈ 4x the
+ * part). Upgrade path: a small native module that streams AES-GCM.
+ */
+export async function encryptFileWithKey(
+  sourcePath: string,
+  key: Uint8Array,
+  outPath: string,
+): Promise<EncryptedFile> {
+  const b64 = await ReactNativeBlobUtil.fs.readFile(sourcePath, 'base64');
+  const bytes = fromBase64(typeof b64 === 'string' ? b64 : String(b64));
+  const iv = randomBytes(IV_LEN);
+  const ct = gcm(key, iv).encrypt(bytes);
+  await ReactNativeBlobUtil.fs.writeFile(outPath, toBase64(ct), 'base64');
+  return { path: outPath, ivB64: toBase64(iv), size: ct.length };
+}
+
+/** Decrypt one part (v2 manifest) with the run's key into `outPath`. */
+export async function decryptFileWithKey(
+  encryptedPath: string,
+  key: Uint8Array,
+  ivB64: string,
+  outPath: string,
+): Promise<string> {
+  const b64 = await ReactNativeBlobUtil.fs.readFile(encryptedPath, 'base64');
+  const bytes = fromBase64(typeof b64 === 'string' ? b64 : String(b64));
+  const pt = gcm(key, fromBase64(ivB64)).decrypt(bytes);
+  await ReactNativeBlobUtil.fs.writeFile(outPath, toBase64(pt), 'base64');
+  return outPath;
+}
+
 /**
  * Encrypt `sourcePath` and write the ciphertext to `outPath`.
  *
@@ -98,9 +154,6 @@ export type EncryptedFile = {
  * always passes a path inside its cache staging dir: DOC/CUSTOM sources are real
  * public paths, so `<source>.enc` would land in a directory API 30+ blocks and
  * leave a stray file beside the user's data (P2-f).
- *
- * ponytail: whole-file encrypt — RAM holds plaintext + ciphertext (up to ~2x size).
- * Upgrade path: stream chunks through gcm chunk-by-chunk with monotonic nonces.
  */
 export async function encryptFile(
   sourcePath: string,
@@ -109,14 +162,7 @@ export async function encryptFile(
   iterations: number = PBKDF2_ITERATIONS,
   outPath: string = `${sourcePath}.enc`,
 ): Promise<EncryptedFile> {
-  const b64 = await ReactNativeBlobUtil.fs.readFile(sourcePath, 'base64');
-  const bytes = fromBase64(typeof b64 === 'string' ? b64 : String(b64));
-  const salt = fromBase64(saltB64);
-  const key = deriveKey(passphrase, salt, iterations);
-  const iv = randomBytes(IV_LEN);
-  const ct = gcm(key, iv).encrypt(bytes);
-  await ReactNativeBlobUtil.fs.writeFile(outPath, toBase64(ct), 'base64');
-  return { path: outPath, ivB64: toBase64(iv), size: ct.length };
+  return encryptFileWithKey(sourcePath, keyFromPassphrase(passphrase, saltB64, iterations), outPath);
 }
 
 export async function decryptFile(
@@ -127,12 +173,10 @@ export async function decryptFile(
   outPath: string,
   iterations: number = PBKDF2_ITERATIONS,
 ): Promise<string> {
-  const b64 = await ReactNativeBlobUtil.fs.readFile(encryptedPath, 'base64');
-  const bytes = fromBase64(typeof b64 === 'string' ? b64 : String(b64));
-  const salt = fromBase64(saltB64);
-  const key = deriveKey(passphrase, salt, iterations);
-  const iv = fromBase64(ivB64);
-  const pt = gcm(key, iv).decrypt(bytes);
-  await ReactNativeBlobUtil.fs.writeFile(outPath, toBase64(pt), 'base64');
-  return outPath;
+  return decryptFileWithKey(
+    encryptedPath,
+    keyFromPassphrase(passphrase, saltB64, iterations),
+    ivB64,
+    outPath,
+  );
 }

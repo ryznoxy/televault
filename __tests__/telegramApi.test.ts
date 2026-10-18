@@ -110,6 +110,20 @@ test('transport error preserves the URL shape so callers can still diagnose', as
   expect(error.message).not.toContain('topsecret');
 });
 
+test('P2-3: a token echoed outside the exact request URL is still redacted', async () => {
+  // A transport may echo the URL in another shape (relative path, encoded,
+  // truncated), so matching the base URL alone is not enough.
+  const transport = async (): Promise<HttpResponse> => {
+    throw new Error('request failed for path /bot1234567:SECRET_TOKEN/sendMessage');
+  };
+  const api = new TelegramBotApi('1234567:SECRET_TOKEN', '42', transport);
+
+  const error = (await api.sendMessage('x').catch(e => e)) as Error;
+
+  expect(error.message).not.toContain('SECRET_TOKEN');
+  expect(error.message).toContain('bot<token>');
+});
+
 test('P2-h: blobTransport applies the request timeout', async () => {
   await blobTransport({ url: 'https://api.telegram.org/botx/getMe', method: 'GET' });
 

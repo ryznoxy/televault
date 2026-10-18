@@ -70,6 +70,9 @@ export function sessionDateLabel(ts: number, now: number = Date.now()): string {
  * Deep link to a Telegram message. Private channel/supergroup ids look like
  * `-100192837482` → `https://t.me/c/192837482/<messageId>`; public `@username`
  * chats → `https://t.me/<username>/<messageId>`. Null when no link is possible.
+ *
+ * A zip run stores one manifest message id per archive, comma separated, so
+ * link the first of them.
  */
 export function telegramMessageUrl(
   chatId: string,
@@ -78,7 +81,7 @@ export function telegramMessageUrl(
   if (messageId == null || messageId === '') {
     return null;
   }
-  const id = Number(messageId);
+  const id = Number(String(messageId).split(',')[0].trim());
   if (!Number.isFinite(id) || id <= 0) {
     return null;
   }

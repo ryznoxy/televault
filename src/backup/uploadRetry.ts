@@ -12,6 +12,12 @@ export type DocumentApi = {
 /** PRD §14: retry a chunk up to 3 times, then skip + log it. */
 const MAX_ATTEMPTS = 3;
 const BACKOFF_BASE_MS = 1000;
+/**
+ * A 429 `Retry-After` is honoured, but never for longer than a minute: a large
+ * value would park the foreground service for hours instead of skipping the
+ * part and finishing the run (P2-5).
+ */
+const MAX_RETRY_AFTER_MS = 60_000;
 
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -47,12 +53,12 @@ function isRetryable(error: unknown): boolean {
   return code === 429 || code >= 500;
 }
 
-/** Honour a 429 `Retry-After`; otherwise exponential backoff (1s, 2s, …). */
+/** Honour a 429 `Retry-After`, capped; otherwise exponential backoff (1s, 2s, …). */
 export function retryDelayMs(error: unknown, attempt: number): number {
   const httpCode = httpCodeOf(error);
   const retryAfter = retryAfterOf(error);
   if (httpCode === 429 && retryAfter !== undefined) {
-    return Math.max(0, retryAfter) * 1000;
+    return Math.min(MAX_RETRY_AFTER_MS, Math.max(0, retryAfter) * 1000);
   }
   return BACKOFF_BASE_MS * 2 ** (attempt - 1);
 }

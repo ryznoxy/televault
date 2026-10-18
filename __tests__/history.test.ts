@@ -87,6 +87,12 @@ describe('telegramMessageUrl', () => {
     expect(telegramMessageUrl('-100192837482', 'abc')).toBeNull();
     expect(telegramMessageUrl('', 5)).toBeNull();
   });
+
+  it('P2-6: links the first id of a multi-archive session', () => {
+    // A zip run stores one manifest id per archive, comma separated, and only
+    // the first one is linked.
+    expect(telegramMessageUrl('-100192837482', '11,22,33')).toBe('https://t.me/c/192837482/11');
+  });
 });
 
 describe('sessionsToCsv', () => {

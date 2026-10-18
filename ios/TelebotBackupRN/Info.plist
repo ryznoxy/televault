@@ -34,8 +34,10 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>TeleVault hanya menambah berkas saat Anda memulihkan (restore) arsip ke galeri.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>TeleVault membaca foto dan video di galeri Anda untuk diunggah sebagai cadangan ke Telegram.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>

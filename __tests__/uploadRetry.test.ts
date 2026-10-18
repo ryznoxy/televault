@@ -58,6 +58,12 @@ test('429 honours Retry-After; other errors back off exponentially', () => {
   expect(retryDelayMs(new Error('network'), 3)).toBe(4000);
 });
 
+test('P2-5: an absurd Retry-After is capped so a run cannot park for hours', () => {
+  // Telegram can answer with a Retry-After in the thousands of seconds; the
+  // chunk must give up and be retried by the next run instead.
+  expect(retryDelayMs(new TelegramApiError(429, 'slow', 7200), 1)).toBe(60_000);
+});
+
 test('forwards byte progress to the API instead of dropping it', async () => {
   const onProgress = jest.fn();
   const send = jest.fn(

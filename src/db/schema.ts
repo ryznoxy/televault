@@ -21,6 +21,8 @@ export const CREATE_TABLES: string[] = [
     chunks_total INTEGER NOT NULL DEFAULT 0,
     chunks_sent INTEGER NOT NULL DEFAULT 0,
     status TEXT NOT NULL,
+    -- Message ids of the run's manifests, comma separated: a zip run sends one
+    -- per archive. Link the first one, never Number() the whole column.
     manifest_id TEXT,
     archive_name TEXT,
     encrypted INTEGER NOT NULL DEFAULT 0,

@@ -24,6 +24,7 @@ import {
 import { TG } from '../theme/theme';
 import { runBackupInForeground, BACKUP_IN_FLIGHT_ERROR } from '../background/foregroundService';
 import { isFileUri } from '../backup/fileScanner';
+import { requestNotificationPermission } from '../backup/permissions';
 import { filesRepo } from '../db/repositories/files';
 import { sessionsRepo, type SessionRecord } from '../db/repositories/sessions';
 import { TelegramBotApi } from '../net/telegramApi';
@@ -212,6 +213,9 @@ export default function HomeScreen({ navigation }: Props) {
     setProgressLabel(null);
     setStatus('Memulai backup\u2026');
     try {
+      // The foreground service notification needs this grant on Android 13+;
+      // ask here, where the user just tapped something (P2-4).
+      await requestNotificationPermission();
       const result = await runBackupInForeground(next => {
         setStatus(phaseText(next.phase, next.category, next.current, next.total));
         if (next.overall.total > 0) {
@@ -224,13 +228,14 @@ export default function HomeScreen({ navigation }: Props) {
           });
         }
       });
+      const note = result.notes && result.notes.length > 0 ? ` ${result.notes.join(' ')}` : '';
       if (result.status === 'failed' && result.error === BACKUP_IN_FLIGHT_ERROR) {
         setFailed(true);
         setStatus(`${BACKUP_IN_FLIGHT_ERROR}.`);
       } else {
         setFailed(result.status === 'failed');
         setProgress(1);
-        setStatus(
+        const summary =
           result.status === 'success'
             ? result.files === 0
               ? 'Semua berkas sudah tercadangkan. Tidak ada yang baru.'
@@ -239,8 +244,8 @@ export default function HomeScreen({ navigation }: Props) {
                 : `Backup selesai. ${result.files} berkas diunggah.`
             : result.status === 'partial'
               ? 'Backup selesai dengan peringatan. Lihat Riwayat untuk detail.'
-              : `Backup gagal. ${result.error ?? 'Coba lagi nanti.'}`,
-        );
+              : `Backup gagal. ${result.error ?? 'Coba lagi nanti.'}`;
+        setStatus(`${summary}${note}`);
       }
       await refresh();
     } catch (error) {
