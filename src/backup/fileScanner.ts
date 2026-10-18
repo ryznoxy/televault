@@ -1,6 +1,7 @@
 import { CameraRoll } from '@react-native-camera-roll/camera-roll';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import { Category, CategoryKey } from '../types/models';
+import { listSafFolder } from './safFolder';
 
 export type ScanResult = {
   path: string;
@@ -117,17 +118,18 @@ async function scanDocuments(): Promise<ScanResult[]> {
 }
 
 async function scanCustomFolder(folderUri: string): Promise<ScanResult[]> {
-  // ponytail: SAF tree URIs need a native directory walker; blob-util fs only reads
-  // real paths. Android's folder picker always returns a `content://` tree, so a
-  // picked folder cannot be read here — report that instead of returning an empty
-  // list that reads as "nothing to back up".
-  // Upgrade path: add a small native module that resolves DocumentFile children.
-  if (!isFileUri(folderUri)) {
-    throw new Error(
-      'Folder tidak dapat dibaca: Android memberi akses folder sebagai content:// yang belum didukung aplikasi ini.',
-    );
-  }
   const results: ScanResult[] = [];
+  if (!isFileUri(folderUri)) {
+    // Android's folder picker returns a `content://` SAF tree; the native
+    // SafFolder module walks it and maps each child to a path (a real file
+    // path when the provider exposes one, else the document URI, which
+    // `ensureLocalPath` localizes before upload).
+    const entries = await listSafFolder(folderUri);
+    for (const entry of entries) {
+      results.push({ ...entry, category: Category.CUSTOM });
+    }
+    return results;
+  }
   await walk(folderUri.replace('file://', ''), Category.CUSTOM, results);
   return results;
 }

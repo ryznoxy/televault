@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -29,7 +28,6 @@ import { TG } from '../theme/theme';
 import { requestNotificationPermission } from '../backup/permissions';
 import { isActiveTempDir } from '../backup/tempDirs';
 import { isCryptoAvailable, newSaltB64 } from '../backup/crypto';
-import { isFileUri } from '../backup/fileScanner';
 import { sessionsRepo } from '../db/repositories/sessions';
 import { secureStore } from '../state/secureStore';
 import { passphraseStrength } from '../state/passphrase';
@@ -239,8 +237,6 @@ export default function SettingsScreen({ navigation }: Props) {
 
   const freq = freqFromConfig(config);
   const isDaily = freq === 'day';
-  /** Android's folder picker only returns `content://` trees (P1-7). */
-  const customUnsupported = Platform.OS === 'android';
 
   // A persisted 7z choice can never run (no native 7z module in this build), so
   // fall back to ZIP and persist the correction instead of failing every run.
@@ -298,16 +294,6 @@ export default function SettingsScreen({ navigation }: Props) {
   const onAddFolder = async () => {
     try {
       const result = await pickDirectory();
-      // Android hands back a `content://` SAF tree the scanner cannot walk;
-      // storing it would show a successful backup that read nothing.
-      if (!isFileUri(result.uri)) {
-        showToast(
-          'Folder tidak didukung',
-          'Android memberi akses folder sebagai content:// yang belum bisa dibaca aplikasi ini.',
-          'error',
-        );
-        return;
-      }
       addWatchedFolder(makeWatchedFolder(result.uri));
     } catch {
       // user cancelled
@@ -562,14 +548,12 @@ export default function SettingsScreen({ navigation }: Props) {
             <SectionLabel title="KATEGORI & FOLDER" icon="folder" />
             <View style={styles.card}>
               {ALL_CATEGORIES.map(category => {
-                // Contacts/SMS have no reader in this build. Custom folders need
-                // a picker that returns a real path: Android's SAF always hands
-                // back `content://`, which the scanner cannot walk, so offering
-                // the toggle there would promise a backup that reads nothing.
+                // Contacts/SMS have no reader in this build, so their toggles
+                // stay disabled; custom folders are read through the SafFolder
+                // native module and are fully supported.
                 const unsupported =
                   category === Category.CONTACT ||
-                  category === Category.SMS ||
-                  (category === Category.CUSTOM && customUnsupported);
+                  category === Category.SMS;
                 if (!unsupported) {
                   return (
                     <IconToggleRow
@@ -587,12 +571,8 @@ export default function SettingsScreen({ navigation }: Props) {
                     key={category}
                     icon={CATEGORY_ICONS[category]}
                     title={CATEGORY_LABELS[category]}
-                    subtitle={
-                      category === Category.CUSTOM
-                        ? `${CATEGORY_HINTS[category]} — Android memberi akses folder sebagai content:// yang belum didukung.`
-                        : `${CATEGORY_HINTS[category]} — belum tersedia di versi ini.`
-                    }
-                    badge={category === Category.CUSTOM ? 'Android' : 'Segera hadir'}
+                    subtitle={`${CATEGORY_HINTS[category]} — belum tersedia di versi ini.`}
+                    badge="Segera hadir"
                   />
                 );
               })}
@@ -609,9 +589,7 @@ export default function SettingsScreen({ navigation }: Props) {
               </View>
               {config.watchedFolders.length === 0 ? (
                 <Text style={styles.emptyText} numberOfLines={2}>
-                  {customUnsupported
-                    ? 'Folder kustom belum didukung di Android: pemilih folder hanya memberi content://.'
-                    : 'Belum ada folder dipantau. Tambahkan folder agar isinya ikut dicadangkan.'}
+                  Belum ada folder dipantau. Tambahkan folder agar isinya ikut dicadangkan.
                 </Text>
               ) : (
                 config.watchedFolders.map(folder => (
@@ -638,18 +616,16 @@ export default function SettingsScreen({ navigation }: Props) {
                   </View>
                 ))
               )}
-              {customUnsupported ? null : (
-                <Pressable
-                  onPress={onAddFolder}
-                  accessibilityRole="button"
-                  accessibilityLabel="Tambah folder pantauan"
-                  style={({ pressed }) => [styles.addFolderButton, pressed && styles.pressed]}>
-                  <TgIcon name="addCircle" color="#FFFFFF" size={18} />
-                  <Text style={styles.addFolderText} numberOfLines={1}>
-                    Tambah Folder
-                  </Text>
-                </Pressable>
-              )}
+              <Pressable
+                onPress={onAddFolder}
+                accessibilityRole="button"
+                accessibilityLabel="Tambah folder pantauan"
+                style={({ pressed }) => [styles.addFolderButton, pressed && styles.pressed]}>
+                <TgIcon name="addCircle" color="#FFFFFF" size={18} />
+                <Text style={styles.addFolderText} numberOfLines={1}>
+                  Tambah Folder
+                </Text>
+              </Pressable>
             </View>
           </View>
 
