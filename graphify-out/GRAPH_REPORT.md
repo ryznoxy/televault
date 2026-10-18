@@ -1,9 +1,9 @@
-# Graph Report - rn  (2026-10-17)
+# Graph Report - fix-restore-kdf-floor  (2026-10-18)
 
 ## Corpus Check
-- 84 files · ~54,718 words
+- 84 files · ~54,771 words
 - Verdict: corpus is large enough that graph structure adds value.
-- Unclassified: 25 file(s) not represented in the graph (top: .xml 7, (none) 6, .properties 2)
+- Unclassified: 26 file(s) not represented in the graph (top: (none) 7, .xml 7, .properties 2)
 
 ## Summary
 - 617 nodes · 1436 edges · 31 communities (19 shown, 12 thin omitted)
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `c4b47040`
+- Built from commit: `1f107b0b`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 

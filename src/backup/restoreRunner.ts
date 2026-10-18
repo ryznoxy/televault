@@ -475,6 +475,11 @@ async function restoreEntries(
         emit('extracting');
         const extracted = safeJoin(outDir, outputName.replace(/\.zip$/i, ''));
         await ReactNativeBlobUtil.fs.mkdir(extracted).catch(() => undefined);
+        // Zip-slip: entry names come from an archive downloaded from the Telegram
+        // chat, but the library validates each entry before writing — Android
+        // ZipSecurity.validateExtractPath (canonical-path prefix) and iOS
+        // isSafeExtractPath (standardized-path prefix) in 9.5.x. If this
+        // dependency ever gets a major upgrade, re-verify that behavior.
         await unzip(archive, extracted);
         files.push({
           name: file.name,
