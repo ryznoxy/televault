@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeProvider';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import { AppHeader, PulsingDot, TgIcon, useToast, type TgIconName } from '../components/ui';
-import { FONT,  RADIUS, tgTheme, type TGPalette } from '../theme/theme';
+import { FONT, ON_ACCENT, TG_LIGHT,  RADIUS, tgTheme, type TGPalette } from '../theme/theme';
 import { sessionsRepo, type SessionRecord } from '../db/repositories/sessions';
 import { runBackupInForeground, BACKUP_IN_FLIGHT_ERROR } from '../background/foregroundService';
 import { secureStore } from '../state/secureStore';
@@ -44,14 +44,14 @@ const CARD_SHADOW = {
   shadowOpacity: 0.05,
   shadowRadius: 8,
   elevation: 2,
-  shadowColor: '#0B1C30',
+  shadowColor: TG_LIGHT.ink,
 };
 const FLOAT_SHADOW = {
   shadowOffset: { width: 0, height: 6 },
   shadowOpacity: 0.08,
   shadowRadius: 16,
   elevation: 4,
-  shadowColor: '#0B1C30',
+  shadowColor: TG_LIGHT.ink,
 };
 
 const ID_CATEGORY_LABELS: Record<string, string> = {
@@ -764,7 +764,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     height: 44,
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.card,
     paddingHorizontal: 12,
   },
@@ -799,14 +799,14 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
   },
   pillActive: { backgroundColor: TG.ink },
   pillIdle: { backgroundColor: TG.card, ...CARD_SHADOW },
-  pillDot: { width: 6, height: 6, borderRadius: 6 },
+  pillDot: { width: 6, height: 6, borderRadius: '50%' },
   pillText: { fontSize: 12, lineHeight: 16, fontWeight: '500', fontFamily: FONT.medium, flexShrink: 1 },
-  pillTextActive: { color: '#FFFFFF', fontWeight: '600', fontFamily: FONT.semi },
+  pillTextActive: { color: ON_ACCENT.strong, fontWeight: '600', fontFamily: FONT.semi },
   pillTextIdle: { color: TG.secondary },
 
   card: {
     backgroundColor: TG.card,
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     padding: 16,
     gap: 12,
     ...CARD_SHADOW,
@@ -839,7 +839,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
   pauseButton: {
     width: 28,
     height: 28,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.low,
     alignItems: 'center',
     justifyContent: 'center',
@@ -887,7 +887,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
   moreIconButton: {
     width: 40,
     height: 40,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
@@ -895,7 +895,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
 
   menu: {
     backgroundColor: TG.low,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     padding: 4,
     gap: 2,
   },
@@ -905,7 +905,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     gap: 8,
     paddingVertical: 8,
     paddingHorizontal: 8,
-    borderRadius: 6,
+    borderRadius: RADIUS.sm,
   },
   menuItemText: { color: TG.ink, fontSize: 13, lineHeight: 18, fontWeight: '500', fontFamily: FONT.medium, flexShrink: 1 },
 
@@ -929,7 +929,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     backgroundColor: TG.low,
-    borderRadius: 6,
+    borderRadius: RADIUS.sm,
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
@@ -950,7 +950,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     backgroundColor: TG.container,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     paddingHorizontal: 12,
     paddingVertical: 6,
     flexShrink: 0,
@@ -963,7 +963,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     minHeight: 40,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.low,
   },
   retryText: { color: TG.ink, fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 1 },
@@ -974,7 +974,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
   endText: { color: TG.secondary, fontSize: 11, lineHeight: 14, flexShrink: 1 },
   moreButton: {
     minHeight: 44,
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.low,
     alignItems: 'center',
     justifyContent: 'center',
@@ -985,7 +985,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
     backgroundColor: TG.card,
-    borderRadius: 16,
+    borderRadius: RADIUS.lg,
     padding: 12,
   },
   utilButton: {
@@ -996,7 +996,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     height: 44,
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
   },
   utilButtonPrimary: { backgroundColor: TG.container },
   utilButtonSecondary: { backgroundColor: TG.low },

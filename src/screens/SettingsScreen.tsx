@@ -26,7 +26,7 @@ import {
   useToast,
   type TgIconName,
 } from '../components/ui';
-import { FONT,  RADIUS, tgTheme, type TGPalette } from '../theme/theme';
+import { FONT, ON_ACCENT, TG_LIGHT,  RADIUS, tgTheme, type TGPalette } from '../theme/theme';
 import { requestNotificationPermission } from '../backup/permissions';
 import { isActiveTempDir } from '../backup/tempDirs';
 import { isCryptoAvailable, newSaltB64 } from '../backup/crypto';
@@ -55,7 +55,7 @@ const CARD_SHADOW = {
   shadowOpacity: 0.05,
   shadowRadius: 8,
   elevation: 2,
-  shadowColor: '#0B1C30',
+  shadowColor: TG_LIGHT.ink,
 };
 
 type FreqKey = 'hour' | 'day' | 'week' | 'realtime';
@@ -195,7 +195,7 @@ async function pathSize(path: string): Promise<number> {
 }
 
 export default function SettingsScreen({ navigation }: Props) {
-  const { mode } = useTheme();
+  const { mode, toggle } = useTheme();
   const TG = tgTheme(mode);
   const styles = createStyles(TG);
   const insets = useSafeAreaInsets();
@@ -648,7 +648,7 @@ export default function SettingsScreen({ navigation }: Props) {
                   accessibilityRole="button"
                   accessibilityLabel="Tambah folder pantauan"
                   style={({ pressed }) => [styles.addFolderButton, pressed && styles.pressed]}>
-                  <TgIcon name="addCircle" color="#FFFFFF" size={18} />
+                  <TgIcon name="addCircle" color={ON_ACCENT.strong} size={18} />
                   <Text style={styles.addFolderText} numberOfLines={1}>
                     Tambah Folder
                   </Text>
@@ -908,11 +908,12 @@ export default function SettingsScreen({ navigation }: Props) {
           <View style={styles.section}>
             <SectionLabel title="TAMPILAN" icon="tune" />
             <View style={styles.card}>
-              <DisabledToggleRow
+              <IconToggleRow
                 icon="eye"
                 title="Mode Gelap"
-                subtitle="Tampilan gelap belum aktif di versi ini."
-                badge="Segera hadir"
+                subtitle="Ganti tampilan aplikasi antara terang dan gelap"
+                value={mode === 'dark'}
+                onValueChange={() => toggle()}
               />
             </View>
           </View>
@@ -1058,7 +1059,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     justifyContent: 'space-between',
     gap: 12,
     backgroundColor: TG.container,
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     padding: 16,
     ...CARD_SHADOW,
   },
@@ -1086,7 +1087,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
 
   card: {
     backgroundColor: TG.card,
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     padding: 16,
     gap: 12,
     ...CARD_SHADOW,
@@ -1097,14 +1098,14 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
   segmentTrack: {
     flexDirection: 'row',
     backgroundColor: TG.container,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     padding: 4,
     gap: 4,
   },
   segmentItem: {
     flex: 1,
     minHeight: 34,
-    borderRadius: 6,
+    borderRadius: RADIUS.sm,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 4,
@@ -1119,7 +1120,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     backgroundColor: TG.low,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     padding: 12,
   },
   execIcon: { flexShrink: 0 },
@@ -1131,7 +1132,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     backgroundColor: TG.card,
-    borderRadius: 6,
+    borderRadius: RADIUS.sm,
     paddingHorizontal: 10,
     paddingVertical: 4,
     flexShrink: 0,
@@ -1145,7 +1146,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
   hourPicker: {
     gap: 12,
     backgroundColor: TG.low,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     padding: 12,
   },
   stepperRow: {
@@ -1172,14 +1173,14 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
   presetChip: {
     flex: 1,
     minHeight: 34,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
   presetChipActive: { backgroundColor: TG.primaryContainer },
   presetChipIdle: { backgroundColor: TG.card },
   presetText: { fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi },
-  presetTextActive: { color: '#FFFFFF' },
+  presetTextActive: { color: ON_ACCENT.strong },
   presetTextIdle: { color: TG.primary },
   hourNote: { color: TG.secondary, fontSize: 11, lineHeight: 15 },
 
@@ -1212,7 +1213,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 8,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     padding: 12,
     minWidth: 0,
   },
@@ -1226,13 +1227,13 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
   radio: { width: 16, height: 16, borderRadius: RADIUS.md, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   radioActive: { backgroundColor: TG.primaryContainer },
   radioIdle: { backgroundColor: TG.container },
-  radioDot: { width: 8, height: 8, borderRadius: RADIUS.md, backgroundColor: '#FFFFFF' },
+  radioDot: { width: 8, height: 8, borderRadius: '50%', backgroundColor: ON_ACCENT.strong },
 
   cacheRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   cacheTile: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.container,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1248,7 +1249,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     backgroundColor: TG.container,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     paddingHorizontal: 12,
     paddingVertical: 6,
     flexShrink: 0,
@@ -1294,7 +1295,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
   removeButton: {
     width: 36,
     height: 36,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.low,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1307,10 +1308,10 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     minHeight: 44,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.primaryContainer,
   },
-  addFolderText: { color: '#FFFFFF', fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 1 },
+  addFolderText: { color: ON_ACCENT.strong, fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 1 },
 
   emptyText: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
 
@@ -1320,14 +1321,14 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
   passBox: {
     gap: 10,
     backgroundColor: TG.low,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     padding: 12,
   },
   passField: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: TG.card,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     paddingLeft: 12,
     paddingRight: 4,
     minHeight: 44,
@@ -1349,12 +1350,12 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
   },
   strengthRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   strengthBar: { flex: 1, minWidth: 0, flexDirection: 'row', gap: 4 },
-  strengthSeg: { flex: 1, height: 4, borderRadius: 2 },
+  strengthSeg: { flex: 1, height: 4, borderRadius: '50%' },
   strengthLabel: { color: TG.secondary, fontSize: 11, lineHeight: 14, fontWeight: '500', fontFamily: FONT.medium },
   passActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8 },
   passCancel: {
     minHeight: 36,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     paddingHorizontal: 14,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1363,12 +1364,12 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
   passCancelText: { color: TG.secondary, fontSize: 13, lineHeight: 18, fontWeight: '500', fontFamily: FONT.medium },
   passConfirm: {
     minHeight: 36,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     paddingHorizontal: 14,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: TG.primaryContainer,
   },
-  passConfirmText: { color: '#FFFFFF', fontSize: 13, lineHeight: 18, fontWeight: '600', fontFamily: FONT.semi },
+  passConfirmText: { color: ON_ACCENT.strong, fontSize: 13, lineHeight: 18, fontWeight: '600', fontFamily: FONT.semi },
   passNote: { color: TG.secondary, fontSize: 11, lineHeight: 15 },
 });

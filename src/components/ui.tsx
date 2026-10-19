@@ -19,7 +19,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeProvider';
-import { FONT,  ELEVATION, RADIUS, SPACE, TG_LIGHT, tgTheme, TYPE } from '../theme/theme';
+import { FONT,  ELEVATION, RADIUS, SPACE, TG_DARK, TG_LIGHT, tgTheme, TYPE } from '../theme/theme';
 import { parseClampedInt } from './number';
 
 /* ------------------------------------------------------------------ */
@@ -149,12 +149,12 @@ export function AppHeader({
         ) : null}
         <View style={styles.appHeaderText}>
           <View style={styles.appHeaderTitleRow}>
-            <Text style={styles.appHeaderWordmark}>TeleVault</Text>
-            <View style={styles.appHeaderE2eePill}>
-              <Text style={styles.appHeaderE2eeText}>E2EE</Text>
+            <Text style={[styles.appHeaderWordmark, { color: TG.ink }]}>TeleVault</Text>
+            <View style={[styles.appHeaderE2eePill, { backgroundColor: TG.low }]}>
+              <Text style={[styles.appHeaderE2eeText, { color: TG.primary }]}>E2EE</Text>
             </View>
           </View>
-          <Text style={styles.appHeaderSubtitle}>{subtitle}</Text>
+          <Text style={[styles.appHeaderSubtitle, { color: TG.secondary }]}>{subtitle}</Text>
         </View>
       </View>
     </View>
@@ -806,8 +806,11 @@ const TABS: { key: TabKey; label: string; icon: TgIconName }[] = [
   { key: 'stats', label: 'Riwayat', icon: 'history' },
 ];
 
-const NAV_ACTIVE = TG_LIGHT.primaryContainer;
-const NAV_IDLE = TG_LIGHT.secondary;
+/** Bottom nav accent colors — resolved per mode inside BottomNav. */
+const navColors = (mode: 'light' | 'dark') => ({
+  active: mode === 'dark' ? TG_DARK.primary : TG_LIGHT.primaryContainer,
+  idle: mode === 'dark' ? TG_DARK.secondary : TG_LIGHT.secondary,
+});
 
 /** Fixed bar (translucent card fill + hairline top border), theme-aware. */
 export function BottomNav({
@@ -820,6 +823,7 @@ export function BottomNav({
   const insets = useSafeAreaInsets();
   const { mode } = useTheme();
   const TG = tgTheme(mode);
+  const NAV = navColors(mode);
   return (
     <View
       accessibilityRole="tablist"
@@ -844,14 +848,14 @@ export function BottomNav({
             <View style={[styles.navIcon, selected && styles.navIconActive]}>
               <TgIcon
                 name={tab.icon}
-                color={selected ? NAV_ACTIVE : NAV_IDLE}
+                color={selected ? NAV.active : NAV.idle}
                 size={20}
               />
             </View>
             <Text
               style={[
                 styles.navLabel,
-                { color: selected ? NAV_ACTIVE : NAV_IDLE, fontFamily: selected ? FONT.semi : FONT.medium },
+                { color: selected ? NAV.active : NAV.idle, fontFamily: selected ? FONT.semi : FONT.medium },
               ]}
               numberOfLines={1}>
               {tab.label}

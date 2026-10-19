@@ -21,7 +21,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeProvider';
 import { AppHeader, TgIcon } from '../components/ui';
-import { FONT,  RADIUS, tgTheme, type TGPalette } from '../theme/theme';
+import { FONT, ON_ACCENT, TG_LIGHT,  RADIUS, tgTheme, type TGPalette } from '../theme/theme';
 import {
   findManifestPath,
   loadManifestFromFolder,
@@ -279,7 +279,7 @@ export default function RestoreScreen({ navigation }: Props) {
                 busy && styles.disabled,
                 pressed && styles.pressed,
               ]}>
-              <TgIcon name="fileText" color="#FFFFFF" size={20} />
+              <TgIcon name="fileText" color={ON_ACCENT.strong} size={20} />
               <Text style={styles.primaryButtonText} numberOfLines={1}>
                 Pilih berkas backup
               </Text>
@@ -357,9 +357,9 @@ export default function RestoreScreen({ navigation }: Props) {
               pressed && styles.pressed,
             ]}>
             {busy ? (
-              <ActivityIndicator color="#FFFFFF" size="small" />
+              <ActivityIndicator color={ON_ACCENT.strong} size="small" />
             ) : (
-              <TgIcon name="download" color="#FFFFFF" size={20} />
+              <TgIcon name="download" color={ON_ACCENT.strong} size={20} />
             )}
             <Text style={styles.primaryButtonText} numberOfLines={1}>
               {busy ? 'Memulihkan\u2026' : 'Pulihkan Sekarang'}
@@ -452,7 +452,7 @@ const CARD_SHADOW = {
   shadowOpacity: 0.05,
   shadowRadius: 8,
   elevation: 2,
-  shadowColor: '#0B1C30',
+  shadowColor: TG_LIGHT.ink,
 };
 
 const createStyles = (TG: TGPalette) => StyleSheet.create({
@@ -462,7 +462,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
 
   card: {
     backgroundColor: TG.card,
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     padding: 16,
     gap: 12,
     ...CARD_SHADOW,
@@ -472,7 +472,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
   guidanceIcon: {
     width: 44,
     height: 44,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.container,
     alignItems: 'center',
     justifyContent: 'center',
@@ -489,7 +489,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     backgroundColor: TG.low,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     paddingHorizontal: 12,
     minHeight: 44,
   },
@@ -500,7 +500,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
   inputWrap: { position: 'relative' },
   codeInput: {
     backgroundColor: TG.low,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     paddingHorizontal: 14,
     paddingVertical: 10,
     minHeight: 44,
@@ -521,7 +521,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
   iconButton: {
     width: 40,
     height: 40,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -536,7 +536,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     paddingHorizontal: 16,
     backgroundColor: TG.onPrimaryContainer,
   },
-  primaryButtonText: { color: '#FFFFFF', fontSize: 15, lineHeight: 20, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 1 },
+  primaryButtonText: { color: ON_ACCENT.strong, fontSize: 15, lineHeight: 20, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 1 },
   secondaryButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -562,7 +562,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     padding: 12,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.errorSoft,
   },
   errorText: { color: TG.error, fontSize: 13, lineHeight: 18, flex: 1, minWidth: 0 },
@@ -580,7 +580,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     alignSelf: 'flex-start',
     paddingHorizontal: 12,
     minHeight: 36,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.low,
     marginTop: 4,
   },

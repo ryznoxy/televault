@@ -20,7 +20,7 @@ import {
   TgIcon,
   useToast,
 } from '../components/ui';
-import { FONT,  ELEVATION, RADIUS, tgTheme, type TGPalette } from '../theme/theme';
+import { FONT, ON_ACCENT, TG_LIGHT,  ELEVATION, RADIUS, SPACE, tgTheme, type TGPalette } from '../theme/theme';
 import { isCryptoAvailable, newSaltB64 } from '../backup/crypto';
 import { TelegramBotApi } from '../net/telegramApi';
 import { stopScheduler } from '../background/scheduler';
@@ -566,9 +566,9 @@ export default function SetupScreen({ navigation }: Props) {
               pressed && styles.pressed,
             ]}>
             {saving ? (
-              <ActivityIndicator color="#FFFFFF" size="small" />
+              <ActivityIndicator color={ON_ACCENT.strong} size="small" />
             ) : (
-              <TgIcon name="checkCircle" color="#FFFFFF" size={18} />
+              <TgIcon name="checkCircle" color={ON_ACCENT.strong} size={18} />
             )}
             <Text style={styles.primaryActionText} numberOfLines={1}>
               {saveLabel}
@@ -638,7 +638,7 @@ const CARD_SHADOW = {
   shadowOpacity: 0.05,
   shadowRadius: 8,
   elevation: 2,
-  shadowColor: '#0B1C30',
+  shadowColor: TG_LIGHT.ink,
 };
 
 const createStyles = (TG: TGPalette) => StyleSheet.create({
@@ -647,7 +647,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
   column: { width: '100%', maxWidth: 640, alignSelf: 'center', gap: 24 },
   card: {
     backgroundColor: TG.card,
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     padding: 16,
     gap: 12,
     overflow: 'hidden',
@@ -662,14 +662,14 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     width: 112,
     height: 112,
     borderRadius: RADIUS.md,
-    backgroundColor: 'rgba(0,101,142,0.05)',
+    backgroundColor: TG.low,
   },
 
-  guidanceRow: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
+  guidanceRow: { flexDirection: 'row', gap: SPACE.md, alignItems: 'flex-start' },
   guidanceIcon: {
     width: 44,
     height: 44,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.container,
     alignItems: 'center',
     justifyContent: 'center',
@@ -678,7 +678,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
   guidanceTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
   guidanceTitle: { color: TG.ink, fontSize: 17, lineHeight: 22, fontWeight: '600', fontFamily: FONT.semi },
   aesPill: {
-    backgroundColor: 'rgba(34,158,217,0.15)',
+    backgroundColor: TG.low,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: RADIUS.md,
@@ -717,7 +717,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
   inputWrap: { position: 'relative' },
   codeInput: {
     backgroundColor: TG.low,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     paddingHorizontal: 14,
     paddingVertical: 10,
     minHeight: 44,
@@ -738,7 +738,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
   iconButton: {
     width: 40,
     height: 40,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -762,7 +762,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     gap: 6,
     minHeight: 44,
     paddingHorizontal: 14,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.container,
   },
   secondaryButtonText: {
@@ -777,7 +777,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     padding: 10,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.container,
   },
   errorBanner: { backgroundColor: TG.errorSoft },
@@ -785,14 +785,14 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
 
   strengthRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   strengthBar: { flex: 1, flexDirection: 'row', gap: 4 },
-  strengthSeg: { flex: 1, height: 6, borderRadius: 3 },
+  strengthSeg: { flex: 1, height: 6, borderRadius: '50%' },
   strengthLabel: { color: TG.secondary, fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi },
 
   infoBox: {
     flexDirection: 'row',
     gap: 8,
     padding: 10,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.low,
     alignItems: 'flex-start',
   },
@@ -805,12 +805,12 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     minHeight: 44,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.primary,
     paddingHorizontal: 16,
   },
   primaryActionText: {
-    color: '#FFFFFF',
+    color: ON_ACCENT.strong,
     fontSize: 12,
     lineHeight: 16,
     fontWeight: '600', fontFamily: FONT.semi,
@@ -823,11 +823,11 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     minHeight: 44,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.card,
     paddingHorizontal: 16,
     ...ELEVATION.card,
-    shadowColor: '#0B1C30',
+    shadowColor: TG_LIGHT.ink,
   },
   secondaryActionText: {
     color: TG.ink,
@@ -860,7 +860,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     gap: 6,
     paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     backgroundColor: 'transparent',
     minHeight: 36,
   },

@@ -22,7 +22,7 @@ import {
   useToast,
   type TgIconName,
 } from '../components/ui';
-import { FONT,  ELEVATION, RADIUS, tgTheme, type TGPalette } from '../theme/theme';import { runBackupInForeground, BACKUP_IN_FLIGHT_ERROR } from '../background/foregroundService';
+import { FONT,  ELEVATION, ON_ACCENT, RADIUS, SPACE, TG_LIGHT, tgTheme, TYPE, type TGPalette } from '../theme/theme';import { runBackupInForeground, BACKUP_IN_FLIGHT_ERROR } from '../background/foregroundService';
 import { isFileUri } from '../backup/fileScanner';
 import { requestNotificationPermission } from '../backup/permissions';
 import { filesRepo } from '../db/repositories/files';
@@ -143,7 +143,7 @@ export default function HomeScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
-  const gutter = isTablet ? 24 : 16;
+  const gutter = isTablet ? SPACE.lg : SPACE.base;
 
   const config = useSettingsStore(state => state.config);
   const setWifiOnly = useSettingsStore(state => state.setWifiOnly);
@@ -299,7 +299,7 @@ export default function HomeScreen({ navigation }: Props) {
 
   const contentContainer = {
     paddingHorizontal: gutter,
-    paddingTop: 16,
+    paddingTop: SPACE.base,
     paddingBottom: 120 + insets.bottom,
   };
 
@@ -362,7 +362,7 @@ export default function HomeScreen({ navigation }: Props) {
                     { backgroundColor: TG.primaryContainer },
                     pressed && styles.pressed,
                   ]}>
-                  <Text style={[styles.chipText, { color: '#FFFFFF' }]}>Setup</Text>
+                  <Text style={[styles.chipText, { color: TG.onPrimaryContainer }]}>Setup</Text>
                 </Pressable>
               )}
             </View>
@@ -380,7 +380,7 @@ export default function HomeScreen({ navigation }: Props) {
                 </Text>
               </View>
               <View style={styles.heroIconTile}>
-                <TgIcon name="cloudDone" color="#FFFFFF" size={22} />
+                <TgIcon name="cloudDone" color={ON_ACCENT.strong} size={22} />
               </View>
             </View>
 
@@ -389,8 +389,8 @@ export default function HomeScreen({ navigation }: Props) {
                 size={92}
                 stroke={8}
                 progress={ringProgress}
-                color="#FFFFFF"
-                trackColor="rgba(255,255,255,0.24)">
+                color={ON_ACCENT.strong}
+                trackColor={ON_ACCENT.track}>
                 <Text style={styles.ringPct}>{Math.round(ringProgress * 100)}%</Text>
               </ProgressRing>
               <View style={styles.insetText}>
@@ -449,7 +449,7 @@ export default function HomeScreen({ navigation }: Props) {
                 style={({ pressed }) => [styles.heroSecondary, pressed && styles.pressed]}>
                 <TgIcon
                   name={config.automationPaused ? 'play' : 'pause'}
-                  color="#FFFFFF"
+                  color={ON_ACCENT.strong}
                   size={18}
                 />
                 <Text style={styles.heroSecondaryText} numberOfLines={1}>
@@ -460,7 +460,7 @@ export default function HomeScreen({ navigation }: Props) {
                 onPress={() => navigation.navigate('Restore')}
                 accessibilityRole="button"
                 style={({ pressed }) => [styles.heroSecondary, pressed && styles.pressed]}>
-                <TgIcon name="folderZip" color="#FFFFFF" size={18} />
+                <TgIcon name="folderZip" color={ON_ACCENT.strong} size={18} />
                 <Text style={styles.heroSecondaryText} numberOfLines={1}>
                   Pulihkan
                 </Text>
@@ -625,7 +625,7 @@ function FolderRow({
         </Text>
       </View>
       <View style={styles.folderRight}>
-        <View style={styles.statusDot} />
+        <View style={styles.statusDot} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" />
         <TgIcon name="chevron" color={TG.outline} size={16} />
       </View>
       {!last ? <View style={styles.folderDivider} /> : null}
@@ -667,7 +667,7 @@ function PreferenceRow({
         onValueChange={onValueChange}
         accessibilityLabel={title}
         trackColor={{ false: TG.highest, true: TG.primaryContainer }}
-        thumbColor="#FFFFFF"
+        thumbColor={TG.card}
         ios_backgroundColor={TG.highest}
       />
     </View>
@@ -679,36 +679,36 @@ const CARD_SHADOW = {
   shadowOpacity: 0.05,
   shadowRadius: 8,
   elevation: 2,
-  shadowColor: '#0B1C30',
+  shadowColor: TG_LIGHT.ink,
 };
 
 const createStyles = (TG: TGPalette) => StyleSheet.create({
   root: { flex: 1 },
   scroll: { flex: 1 },
-  column: { width: '100%', maxWidth: 640, alignSelf: 'center', gap: 20 },
+  column: { width: '100%', maxWidth: 640, alignSelf: 'center', gap: SPACE.base + SPACE.xs },
 
   card: {
     backgroundColor: TG.card,
     borderRadius: RADIUS.lg,
-    padding: 16,
-    gap: 14,
+    padding: SPACE.base,
+    gap: SPACE.base - SPACE.xs,
     ...CARD_SHADOW,
   },
-  rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: SPACE.md },
 
   pill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 12,
+    gap: SPACE.sm,
+    paddingHorizontal: SPACE.md,
     paddingVertical: 6,
     borderRadius: RADIUS.md,
     flexShrink: 1,
   },
-  pillText: { fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 1 },
+  pillText: { ...TYPE.caption, lineHeight: 16, flexShrink: 1 },
   latencyPill: { backgroundColor: TG.low, flexShrink: 0 },
 
-  botRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  botRow: { flexDirection: 'row', alignItems: 'center', gap: SPACE.md },
   botTile: {
     width: 44,
     height: 44,
@@ -719,79 +719,78 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
   },
   botText: { flex: 1, minWidth: 0, gap: 2 },
   botNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  botName: { color: TG.ink, fontSize: 17, lineHeight: 22, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 1 },
+  botName: { ...TYPE.headline, color: TG.ink, lineHeight: 22, flexShrink: 1 },
   channelRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  channelText: { color: TG.secondary, fontSize: 13, lineHeight: 18, flexShrink: 1 },
+  channelText: { ...TYPE.footnote, color: TG.secondary, lineHeight: 18, flexShrink: 1 },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: SPACE.base - 6,
+    paddingVertical: SPACE.xs,
     borderRadius: RADIUS.md,
     flexShrink: 0,
   },
-  chipText: { fontSize: 11, lineHeight: 14, fontWeight: '600', fontFamily: FONT.semi },
+  chipText: { ...TYPE.caption, lineHeight: 14 },
 
   heroText: { flex: 1, minWidth: 0, gap: 2 },
   heroCard: {
-    backgroundColor: TG.primary,
+    backgroundColor: TG.primaryContainer,
     borderRadius: RADIUS.xl,
-    padding: 20,
-    gap: 16,
+    padding: SPACE.base + SPACE.xs,
+    gap: SPACE.base,
     ...ELEVATION.card,
   },
   heroIconTile: {
     width: 44,
     height: 44,
     borderRadius: RADIUS.md,
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: ON_ACCENT.tint,
     alignItems: 'center',
     justifyContent: 'center',
   },
   overline: {
-    color: 'rgba(255,255,255,0.72)', fontSize: 11, lineHeight: 14, fontWeight: '600',
+    color: ON_ACCENT.body, fontSize: 11, lineHeight: 14, fontWeight: '600',
     fontFamily: FONT.semi, letterSpacing: 0.8,
   },
-  heroTitle: { color: '#FFFFFF', fontSize: 22, lineHeight: 28, fontWeight: '700', fontFamily: FONT.bold, letterSpacing: -0.3 },
+  heroTitle: { ...TYPE.title, color: ON_ACCENT.strong, lineHeight: 28, fontFamily: FONT.bold },
   heroInset: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
-    backgroundColor: 'rgba(255,255,255,0.10)',
+    gap: SPACE.base,
+    backgroundColor: ON_ACCENT.tint,
     borderRadius: RADIUS.md,
-    padding: 12,
+    padding: SPACE.md,
   },
-  insetText: { flex: 1, minWidth: 0, gap: 4 },
-  insetTitle: { color: '#FFFFFF', fontSize: 15, lineHeight: 20, fontWeight: '700', fontFamily: FONT.bold },
-  insetMeta: { color: 'rgba(255,255,255,0.78)', fontSize: 13, lineHeight: 18 },
-  insetHash: { color: 'rgba(255,255,255,0.92)', fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi },
-  insetNeutral: { color: 'rgba(255,255,255,0.55)', fontSize: 12, lineHeight: 16 },
-  ringPct: { color: '#FFFFFF', fontSize: 17, lineHeight: 22, fontWeight: '700', fontFamily: FONT.bold },
+  insetText: { flex: 1, minWidth: 0, gap: SPACE.xs },
+  insetTitle: { ...TYPE.label, color: ON_ACCENT.strong, fontFamily: FONT.bold },
+  insetMeta: { ...TYPE.footnote, color: ON_ACCENT.body, lineHeight: 18 },
+  insetHash: { ...TYPE.caption, color: ON_ACCENT.strong },
+  insetNeutral: { ...TYPE.caption, color: ON_ACCENT.muted, fontWeight: '400', fontFamily: FONT.regular },
+  ringPct: { ...TYPE.headline, color: ON_ACCENT.strong, fontFamily: FONT.bold },
 
-  progressBlock: { gap: 8 },
+  progressBlock: { gap: SPACE.sm },
   progressHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 12,
+    gap: SPACE.md,
   },
-  progressText: { color: 'rgba(255,255,255,0.78)', fontSize: 13, lineHeight: 18, flexShrink: 1 },
-  progressPct: { color: '#FFFFFF', fontSize: 13, lineHeight: 18, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 0 },
+  progressText: { ...TYPE.footnote, color: ON_ACCENT.body, lineHeight: 18, flexShrink: 1 },
+  progressPct: { ...TYPE.caption, color: ON_ACCENT.strong, flexShrink: 0 },
 
   heroCta: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    gap: SPACE.sm,
     minHeight: 52,
     borderRadius: RADIUS.md,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: ON_ACCENT.strong,
   },
   heroCtaText: {
-    color: TG.primary, fontSize: 15, lineHeight: 20, fontWeight: '700',
-    fontFamily: FONT.semi, flexShrink: 1,
+    color: TG.primary, ...TYPE.label, fontFamily: FONT.semi, flexShrink: 1,
   },
-  heroActions: { flexDirection: 'row', gap: 10 },
+  heroActions: { flexDirection: 'row', gap: SPACE.md },
   heroSecondary: {
     flex: 1,
     flexDirection: 'row',
@@ -800,23 +799,23 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     gap: 6,
     minHeight: 44,
     borderRadius: RADIUS.md,
-    backgroundColor: 'rgba(255,255,255,0.14)',
+    backgroundColor: ON_ACCENT.tint,
   },
-  heroSecondaryText: { color: '#FFFFFF', fontSize: 13, lineHeight: 18, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 1 },
+  heroSecondaryText: { ...TYPE.caption, color: ON_ACCENT.strong, flexShrink: 1 },
 
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
-  sectionTitle: { color: TG.ink, fontSize: 18, lineHeight: 24, fontWeight: '700', fontFamily: FONT.bold, letterSpacing: -0.2 },
-  sectionAction: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
-  sectionLink: { color: TG.primary, fontSize: 13, lineHeight: 18, fontWeight: '600', fontFamily: FONT.semi },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: SPACE.md },
+  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: SPACE.sm, flexShrink: 1 },
+  sectionTitle: { ...TYPE.headline, color: TG.ink, letterSpacing: -0.2 },
+  sectionAction: { ...TYPE.footnote, color: TG.secondary },
+  sectionLink: { ...TYPE.footnote, color: TG.primary, fontFamily: FONT.semi },
 
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACE.md },
   statTile: {
     flexGrow: 1,
     flexBasis: '46%',
     backgroundColor: TG.card,
     borderRadius: RADIUS.lg,
-    padding: 16,
+    padding: SPACE.base,
     gap: 6,
     ...CARD_SHADOW,
   },
@@ -828,23 +827,30 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  statValue: { color: TG.ink, fontSize: 22, lineHeight: 28, fontWeight: '700', fontFamily: FONT.bold, letterSpacing: -0.3 },
-  statLabel: { color: TG.secondary, fontSize: 12, lineHeight: 16 },
+  statValue: { ...TYPE.title, color: TG.ink, fontFamily: FONT.bold, lineHeight: 26 },
+  statLabel: { ...TYPE.caption, color: TG.secondary, fontWeight: '400', fontFamily: FONT.regular },
 
-  folderRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12 },
+  folderRow: { flexDirection: 'row', alignItems: 'center', gap: SPACE.md, paddingVertical: SPACE.md },
   folderIconTile: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.low,
     alignItems: 'center',
     justifyContent: 'center',
   },
   folderText: { flex: 1, minWidth: 0, gap: 2 },
-  folderName: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '600', fontFamily: FONT.semi },
-  folderMeta: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
+  folderName: { ...TYPE.footnote, color: TG.ink, fontFamily: FONT.semi, lineHeight: 20 },
+  folderMeta: { ...TYPE.footnote, color: TG.secondary, lineHeight: 18 },
   folderRight: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 0 },
-  statusDot: { width: 8, height: 8, borderRadius: 8, backgroundColor: TG.primaryContainer },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 8,
+    backgroundColor: TG.primaryContainer,
+  },
+  // Decorative twin of the row's schedule text — hidden from a11y tree so
+  // status is never conveyed by color alone.
   folderDivider: {
     position: 'absolute',
     left: 52,
@@ -867,20 +873,20 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
   emptyText: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
 
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: TG.highest, marginLeft: 52 },
-  prefRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 4 },
+  prefRow: { flexDirection: 'row', alignItems: 'center', gap: SPACE.md, paddingVertical: SPACE.xs },
   prefIconTile: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.low,
     alignItems: 'center',
     justifyContent: 'center',
   },
   prefText: { flex: 1, minWidth: 0, gap: 2 },
-  prefTitle: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '600', fontFamily: FONT.semi },
-  prefSubtitle: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
+  prefTitle: { ...TYPE.footnote, color: TG.ink, fontFamily: FONT.semi, lineHeight: 20 },
+  prefSubtitle: { ...TYPE.footnote, color: TG.secondary, lineHeight: 18 },
 
-  status: { fontSize: 13, lineHeight: 18, paddingHorizontal: 4 },
+  status: { ...TYPE.footnote, lineHeight: 18, paddingHorizontal: SPACE.xs },
   pressed: { opacity: 0.85 },
   disabled: { opacity: 0.4 },
 });

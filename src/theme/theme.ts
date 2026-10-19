@@ -153,6 +153,18 @@ export const TYPE = {
   caption: { fontSize: 12, fontWeight: '600', letterSpacing: 0.4, fontFamily: FONT.semi },
 } as const;
 
+/**
+ * Opacity ramp for content drawn on an accent fill (HeroCard, primary CTA).
+ * Keeps screens free of raw rgba() while preserving the accent hierarchy.
+ */
+export const ON_ACCENT = {
+  strong: 'rgba(255,255,255,0.94)', // text/icons on accent fill, primary CTA surface
+  body: 'rgba(255,255,255,0.80)',   // supporting text on accent
+  muted: 'rgba(255,255,255,0.62)',  // tertiary text on accent
+  tint: 'rgba(255,255,255,0.14)',   // inset/secondary surface on accent
+  track: 'rgba(255,255,255,0.24)',  // progress tracks on accent
+} as const;
+
 /** Soft elevation used by every raised surface. */
 export const ELEVATION = {
   card: {
