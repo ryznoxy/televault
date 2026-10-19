@@ -6,17 +6,18 @@ Status: aplikasi React Native 0.87, Android jadi target utama, iOS ikut terbangu
 
 ## Fitur
 
-- **Kategori backup** — Photos, Videos, Documents, dan folder custom (Android: hanya Photos/Videos/Documents, lihat Batasan).
+- **Kategori backup** — Photos, Videos, Documents, dan folder custom bebas lewat SAF (juga di Android). Contacts & SMS menyusul (lihat Batasan).
 - **Enkripsi di perangkat** — AES-256-GCM, kunci dari PBKDF2-SHA256 (210.000 iterasi, salt 16 byte, IV 12 byte **per potongan**). Passphrase tidak pernah dikirim ke Telegram; hanya salt dan IV-nya.
 - **Chunking** — file dipecah maksimal 49 MB per bagian (`nama.zip.001`, `.002`, …) supaya lolos batas 50 MB Bot API; dengan enkripsi aktif batasnya 16 MB supaya puncak RAM tetap rendah. Setiap potongan dienkripsi sendiri, jadi backup multi-GB tidak perlu menahan seluruh arsip di memori.
 - **Backup inkremental** — file yang `mtime`-nya tidak berubah dilewati, jadi backup harian hanya mengunggah yang baru.
 - **Manifest + skrip reassembly** — setiap arsip mengirim `<nama>.manifest.json` (ukuran, jumlah chunk, SHA-256, daftar IV, info enkripsi) plus skrip `.sh`/`.bat` untuk menyatukan potongan tanpa aplikasi.
-- **Restore dari Telegram** — pilih potongan → gabung → verifikasi SHA-256 → dekripsi per potongan → ekstrak zip, dengan status per berkas.
+- **Restore dari Telegram** — pilih potongan → gabung → verifikasi SHA-256 → dekripsi per potongan → ekstrak zip, dengan status per berkas. Iterasi PBKDF2 restore mengikuti yang tercatat di manifest (minimum 210.000), jadi backup lama tetap bisa dibuka.
 - **Penjadwalan** — manual, interval (jam), jam tertentu tiap hari, atau hanya saat charging.
 - **Jalan di background** — `react-native-background-fetch` + foreground service, termasuk headless task saat aplikasi tertutup.
 - **Upload tahan putus** — retry dengan backoff (`Retry-After` 429 dihormati, dibatasi 60 detik); progres, riwayat sesi, dan statistik tersimpan lokal (SQLite) dan bisa diekspor CSV.
 - **Troubleshoot** — layar diagnostik untuk izin, koneksi bot, dan panduan baterai per OEM.
 - **Wifi-only** dan passphrase strength check.
+- **Tema terang & gelap** — toggle dark mode di Settings, semua layar ter-tokenisasi mengikuti.
 
 ## Alur backup
 
@@ -103,11 +104,9 @@ Bundle id `com.televault.app`, `MARKETING_VERSION` di `ios/TelebotBackupRN.xcode
 - **7z belum didukung** — writer 7z tidak tersedia di Hermes; opsi format ditampilkan tapi dinonaktifkan (`src/backup/zipper.ts`).
 - **49 MB per chunk** — batas Bot API publik (16 MB saat enkripsi aktif, demi RAM). Server Bot API lokal bisa menaikkan ini, tapi belum jadi target build.
 - **Contacts & SMS belum ada** — barisnya tampil nonaktif ("Segera hadir"); belum ada reader-nya.
-- **Folder custom belum jalan di Android** — SAF hanya memberi `content://` yang tidak bisa ditelusuri `ls`, jadi kategorinya dinonaktifkan di Android dan folder bebas dipakai di iOS.
 - **Documents di Android 11+ bisa kosong** — scoped storage membatasi folder `Download`/`Documents`. Kategori yang terbaca 0 berkas akan memberitahukannya di ringkasan backup.
 - **Android 15+ membatasi foreground service `dataSync` ±6 jam per hari** — backup yang lebih lama dari itu bisa dihentikan sistem; jalankan ulang atau kecilkan jumlah berkas per run (`maxFilesPerRun`).
 - **Jadwal global, bukan per folder** — satu jadwal untuk semua kategori terpilih.
-- **Tema masih terang saja** — baris "Tampilan gelap" nonaktif.
 - **iOS belum diuji di device.**
 - **Package Kotlin masih `com.telebotbackuprn`** (nama modul Xcode `TelebotBackupRN`), tapi id yang dipasang/dipublikasikan adalah `com.televault.app` di kedua platform — ganti sekarang kalau mau nama lain, karena id ini permanen setelah rilis pertama.
 
