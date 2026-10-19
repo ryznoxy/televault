@@ -540,7 +540,7 @@ export async function runBackup(
         );
       }
       if (config.compressZip) {
-        const zipName = uniqueName(`${category}_${Date.now()}.zip`);
+        const zipName = uniqueName(`backup_${category}_${new Date(Date.now()).toISOString().slice(0, 10)}.zip`);
         const zipPath = `${stagingDir}/${zipName}`;
         emit('zipping', category, 0, pending.length);
         const zipSources: string[] = [];
