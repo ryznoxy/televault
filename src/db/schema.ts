@@ -24,6 +24,9 @@ export const CREATE_TABLES: string[] = [
     -- Message ids of the run's manifests, comma separated: a zip run sends one
     -- per archive. Link the first one, never Number() the whole column.
     manifest_id TEXT,
+    -- Telegram document file_ids of the run's manifests, comma separated in
+    -- the same order as manifest_id. One-tap restore downloads these first.
+    manifest_file_ids TEXT,
     archive_name TEXT,
     encrypted INTEGER NOT NULL DEFAULT 0,
     error_reason TEXT,
@@ -36,6 +39,12 @@ export const CREATE_TABLES: string[] = [
     size INTEGER NOT NULL DEFAULT 0,
     telegram_msg_id INTEGER,
     uploaded_at INTEGER,
+    -- Telegram document file_id and the uploaded part name: both are what
+    -- one-tap restore needs to re-download a part without listing chat
+    -- history (the Bot API has no history access). Part name also
+    -- disambiguates chunk_index, which restarts per archive in zip mode.
+    telegram_file_id TEXT,
+    part_name TEXT,
     FOREIGN KEY (session_id) REFERENCES backup_sessions (id) ON DELETE CASCADE
   )`,
   `CREATE INDEX IF NOT EXISTS idx_chunks_session ON chunks (session_id)`,
@@ -51,4 +60,7 @@ export const MIGRATIONS: string[] = [
   `ALTER TABLE backup_sessions ADD COLUMN encrypted INTEGER NOT NULL DEFAULT 0`,
   `ALTER TABLE backup_sessions ADD COLUMN error_reason TEXT`,
   `ALTER TABLE backup_sessions ADD COLUMN archive_format TEXT`,
+  `ALTER TABLE backup_sessions ADD COLUMN manifest_file_ids TEXT`,
+  `ALTER TABLE chunks ADD COLUMN telegram_file_id TEXT`,
+  `ALTER TABLE chunks ADD COLUMN part_name TEXT`,
 ];

@@ -344,6 +344,7 @@ export async function runBackup(
         sessionId,
         chunkIndex: chunk.index,
         size: chunk.size,
+        partName: chunkName(entryName, chunk.index),
       });
       chunkIds.set(chunk.index, rowId);
     }
@@ -407,7 +408,7 @@ export async function runBackup(
       }
       const rowId = chunkIds.get(chunk.index);
       if (rowId !== undefined) {
-        await chunksRepo.markUploaded(rowId, result.messageId, Date.now());
+        await chunksRepo.markUploaded(rowId, result.messageId, Date.now(), result.fileId);
       }
       totalSent += 1;
       await sessionsRepo.updateChunksSent(sessionId, totalSent);
@@ -665,6 +666,7 @@ export async function runBackup(
   }
 
   let manifestId: string | null = null;
+  let manifestFileIds: string | null = null;
   if (manifestFiles.length > 0) {
     // Zip mode: one manifest + scripts per archive, named after the archive.
     // Uncompressed mode: one manifest for the run, named after its session.
@@ -675,6 +677,7 @@ export async function runBackup(
       const metaDir = `${ReactNativeBlobUtil.fs.dirs.CacheDir}/meta_${sessionId}`;
       await ReactNativeBlobUtil.fs.mkdir(metaDir).catch(() => undefined);
       const sentIds: string[] = [];
+      const sentFileIds: string[] = [];
       for (let index = 0; index < groups.length; index += 1) {
         emit('manifest', undefined, index, groups.length);
         const group = groups[index];
@@ -713,11 +716,13 @@ export async function runBackup(
           silent,
         );
         sentIds.push(String(manifestResult.messageId));
+        sentFileIds.push(manifestResult.fileId ?? '');
       }
       emit('manifest', undefined, groups.length, groups.length);
       // A zip run sends one manifest per archive; keep every id so Stats can
       // deep-link as many messages as the run produced (P2-6).
       manifestId = sentIds.length > 0 ? sentIds.join(',') : null;
+      manifestFileIds = sentFileIds.filter(Boolean).join(',') || null;
       await ReactNativeBlobUtil.fs.unlink(metaDir).catch(() => undefined);
     } catch (error) {
       failure = true;
@@ -770,6 +775,7 @@ export async function runBackup(
     totalSent,
     status,
     manifestId,
+    manifestFileIds,
     archiveName,
     wantEncryption ? 1 : 0,
     summarizeErrors(errors),

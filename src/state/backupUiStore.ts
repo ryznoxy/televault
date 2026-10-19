@@ -4,7 +4,6 @@ import {
   BACKUP_IN_FLIGHT_ERROR,
 } from '../background/foregroundService';
 import type { BackupProgress, BackupResult } from '../backup/backupRunner';
-import type { CategoryKey } from '../types/models';
 
 export type ProgressLabel = {
   current: number;

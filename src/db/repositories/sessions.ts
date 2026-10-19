@@ -11,6 +11,8 @@ export type SessionRecord = {
   chunks_sent: number;
   status: string;
   manifest_id: string | null;
+  /** Telegram document file_ids of the run's manifests, comma separated. */
+  manifest_file_ids: string | null;
   archive_name: string | null;
   encrypted: number;
   error_reason: string | null;
@@ -43,6 +45,7 @@ export const sessionsRepo = {
     chunksSent: number,
     status: string,
     manifestId: string | null,
+    manifestFileIds: string | null,
     archiveName: string | null = null,
     encrypted = 0,
     errorReason: string | null = null,
@@ -51,7 +54,8 @@ export const sessionsRepo = {
     await getDb().execute(
       `UPDATE backup_sessions
        SET finished_at = ?, total_files = ?, total_size = ?, chunks_total = ?,
-           chunks_sent = ?, status = ?, manifest_id = ?, archive_name = ?,
+           chunks_sent = ?, status = ?, manifest_id = ?, manifest_file_ids = ?,
+           archive_name = ?,
            encrypted = ?, error_reason = ?, archive_format = ?
        WHERE id = ?`,
       [
@@ -62,6 +66,7 @@ export const sessionsRepo = {
         chunksSent,
         status,
         manifestId,
+        manifestFileIds,
         archiveName,
         encrypted,
         errorReason,
@@ -69,6 +74,17 @@ export const sessionsRepo = {
         id,
       ],
     );
+  },
+
+  /** Successes whose manifests are re-downloadable, newest first. */
+  async recentRestorable(limit = 20): Promise<SessionRecord[]> {
+    const result = await getDb().execute(
+      `SELECT * FROM backup_sessions
+       WHERE status IN ('success', 'partial') AND manifest_file_ids IS NOT NULL
+       ORDER BY started_at DESC LIMIT ?`,
+      [limit],
+    );
+    return result.rows.map(asRecord);
   },
 
   async updateChunksSent(id: number, chunksSent: number): Promise<void> {

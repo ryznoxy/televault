@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -28,11 +28,15 @@ import {
   loadManifestFromPaths,
   restoreFromFiles,
   restoreFromFolder,
+  restoreFromTelegram,
   toFileUri,
   type RestoreFileResult,
   type RestorePhase,
   type RestoreResult,
 } from '../backup/restoreRunner';
+import { sessionsRepo, type SessionRecord } from '../db/repositories/sessions';
+import { secureStore } from '../state/secureStore';
+import { TelegramBotApi } from '../net/telegramApi';
 import type { Manifest } from '../backup/manifest';
 import type { RootStackParamList } from '../navigation/Routes';
 
@@ -93,10 +97,19 @@ export default function RestoreScreen({ navigation }: Props) {
   const [result, setResult] = useState<RestoreResult | null>(null);
   const [saved, setSaved] = useState<Record<string, SaveState>>({});
   const [error, setError] = useState<string | null>(null);
+  const [tgSessions, setTgSessions] = useState<SessionRecord[]>([]);
+  const [tgSession, setTgSession] = useState<SessionRecord | null>(null);
+
+  useEffect(() => {
+    sessionsRepo
+      .recentRestorable()
+      .then(setTgSessions)
+      .catch(() => undefined);
+  }, []);
 
   const encrypted = manifest
     ? manifest.encryption !== undefined || manifest.files.some(file => file.encrypted)
-    : false;
+    : tgSession?.encrypted === 1;
 
   const reset = () => {
     setManifest(null);
@@ -187,6 +200,47 @@ export default function RestoreScreen({ navigation }: Props) {
       const next = files
         ? await restoreFromFiles(files, options)
         : await restoreFromFolder(dir as string, options);
+      setResult(next);
+    } catch (caught) {
+      setError(messageOf(caught));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onPickTelegramSession = (session: SessionRecord) => {
+    reset();
+    setFiles(null);
+    setDir(null);
+    setFolderHint(null);
+    setTgSession(session);
+  };
+
+  const onRestoreTelegram = async () => {
+    const session = tgSession;
+    if (!session || !session.manifest_file_ids) {
+      return;
+    }
+    setBusy(true);
+    setResult(null);
+    setError(null);
+    setProgress(null);
+    setSaved({});
+    try {
+      const passphraseInput = passphrase.trim();
+      const stored =
+        passphraseInput !== '' ? { encryptionPassword: passphraseInput } : await secureStore.get();
+      if (session.encrypted === 1 && (stored.encryptionPassword ?? '').trim() === '') {
+        throw new Error('Backup ini terenkripsi. Isi passphrase dulu di bawah, atau simpan passphrase di layar Setup.');
+      }
+      const credentials = await secureStore.get();
+      const api = new TelegramBotApi(credentials.botToken, credentials.chatId);
+      const next = await restoreFromTelegram(api, session.id, session.manifest_file_ids, {
+        ...(stored.encryptionPassword?.trim() ? { passphrase: stored.encryptionPassword.trim() } : {}),
+        outputDir: `${ReactNativeBlobUtil.fs.dirs.CacheDir}/restored_${session.id}`,
+        onProgress: (update: { index: number; total: number; phase: RestorePhase }) =>
+          setProgress({ index: update.index, total: update.total, phase: update.phase }),
+      });
       setResult(next);
     } catch (caught) {
       setError(messageOf(caught));
@@ -312,6 +366,65 @@ export default function RestoreScreen({ navigation }: Props) {
               </View>
             ) : null}
           </View>
+
+          {tgSessions.length > 0 ? (
+            <View style={styles.card}>
+              <Text style={styles.label}>RESTORE LANGSUNG DARI BOT</Text>
+              <Text style={styles.hintText}>
+                Pilih sesi backup — manifest dan semua potongan diunduh otomatis dari
+                chat bot, tanpa perlu download manual. Hanya backup yang dibuat
+                setelah pembaruan ini yang tersedia di sini.
+              </Text>
+              {tgSessions.map(session => {
+                const selected = tgSession?.id === session.id;
+                const date = new Date(session.started_at);
+                const label = `${date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })} \u00b7 ${session.total_files} berkas${session.encrypted === 1 ? ' \u00b7 terenkripsi' : ''}`;
+                return (
+                  <Pressable
+                    key={session.id}
+                    onPress={() => onPickTelegramSession(session)}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected }}
+                    style={({ pressed }) => [
+                      styles.tgSessionRow,
+                      selected && styles.tgSessionRowSelected,
+                      pressed && styles.pressed,
+                    ]}>
+                    <TgIcon name={selected ? 'checkCircle' : 'download'} color={selected ? TG.primary : TG.secondary} size={18} />
+                    <View style={styles.tgSessionText}>
+                      <Text style={styles.tgSessionTitle} numberOfLines={1} ellipsizeMode="middle">
+                        {session.archive_name ?? `Backup #${session.id}`}
+                      </Text>
+                      <Text style={styles.tgSessionMeta} numberOfLines={1}>
+                        {label}
+                      </Text>
+                    </View>
+                  </Pressable>
+                );
+              })}
+              {tgSession ? (
+                <Pressable
+                  onPress={onRestoreTelegram}
+                  disabled={busy}
+                  accessibilityRole="button"
+                  accessibilityState={{ disabled: busy }}
+                  style={({ pressed }) => [
+                    styles.primaryButton,
+                    busy && styles.disabled,
+                    pressed && styles.pressed,
+                  ]}>
+                  {busy ? (
+                    <ActivityIndicator color={ON_ACCENT.strong} size="small" />
+                  ) : (
+                    <TgIcon name="download" color={ON_ACCENT.strong} size={20} />
+                  )}
+                  <Text style={styles.primaryButtonText} numberOfLines={1}>
+                    {busy ? 'Mengunduh & memulihkan\u2026' : 'Pulihkan Sesi Ini'}
+                  </Text>
+                </Pressable>
+              ) : null}
+            </View>
+          ) : null}
 
           {encrypted ? (
             <View style={styles.card}>
@@ -496,6 +609,19 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
   folderText: { color: TG.ink, fontSize: 13, lineHeight: 18, flex: 1, minWidth: 0 },
   metaText: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
   hintText: { color: TG.secondary, fontSize: 12, lineHeight: 17 },
+
+  tgSessionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: 10,
+    borderRadius: RADIUS.md,
+    backgroundColor: TG.low,
+  },
+  tgSessionRowSelected: { backgroundColor: TG.container },
+  tgSessionText: { flex: 1, minWidth: 0, gap: 2 },
+  tgSessionTitle: { color: TG.ink, fontSize: 13, lineHeight: 18, fontFamily: FONT.semi, fontWeight: '600' },
+  tgSessionMeta: { color: TG.secondary, fontSize: 12, lineHeight: 16 },
 
   inputWrap: { position: 'relative' },
   codeInput: {

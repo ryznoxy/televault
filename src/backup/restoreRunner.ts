@@ -4,6 +4,8 @@ import { chunkName } from './chunker';
 import { decryptFile, decryptFileWithKey, keyFromPassphrase } from './crypto';
 import { sha256File } from './hasher';
 import { trackTempDir, untrackTempDir } from './tempDirs';
+import { chunksRepo } from '../db/repositories/chunks';
+import type { TelegramBotApi } from '../net/telegramApi';
 import type { Manifest, ManifestEncryption, ManifestFile } from './manifest';
 
 export type RestorePhase = 'joining' | 'verifying' | 'decrypting' | 'extracting' | 'done';
@@ -552,4 +554,77 @@ export async function restoreFromFiles(
   // saveDocuments. Upgrade path: let the caller pass a DocumentDir subpath.
   const outDir = options.outputDir ?? `${ReactNativeBlobUtil.fs.dirs.CacheDir}/restored`;
   return restoreEntries(manifest, outDir, options, file => resolveParts(file, paths));
+}
+
+/**
+ * One-tap restore: download the run's manifests and every part straight from
+ * the bot chat, then join/verify/decrypt/extract like any other restore.
+ *
+ * The parts are found by their uploaded `part_name` in the chunks table —
+ * `chunk_index` alone is not unique in zip mode (it restarts per archive).
+ * Uploaded parts from before this feature carry no `file_id`; those runs keep
+ * using the file-picker restore.
+ */
+export async function restoreFromTelegram(
+  api: TelegramBotApi,
+  sessionId: number,
+  manifestFileIds: string,
+  options: RestoreOptions = {},
+): Promise<RestoreResult> {
+  const workDir = `${ReactNativeBlobUtil.fs.dirs.CacheDir}/tg_restore_${Date.now()}`;
+  await ReactNativeBlobUtil.fs.mkdir(workDir).catch(() => undefined);
+  trackTempDir(workDir);
+  try {
+    // Download and parse every manifest of the run, newest last.
+    const ids = manifestFileIds.split(',').map(id => id.trim()).filter(Boolean);
+    if (ids.length === 0) {
+      throw new Error('Sesi ini tidak menyimpan manifest yang bisa diunduh');
+    }
+    const manifests: Manifest[] = [];
+    for (let index = 0; index < ids.length; index += 1) {
+      const path = `${workDir}/manifest_${index}.json`;
+      await api.downloadFile(ids[index], path);
+      manifests.push(parseManifest(await readText(path)));
+    }
+    const manifest = mergeManifests(manifests);
+
+    const stored = await chunksRepo.listDownloadableParts(sessionId);
+    const byPart = new Map(stored.map(part => [part.part_name, part.telegram_file_id]));
+
+    // Download each needed part once; repeated entries (the same archive named
+    // twice) hit the local cache instead of the network again.
+    const localByPart = new Map<string, string>();
+    const downloader: Resolver = async file => {
+      const parts: string[] = [];
+      const missing: string[] = [];
+      for (let index = 1; index <= file.chunks; index += 1) {
+        const name = chunkName(file.name, index);
+        const fileId = byPart.get(name);
+        if (!fileId) {
+          missing.push(name);
+          continue;
+        }
+        let local = localByPart.get(name);
+        if (!local) {
+          local = `${workDir}/${assertSafeNameReturn(name)}`;
+          await api.downloadFile(fileId, local);
+          localByPart.set(name, local);
+        }
+        parts.push(local);
+      }
+      return { parts, missing };
+    };
+
+    const outDir =
+      options.outputDir ?? `${ReactNativeBlobUtil.fs.dirs.CacheDir}/restored_${sessionId}`;
+    return restoreEntries(manifest, outDir, options, downloader);
+  } finally {
+    await ReactNativeBlobUtil.fs.unlink(workDir).catch(() => undefined);
+    untrackTempDir(workDir);
+  }
+}
+
+function assertSafeNameReturn(name: string): string {
+  assertSafeName(name);
+  return name;
 }

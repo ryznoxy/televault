@@ -25,6 +25,12 @@ export type Transport = (request: HttpRequest) => Promise<HttpResponse>;
 export type SendResult = {
   messageId: number;
   date: number;
+  /**
+   * Telegram's `document.file_id`, needed to re-download the file later via
+   * `getFile` without ever listing chat history (the Bot API cannot). Present
+   * only for document uploads.
+   */
+  fileId?: string;
 };
 
 export class TelegramApiError extends Error {
@@ -124,12 +130,14 @@ export const blobTransport: Transport = async request => {
 export class TelegramBotApi {
   private readonly baseUrl: string;
   private readonly redactedUrl = 'https://api.telegram.org/bot<token>';
+  private readonly botToken: string;
 
   constructor(
     botToken: string,
     private readonly chatId: string,
     private readonly transport: Transport = blobTransport,
   ) {
+    this.botToken = botToken;
     this.baseUrl = `https://api.telegram.org/bot${botToken}`;
   }
 
@@ -276,7 +284,57 @@ export class TelegramBotApi {
   }
 
   private toSendResult(parsed: { result: unknown }): SendResult {
-    const result = parsed.result as { message_id?: number; date?: number };
-    return { messageId: Number(result.message_id ?? 0), date: Number(result.date ?? 0) };
+    const result = parsed.result as {
+      message_id?: number;
+      date?: number;
+      document?: { file_id?: string };
+    };
+    return {
+      messageId: Number(result.message_id ?? 0),
+      date: Number(result.date ?? 0),
+      ...(result.document?.file_id ? { fileId: result.document.file_id } : {}),
+    };
+  }
+
+  /**
+   * Resolve a file_id to Telegram's temporary download path. File ids are
+   * stable for as long as the bot can access the file; the path is valid for
+   * at least one hour, so download immediately after resolving.
+   */
+  async getFile(fileId: string): Promise<{ fileId: string; filePath: string | null }> {
+    const url = `${this.baseUrl}/getFile?file_id=${encodeURIComponent(fileId)}`;
+    const response = await this.request({ url, method: 'GET' });
+    const result = this.parse(response).result as {
+      file_id?: string;
+      file_path?: string;
+    };
+    return { fileId: String(result.file_id ?? fileId), filePath: result.file_path ?? null };
+  }
+
+  /**
+   * Download a stored document to `destPath`. Files above 20 MB need a direct
+   * HTTPS fetch of the resolved path instead of the JSON API — this handles
+   * both (the path URL works for any size).
+   */
+  async downloadFile(fileId: string, destPath: string): Promise<void> {
+    const { filePath } = await this.getFile(fileId);
+    if (!filePath) {
+      throw new Error('Telegram tidak memberikan jalur unduhan untuk berkas ini');
+    }
+    const url = `https://api.telegram.org/file/bot${this.botToken}/${filePath}`;
+    try {
+      const response = await ReactNativeBlobUtil.config({
+        path: destPath,
+        timeout: REQUEST_TIMEOUT_MS,
+      }).fetch('GET', url, {});
+      const status = response.info().status;
+      if (status !== 200) {
+        await ReactNativeBlobUtil.fs.unlink(destPath).catch(() => undefined);
+        throw new Error(`Unduhan gagal (HTTP ${status})`);
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(this.redact(message));
+    }
   }
 }

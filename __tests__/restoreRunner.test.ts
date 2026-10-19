@@ -12,8 +12,15 @@ import {
   resolveParts,
   restoreFromFiles,
   restoreFromFolder,
+  restoreFromTelegram,
   toFileUri,
 } from '../src/backup/restoreRunner';
+
+jest.mock('../src/db/repositories/chunks', () => ({
+  chunksRepo: {
+    listDownloadableParts: jest.fn(async () => []),
+  },
+}));
 
 jest.mock('react-native-blob-util', () => {
   const files = new Map<string, string>();
@@ -643,6 +650,56 @@ test('restoreFromFiles reports a missing part per file while the other succeeds'
 test('restoreFromFiles without a manifest in the list is rejected', async () => {
   await fs.writeFile('/picked/note.txt.001', 'AAA');
   await expect(restoreFromFiles(['/picked/note.txt.001'])).rejects.toThrow(/manifest/i);
+});
+
+test('restoreFromTelegram downloads manifest and parts, then restores like any source', async () => {
+  const chunksRepo = require('../src/db/repositories/chunks').chunksRepo;
+  chunksRepo.listDownloadableParts.mockResolvedValue([
+    { part_name: 'note.txt.001', telegram_file_id: 'doc-1' },
+  ]);
+  const api = {
+    downloadFile: async (fileId: string, dest: string) => {
+      if (fileId === 'manifest-doc') {
+        await fs.writeFile(dest, JSON.stringify({
+          version: '2.0', session_id: '1', device: 'Pixel 7', created_at: 1,
+          total_size: 3, files: [
+            { name: 'note.txt', size: 3, chunks: 1, encrypted: false, sha256: shaOf('AAA') },
+          ],
+        }));
+        return;
+      }
+      if (fileId === 'doc-1') {
+        await fs.writeFile(dest, 'AAA');
+        return;
+      }
+      throw new Error(`unexpected download: ${fileId}`);
+    },
+  };
+
+  const result = await restoreFromTelegram(api as never, 1, 'manifest-doc');
+
+  expect(result.status).toBe('success');
+  expect(result.files[0].outputPath).toBe('/cache/restored_1/note.txt');
+  expect(await fs.readFile('/cache/restored_1/note.txt')).toBe('AAA');
+});
+
+test('restoreFromTelegram fails an entry whose part has no stored file id', async () => {
+  const chunksRepo = require('../src/db/repositories/chunks').chunksRepo;
+  chunksRepo.listDownloadableParts.mockResolvedValue([]);
+  const api = {
+    downloadFile: async (fileId: string, dest: string) => {
+      await fs.writeFile(dest, JSON.stringify({
+        version: '2.0', session_id: '1', device: 'Pixel 7', created_at: 1,
+        total_size: 3, files: [
+          { name: 'note.txt', size: 3, chunks: 1, encrypted: false, sha256: shaOf('AAA') },
+        ],
+      }));
+    },
+  };
+
+  const result = await restoreFromTelegram(api as never, 1, 'manifest-doc');
+  expect(result.status).toBe('failed');
+  expect(result.files[0].error).toContain('note.txt.001');
 });
 
 test('a zip entry is kept as a saveable archive and extracted beside it', async () => {

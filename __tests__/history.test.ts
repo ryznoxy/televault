@@ -21,6 +21,7 @@ function makeSession(overrides: Partial<SessionRecord> = {}): SessionRecord {
     chunks_sent: 2,
     status: 'success',
     manifest_id: '42',
+    manifest_file_ids: 'file-42',
     archive_name: 'photo_1700000000000.zip',
     encrypted: 1,
     error_reason: null,
