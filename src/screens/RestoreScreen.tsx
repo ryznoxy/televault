@@ -20,7 +20,7 @@ import ReactNativeBlobUtil from 'react-native-blob-util';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppHeader, TgIcon } from '../components/ui';
-import { TG } from '../theme/theme';
+import { FONT,  RADIUS, TG } from '../theme/theme';
 import {
   findManifestPath,
   loadManifestFromFolder,
@@ -474,10 +474,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   guidanceText: { flex: 1, minWidth: 0, gap: 4 },
-  guidanceTitle: { color: TG.ink, fontSize: 17, lineHeight: 22, fontWeight: '600' },
+  guidanceTitle: { color: TG.ink, fontSize: 17, lineHeight: 22, fontWeight: '600', fontFamily: FONT.semi },
   guidanceBody: { color: TG.secondary, fontSize: 13, lineHeight: 19 },
 
-  label: { color: TG.ink, fontSize: 12, lineHeight: 16, fontWeight: '600', letterSpacing: 0.5 },
+  label: { color: TG.ink, fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi, letterSpacing: 0.5 },
   labelInline: { flexDirection: 'row', alignItems: 'center', gap: 6 },
 
   folderRow: {
@@ -528,18 +528,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     minHeight: 52,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
     paddingHorizontal: 16,
     backgroundColor: TG.onPrimaryContainer,
   },
-  primaryButtonText: { color: '#FFFFFF', fontSize: 15, lineHeight: 20, fontWeight: '600', flexShrink: 1 },
+  primaryButtonText: { color: '#FFFFFF', fontSize: 15, lineHeight: 20, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 1 },
   secondaryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
     minHeight: 52,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
     paddingHorizontal: 16,
     backgroundColor: TG.low,
   },
@@ -547,7 +547,7 @@ const styles = StyleSheet.create({
     color: TG.onPrimaryContainer,
     fontSize: 15,
     lineHeight: 20,
-    fontWeight: '600',
+    fontWeight: '600', fontFamily: FONT.semi,
     flexShrink: 1,
   },
 
@@ -565,9 +565,9 @@ const styles = StyleSheet.create({
 
   resultRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   resultText: { flex: 1, minWidth: 0, gap: 2 },
-  resultName: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '600' },
+  resultName: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '600', fontFamily: FONT.semi },
   resultMeta: { color: TG.secondary, fontSize: 12, lineHeight: 16 },
-  resultSaved: { color: TG.primary, fontSize: 12, lineHeight: 16, fontWeight: '600' },
+  resultSaved: { color: TG.primary, fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi },
 
   saveButton: {
     flexDirection: 'row',
@@ -580,7 +580,7 @@ const styles = StyleSheet.create({
     backgroundColor: TG.low,
     marginTop: 4,
   },
-  saveButtonText: { color: TG.primary, fontSize: 13, lineHeight: 18, fontWeight: '600' },
+  saveButtonText: { color: TG.primary, fontSize: 13, lineHeight: 18, fontWeight: '600', fontFamily: FONT.semi },
 
   pressed: { opacity: 0.85 },
   disabled: { opacity: 0.4 },

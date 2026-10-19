@@ -1,6 +1,19 @@
 export type ThemeMode = 'light' | 'dark';
 
 /**
+ * Plus Jakarta Sans — brand typeface. Android resolves by file name
+ * (android/app/src/main/assets/fonts); iOS needs the same TTFs bundled in
+ * Xcode + UIAppFonts (not wired yet).
+ */
+export const FONT = {
+  regular: 'PlusJakartaSans-Regular',
+  medium: 'PlusJakartaSans-Medium',
+  semi: 'PlusJakartaSans-SemiBold',
+  bold: 'PlusJakartaSans-Bold',
+  xbold: 'PlusJakartaSans-ExtraBold',
+} as const;
+
+/**
  * Design tokens — Liquid Glass, premium light-first.
  * Every component reads colors from here; never hardcode hex in screens.
  */
@@ -95,18 +108,18 @@ export const TG = {
 /** 8-point spacing grid. */
 export const SPACE = { xs: 4, sm: 8, md: 12, base: 16, lg: 24, xl: 32 } as const;
 
-/** Corner radii — rounded / pill language. */
-export const RADIUS = { sm: 12, md: 16, lg: 20, xl: 24, pill: 999 } as const;
+/** Corner radii — soft-rounded system, no pills. */
+export const RADIUS = { sm: 10, md: 14, lg: 18, xl: 22 } as const;
 
-/** Type scale (size, weight, tracking). */
+/** Type scale (size, weight, tracking) — Plus Jakarta Sans throughout. */
 export const TYPE = {
-  display: { fontSize: 28, fontWeight: '700', letterSpacing: -0.5 },
-  title: { fontSize: 20, fontWeight: '700', letterSpacing: -0.2 },
-  headline: { fontSize: 17, fontWeight: '600' },
-  body: { fontSize: 16, fontWeight: '400' },
-  label: { fontSize: 15, fontWeight: '500' },
-  footnote: { fontSize: 13, fontWeight: '400' },
-  caption: { fontSize: 12, fontWeight: '600', letterSpacing: 0.4 },
+  display: { fontSize: 28, fontWeight: '700', letterSpacing: -0.6, fontFamily: FONT.bold },
+  title: { fontSize: 20, fontWeight: '700', letterSpacing: -0.3, fontFamily: FONT.semi },
+  headline: { fontSize: 17, fontWeight: '600', fontFamily: FONT.semi },
+  body: { fontSize: 16, fontWeight: '400', fontFamily: FONT.regular },
+  label: { fontSize: 15, fontWeight: '500', fontFamily: FONT.medium },
+  footnote: { fontSize: 13, fontWeight: '400', fontFamily: FONT.regular },
+  caption: { fontSize: 12, fontWeight: '600', letterSpacing: 0.4, fontFamily: FONT.semi },
 } as const;
 
 /** Soft elevation used by every raised surface. */

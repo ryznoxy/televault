@@ -35,7 +35,9 @@ describe('design tokens', () => {
       expect(value % 4).toBe(0);
     }
     expect(SPACE.md % 4).toBe(0);
-    expect(RADIUS.pill).toBeGreaterThanOrEqual(999);
+    for (const value of Object.values(RADIUS)) {
+      expect(value).toBeLessThan(999);
+    }
     expect(TYPE.display.fontSize).toBeGreaterThan(TYPE.body.fontSize);
     expect(ELEVATION.float.elevation).toBeGreaterThan(ELEVATION.card.elevation);
   });

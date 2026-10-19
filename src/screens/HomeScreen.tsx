@@ -21,7 +21,7 @@ import {
   useToast,
   type TgIconName,
 } from '../components/ui';
-import { TG } from '../theme/theme';
+import { FONT,  RADIUS, TG } from '../theme/theme';
 import { runBackupInForeground, BACKUP_IN_FLIGHT_ERROR } from '../background/foregroundService';
 import { isFileUri } from '../backup/fileScanner';
 import { requestNotificationPermission } from '../backup/permissions';
@@ -686,24 +686,24 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
     flexShrink: 1,
   },
-  pillText: { fontSize: 12, lineHeight: 16, fontWeight: '600', flexShrink: 1 },
+  pillText: { fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 1 },
   latencyPill: { backgroundColor: TG.low, flexShrink: 0 },
 
   botRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   botTile: {
     width: 44,
     height: 44,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.container,
     alignItems: 'center',
     justifyContent: 'center',
   },
   botText: { flex: 1, minWidth: 0, gap: 2 },
   botNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  botName: { color: TG.ink, fontSize: 17, lineHeight: 22, fontWeight: '600', flexShrink: 1 },
+  botName: { color: TG.ink, fontSize: 17, lineHeight: 22, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 1 },
   channelRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   channelText: { color: TG.secondary, fontSize: 13, lineHeight: 18, flexShrink: 1 },
   chip: {
@@ -711,14 +711,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
     flexShrink: 0,
   },
-  chipText: { fontSize: 11, lineHeight: 14, fontWeight: '600' },
+  chipText: { fontSize: 11, lineHeight: 14, fontWeight: '600', fontFamily: FONT.semi },
 
   heroText: { flex: 1, minWidth: 0, gap: 2 },
-  overline: { color: TG.secondary, fontSize: 11, lineHeight: 14, fontWeight: '600', letterSpacing: 0.6 },
-  heroTitle: { color: TG.ink, fontSize: 17, lineHeight: 22, fontWeight: '600' },
+  overline: { color: TG.secondary, fontSize: 11, lineHeight: 14, fontWeight: '600', fontFamily: FONT.semi, letterSpacing: 0.6 },
+  heroTitle: { color: TG.ink, fontSize: 17, lineHeight: 22, fontWeight: '600', fontFamily: FONT.semi },
   heroIconTile: {
     width: 44,
     height: 44,
@@ -737,11 +737,11 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   insetText: { flex: 1, minWidth: 0, gap: 4 },
-  insetTitle: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '700' },
+  insetTitle: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '700', fontFamily: FONT.bold },
   insetMeta: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
-  insetHash: { color: TG.primary, fontSize: 12, lineHeight: 16, fontWeight: '600' },
+  insetHash: { color: TG.primary, fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi },
   insetNeutral: { color: TG.outline, fontSize: 12, lineHeight: 16 },
-  ringPct: { color: TG.ink, fontSize: 17, lineHeight: 22, fontWeight: '700' },
+  ringPct: { color: TG.ink, fontSize: 17, lineHeight: 22, fontWeight: '700', fontFamily: FONT.bold },
 
   progressBlock: { gap: 8 },
   progressHeader: {
@@ -751,7 +751,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   progressText: { color: TG.secondary, fontSize: 13, lineHeight: 18, flexShrink: 1 },
-  progressPct: { color: TG.primary, fontSize: 13, lineHeight: 18, fontWeight: '600', flexShrink: 0 },
+  progressPct: { color: TG.primary, fontSize: 13, lineHeight: 18, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 0 },
 
   primaryButton: {
     flexDirection: 'row',
@@ -759,28 +759,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     minHeight: 52,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
     paddingHorizontal: 16,
     backgroundColor: TG.onPrimaryContainer,
   },
-  primaryButtonText: { color: '#FFFFFF', fontSize: 15, lineHeight: 20, fontWeight: '600', flexShrink: 1 },
+  primaryButtonText: { color: '#FFFFFF', fontSize: 15, lineHeight: 20, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 1 },
   secondaryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
     minHeight: 52,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
     paddingHorizontal: 16,
     backgroundColor: TG.low,
   },
-  secondaryButtonText: { color: TG.onPrimaryContainer, fontSize: 15, lineHeight: 20, fontWeight: '600', flexShrink: 1 },
+  secondaryButtonText: { color: TG.onPrimaryContainer, fontSize: 15, lineHeight: 20, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 1 },
 
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
-  sectionTitle: { color: TG.ink, fontSize: 17, lineHeight: 22, fontWeight: '600' },
+  sectionTitle: { color: TG.ink, fontSize: 17, lineHeight: 22, fontWeight: '600', fontFamily: FONT.semi },
   sectionAction: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
-  sectionLink: { color: TG.primary, fontSize: 13, lineHeight: 18, fontWeight: '600' },
+  sectionLink: { color: TG.primary, fontSize: 13, lineHeight: 18, fontWeight: '600', fontFamily: FONT.semi },
 
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   statTile: {
@@ -800,7 +800,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  statValue: { color: TG.ink, fontSize: 22, lineHeight: 28, fontWeight: '600' },
+  statValue: { color: TG.ink, fontSize: 22, lineHeight: 28, fontWeight: '600', fontFamily: FONT.semi },
   statLabel: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
 
   folderRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12 },
@@ -813,7 +813,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   folderText: { flex: 1, minWidth: 0, gap: 2 },
-  folderName: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '600' },
+  folderName: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '600', fontFamily: FONT.semi },
   folderMeta: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
   folderRight: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 0 },
   statusDot: { width: 8, height: 8, borderRadius: 8, backgroundColor: TG.primaryContainer },
@@ -835,7 +835,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: TG.low,
   },
-  addButtonText: { color: TG.primary, fontSize: 14, lineHeight: 20, fontWeight: '600', flexShrink: 1 },
+  addButtonText: { color: TG.primary, fontSize: 14, lineHeight: 20, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 1 },
   emptyText: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
 
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: TG.highest, marginLeft: 52 },
@@ -849,7 +849,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   prefText: { flex: 1, minWidth: 0, gap: 2 },
-  prefTitle: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '600' },
+  prefTitle: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '600', fontFamily: FONT.semi },
   prefSubtitle: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
 
   status: { fontSize: 13, lineHeight: 18, paddingHorizontal: 4 },

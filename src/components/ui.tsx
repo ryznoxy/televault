@@ -19,7 +19,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeProvider';
-import { ELEVATION, RADIUS, SPACE, TG, TYPE } from '../theme/theme';
+import { FONT,  ELEVATION, RADIUS, SPACE, TG, TYPE } from '../theme/theme';
 import { parseClampedInt } from './number';
 
 /* ------------------------------------------------------------------ */
@@ -808,13 +808,14 @@ export function BottomNav({
   onChange: (key: TabKey) => void;
 }) {
   const insets = useSafeAreaInsets();
+  const { mode } = useTheme();
   return (
     <View
       accessibilityRole="tablist"
       style={[
         styles.nav,
         {
-          backgroundColor: 'rgba(255,255,255,0.94)',
+          backgroundColor: mode === 'dark' ? 'rgba(16,16,20,0.92)' : 'rgba(255,255,255,0.94)',
           borderTopColor: TG.outline + '22',
           paddingBottom: insets.bottom + SPACE.sm,
         },
@@ -829,15 +830,17 @@ export function BottomNav({
             accessibilityState={{ selected }}
             accessibilityLabel={tab.label}
             style={({ pressed }) => [styles.navItem, pressed && { opacity: 0.7 }]}>
-            <TgIcon
-              name={tab.icon}
-              color={selected ? NAV_ACTIVE : TG.secondary}
-              size={22}
-            />
+            <View style={[styles.navIcon, selected && styles.navIconActive]}>
+              <TgIcon
+                name={tab.icon}
+                color={selected ? NAV_ACTIVE : TG.secondary}
+                size={20}
+              />
+            </View>
             <Text
               style={[
                 styles.navLabel,
-                { color: selected ? NAV_ACTIVE : TG.secondary, fontWeight: selected ? '600' : '500' },
+                { color: selected ? NAV_ACTIVE : TG.secondary, fontFamily: selected ? FONT.semi : FONT.medium },
               ]}
               numberOfLines={1}>
               {tab.label}
@@ -2270,7 +2273,7 @@ const styles = StyleSheet.create({
   backButton: {
     width: 40,
     height: 40,
-    borderRadius: RADIUS.pill,
+    borderRadius: RADIUS.md,
     borderWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
     justifyContent: 'center',
@@ -2303,7 +2306,7 @@ const styles = StyleSheet.create({
     color: TG.secondary,
     fontSize: 12,
     lineHeight: 16,
-    fontWeight: '600',
+    fontWeight: '600', fontFamily: FONT.semi,
     letterSpacing: 0.6,
     flexShrink: 1,
   },
@@ -2318,19 +2321,19 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 6,
-    borderRadius: RADIUS.pill,
+    borderRadius: RADIUS.md,
   },
   sliderFill: {
     position: 'absolute',
     left: 0,
     height: 6,
-    borderRadius: RADIUS.pill,
+    borderRadius: RADIUS.md,
   },
   sliderThumb: {
     position: 'absolute',
     width: SLIDER_THUMB,
     height: SLIDER_THUMB,
-    borderRadius: RADIUS.pill,
+    borderRadius: RADIUS.md,
     backgroundColor: '#FFFFFF',
   },
 
@@ -2368,7 +2371,7 @@ const styles = StyleSheet.create({
     gap: SPACE.sm,
     minHeight: 52,
     paddingHorizontal: SPACE.lg,
-    borderRadius: RADIUS.pill,
+    borderRadius: RADIUS.md,
   },
   buttonLabel: { ...(TYPE.headline as TextStyle) },
   pressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
@@ -2377,18 +2380,18 @@ const styles = StyleSheet.create({
   segmented: {
     flexDirection: 'row',
     padding: SPACE.xs,
-    borderRadius: RADIUS.pill,
+    borderRadius: RADIUS.md,
     gap: SPACE.xs,
   },
   segment: {
     flex: 1,
     minHeight: 38,
-    borderRadius: RADIUS.pill,
+    borderRadius: RADIUS.md,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: SPACE.sm,
   },
-  segmentActive: { borderRadius: RADIUS.pill },
+  segmentActive: { borderRadius: RADIUS.md },
   segmentLabel: { ...(TYPE.label as TextStyle), fontSize: 14 },
 
   numberField: {
@@ -2399,7 +2402,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACE.md,
     paddingVertical: SPACE.sm,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '600', fontFamily: FONT.semi,
   },
   textField: {
     minHeight: 52,
@@ -2410,8 +2413,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 
-  track: { height: 8, borderRadius: RADIUS.pill, overflow: 'hidden' },
-  fill: { height: '100%', borderRadius: RADIUS.pill },
+  track: { height: 8, borderRadius: RADIUS.md, overflow: 'hidden' },
+  fill: { height: '100%', borderRadius: RADIUS.md },
 
   badge: {
     flexDirection: 'row',
@@ -2420,7 +2423,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     paddingHorizontal: SPACE.md,
     paddingVertical: 6,
-    borderRadius: RADIUS.pill,
+    borderRadius: RADIUS.md,
   },
   badgeDot: { width: 7, height: 7, borderRadius: 7 },
   badgeLabel: { ...(TYPE.caption as TextStyle), fontSize: 13 },
@@ -2453,10 +2456,12 @@ const styles = StyleSheet.create({
     gap: SPACE.xs,
     paddingVertical: SPACE.xs,
   },
+  navIcon: { paddingHorizontal: 18, paddingVertical: 3, borderRadius: RADIUS.md },
+  navIconActive: { backgroundColor: TG.low },
   navLabel: { fontSize: 11 },
 
   appHeader: {
-    paddingBottom: 12,
+    paddingBottom: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: TG.highest,
     backgroundColor: 'rgba(248,249,255,0.96)',
@@ -2472,7 +2477,7 @@ const styles = StyleSheet.create({
   appHeaderBack: {
     width: 40,
     height: 40,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.card,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: TG.highest,
@@ -2481,21 +2486,21 @@ const styles = StyleSheet.create({
   },
   appHeaderText: { flex: 1, minWidth: 0 },
   appHeaderTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  appHeaderWordmark: { color: TG.ink, fontSize: 22, lineHeight: 28, fontWeight: '600' },
+  appHeaderWordmark: { color: TG.ink, fontSize: 24, lineHeight: 30, letterSpacing: -0.5, fontFamily: FONT.bold },
   appHeaderE2eePill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.primaryFixed,
   },
   appHeaderE2eeText: {
     color: TG.onPrimaryContainer,
     fontSize: 11,
     lineHeight: 14,
-    fontWeight: '600',
+    fontWeight: '600', fontFamily: FONT.semi,
   },
   appHeaderSubtitle: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
 
@@ -2526,6 +2531,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   toastText: { flex: 1, minWidth: 0, gap: 2 },
-  toastTitle: { color: TG.ink, fontSize: 12, lineHeight: 16, fontWeight: '600' },
+  toastTitle: { color: TG.ink, fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi },
   toastMsg: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
 });

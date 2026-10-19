@@ -12,7 +12,7 @@ import {
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppHeader, SectionLabel, TgIcon, useToast, type TgIconName } from '../components/ui';
-import { TG } from '../theme/theme';
+import { FONT,  RADIUS, TG } from '../theme/theme';
 import { sessionsRepo } from '../db/repositories/sessions';
 import { isCryptoAvailable } from '../backup/crypto';
 import { secureStore } from '../state/secureStore';
@@ -340,14 +340,14 @@ const styles = StyleSheet.create({
   infoIcon: {
     width: 32,
     height: 32,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.container,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
-  infoLabel: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '500', flex: 1, minWidth: 0 },
-  infoValue: { fontSize: 12, lineHeight: 16, fontWeight: '600', maxWidth: '50%', textAlign: 'right' },
+  infoLabel: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '500', fontFamily: FONT.medium, flex: 1, minWidth: 0 },
+  infoValue: { fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi, maxWidth: '50%', textAlign: 'right' },
 
   primaryButton: {
     flexDirection: 'row',
@@ -363,7 +363,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 12,
     lineHeight: 16,
-    fontWeight: '600',
+    fontWeight: '600', fontFamily: FONT.semi,
     flexShrink: 1,
   },
   secondaryButton: {
@@ -376,20 +376,20 @@ const styles = StyleSheet.create({
     backgroundColor: TG.container,
     paddingHorizontal: 16,
   },
-  secondaryButtonText: { color: TG.ink, fontSize: 12, lineHeight: 16, fontWeight: '600', flexShrink: 1 },
+  secondaryButtonText: { color: TG.ink, fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 1 },
 
   oemRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   oemIcon: {
     width: 32,
     height: 32,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.low,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
   oemText: { flex: 1, minWidth: 0, gap: 2 },
-  oemName: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '600' },
+  oemName: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '600', fontFamily: FONT.semi },
   oemPath: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
 
   pressed: { opacity: 0.85 },

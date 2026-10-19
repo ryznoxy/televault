@@ -19,7 +19,7 @@ import {
   TgIcon,
   useToast,
 } from '../components/ui';
-import { ELEVATION, TG } from '../theme/theme';
+import { FONT,  ELEVATION, RADIUS, TG } from '../theme/theme';
 import { isCryptoAvailable, newSaltB64 } from '../backup/crypto';
 import { TelegramBotApi } from '../net/telegramApi';
 import { stopScheduler } from '../background/scheduler';
@@ -657,7 +657,7 @@ const styles = StyleSheet.create({
     bottom: -24,
     width: 112,
     height: 112,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
     backgroundColor: 'rgba(0,101,142,0.05)',
   },
 
@@ -672,14 +672,14 @@ const styles = StyleSheet.create({
   },
   guidanceText: { flex: 1, minWidth: 0, gap: 6 },
   guidanceTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
-  guidanceTitle: { color: TG.ink, fontSize: 17, lineHeight: 22, fontWeight: '600' },
+  guidanceTitle: { color: TG.ink, fontSize: 17, lineHeight: 22, fontWeight: '600', fontFamily: FONT.semi },
   aesPill: {
     backgroundColor: 'rgba(34,158,217,0.15)',
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
   },
-  aesText: { color: TG.primary, fontSize: 10, lineHeight: 14, fontWeight: '600', letterSpacing: 0.6 },
+  aesText: { color: TG.primary, fontSize: 10, lineHeight: 14, fontWeight: '600', fontFamily: FONT.semi, letterSpacing: 0.6 },
   guidanceBody: { color: TG.secondary, fontSize: 13, lineHeight: 19 },
 
   labelRow: {
@@ -692,12 +692,12 @@ const styles = StyleSheet.create({
     color: TG.ink,
     fontSize: 12,
     lineHeight: 16,
-    fontWeight: '600',
+    fontWeight: '600', fontFamily: FONT.semi,
     letterSpacing: 0.5,
   },
   labelInline: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  helperRight: { color: TG.secondary, fontSize: 12, lineHeight: 16, fontWeight: '500' },
-  secondaryTag: { color: TG.primary, fontSize: 11, lineHeight: 14, fontWeight: '600' },
+  helperRight: { color: TG.secondary, fontSize: 12, lineHeight: 16, fontWeight: '500', fontFamily: FONT.medium },
+  secondaryTag: { color: TG.primary, fontSize: 11, lineHeight: 14, fontWeight: '600', fontFamily: FONT.semi },
 
   statusPill: {
     flexDirection: 'row',
@@ -705,10 +705,10 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
     flexShrink: 1,
   },
-  statusPillText: { fontSize: 11, lineHeight: 14, fontWeight: '600', flexShrink: 1 },
+  statusPillText: { fontSize: 11, lineHeight: 14, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 1 },
 
   inputWrap: { position: 'relative' },
   codeInput: {
@@ -747,9 +747,9 @@ const styles = StyleSheet.create({
   },
   helperInfo: { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, minWidth: 0 },
   helperText: { color: TG.secondary, fontSize: 13, lineHeight: 18, flexShrink: 1 },
-  helperHighlight: { color: TG.ink, fontWeight: '600' },
+  helperHighlight: { color: TG.ink, fontWeight: '600', fontFamily: FONT.semi },
   helperMuted: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
-  linkText: { color: TG.primary, fontSize: 13, lineHeight: 18, fontWeight: '600' },
+  linkText: { color: TG.primary, fontSize: 13, lineHeight: 18, fontWeight: '600', fontFamily: FONT.semi },
 
   inputSplit: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   secondaryButton: {
@@ -765,7 +765,7 @@ const styles = StyleSheet.create({
     color: TG.ink,
     fontSize: 12,
     lineHeight: 16,
-    fontWeight: '600',
+    fontWeight: '600', fontFamily: FONT.semi,
   },
 
   feedbackBanner: {
@@ -782,7 +782,7 @@ const styles = StyleSheet.create({
   strengthRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   strengthBar: { flex: 1, flexDirection: 'row', gap: 4 },
   strengthSeg: { flex: 1, height: 6, borderRadius: 3 },
-  strengthLabel: { color: TG.secondary, fontSize: 12, lineHeight: 16, fontWeight: '600' },
+  strengthLabel: { color: TG.secondary, fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi },
 
   infoBox: {
     flexDirection: 'row',
@@ -809,7 +809,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 12,
     lineHeight: 16,
-    fontWeight: '600',
+    fontWeight: '600', fontFamily: FONT.semi,
     flexShrink: 1,
   },
 
@@ -829,7 +829,7 @@ const styles = StyleSheet.create({
     color: TG.ink,
     fontSize: 12,
     lineHeight: 16,
-    fontWeight: '600',
+    fontWeight: '600', fontFamily: FONT.semi,
     flexShrink: 1,
   },
 
@@ -840,7 +840,7 @@ const styles = StyleSheet.create({
     color: TG.secondary,
     fontSize: 12,
     lineHeight: 16,
-    fontWeight: '600',
+    fontWeight: '600', fontFamily: FONT.semi,
     textAlign: 'center',
   },
   disconnectBody: {
@@ -860,7 +860,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     minHeight: 36,
   },
-  disconnectText: { color: TG.secondary, fontSize: 12, lineHeight: 16, fontWeight: '600' },
+  disconnectText: { color: TG.secondary, fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi },
 
   pressed: { opacity: 0.85 },
   disabled: { opacity: 0.4 },
