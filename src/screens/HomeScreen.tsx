@@ -22,7 +22,7 @@ import {
   useToast,
   type TgIconName,
 } from '../components/ui';
-import { FONT,  RADIUS, tgTheme, type TGPalette } from '../theme/theme';import { runBackupInForeground, BACKUP_IN_FLIGHT_ERROR } from '../background/foregroundService';
+import { FONT,  ELEVATION, RADIUS, tgTheme, type TGPalette } from '../theme/theme';import { runBackupInForeground, BACKUP_IN_FLIGHT_ERROR } from '../background/foregroundService';
 import { isFileUri } from '../backup/fileScanner';
 import { requestNotificationPermission } from '../backup/permissions';
 import { filesRepo } from '../db/repositories/files';
@@ -369,26 +369,28 @@ export default function HomeScreen({ navigation }: Props) {
           </View>
 
           {/* Hero Backup Control */}
-          <View style={styles.card}>
+          <View style={styles.heroCard}>
             <View style={styles.rowBetween}>
               <View style={styles.heroText}>
-                <Text style={styles.overline}>STATUS SINKRONISASI</Text>
+                <Text style={styles.overline}>
+                  {configured ? 'STATUS SINKRONISASI' : 'BELUM TERKONFIGURASI'}
+                </Text>
                 <Text style={styles.heroTitle} numberOfLines={1}>
                   {busy ? 'Mencadangkan\u2026' : 'Siap Mencadangkan'}
                 </Text>
               </View>
               <View style={styles.heroIconTile}>
-                <TgIcon name="cloudDone" color={TG.primaryContainer} size={22} />
+                <TgIcon name="cloudDone" color="#FFFFFF" size={22} />
               </View>
             </View>
 
-            <View style={styles.inset}>
+            <View style={styles.heroInset}>
               <ProgressRing
                 size={92}
                 stroke={8}
                 progress={ringProgress}
-                color={TG.primaryContainer}
-                trackColor={TG.high}>
+                color="#FFFFFF"
+                trackColor="rgba(255,255,255,0.24)">
                 <Text style={styles.ringPct}>{Math.round(ringProgress * 100)}%</Text>
               </ProgressRing>
               <View style={styles.insetText}>
@@ -426,51 +428,51 @@ export default function HomeScreen({ navigation }: Props) {
               accessibilityRole="button"
               accessibilityState={{ disabled: !configured || busy }}
               style={({ pressed }) => [
-                styles.primaryButton,
+                styles.heroCta,
                 (!configured || busy) && styles.disabled,
                 pressed && styles.pressed,
               ]}>
               {busy ? (
-                <ActivityIndicator color="#FFFFFF" size="small" />
+                <ActivityIndicator color={TG.onPrimaryContainer} size="small" />
               ) : (
-                <TgIcon name="backup" color="#FFFFFF" size={20} />
+                <TgIcon name="backup" color={TG.onPrimaryContainer} size={20} />
               )}
-              <Text style={styles.primaryButtonText} numberOfLines={1}>
+              <Text style={styles.heroCtaText} numberOfLines={1}>
                 {busy ? status ?? 'Mencadangkan\u2026' : 'Mulai Backup Sekarang'}
               </Text>
             </Pressable>
 
-            <Pressable
-              onPress={onTogglePause}
-              accessibilityRole="button"
-              style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}>
-              <TgIcon
-                name={config.automationPaused ? 'play' : 'pause'}
-                color={TG.onPrimaryContainer}
-                size={20}
-              />
-              <Text style={styles.secondaryButtonText} numberOfLines={1}>
-                {config.automationPaused ? 'Lanjutkan Otomasi' : 'Jeda Otomasi'}
-              </Text>
-            </Pressable>
-
-            <Pressable
-              onPress={() => navigation.navigate('Restore')}
-              accessibilityRole="button"
-              style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}>
-              <TgIcon name="folderZip" color={TG.onPrimaryContainer} size={20} />
-              <Text style={styles.secondaryButtonText} numberOfLines={1}>
-                Pulihkan Backup
-              </Text>
-            </Pressable>
+            <View style={styles.heroActions}>
+              <Pressable
+                onPress={onTogglePause}
+                accessibilityRole="button"
+                style={({ pressed }) => [styles.heroSecondary, pressed && styles.pressed]}>
+                <TgIcon
+                  name={config.automationPaused ? 'play' : 'pause'}
+                  color="#FFFFFF"
+                  size={18}
+                />
+                <Text style={styles.heroSecondaryText} numberOfLines={1}>
+                  {config.automationPaused ? 'Lanjutkan' : 'Jeda'}
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => navigation.navigate('Restore')}
+                accessibilityRole="button"
+                style={({ pressed }) => [styles.heroSecondary, pressed && styles.pressed]}>
+                <TgIcon name="folderZip" color="#FFFFFF" size={18} />
+                <Text style={styles.heroSecondaryText} numberOfLines={1}>
+                  Pulihkan
+                </Text>
+              </Pressable>
+            </View>
           </View>
 
           {/* Statistik Backup */}
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Statistik Backup</Text>
             <Text style={styles.sectionAction}>Bulan Ini</Text>
-          </View>
-          <View style={styles.grid}>
+          </View>          <View style={styles.grid}>
             <StatTile
               icon="box"
               value={formatBytes(totalSize)}
@@ -530,7 +532,9 @@ export default function HomeScreen({ navigation }: Props) {
           </View>
 
           {/* Preferensi Jaringan & File */}
-          <Text style={styles.sectionTitle}>Preferensi Jaringan & File</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Preferensi Jaringan & File</Text>
+          </View>
           <View style={styles.card}>
             <PreferenceRow
               icon="wifi"
@@ -681,13 +685,13 @@ const CARD_SHADOW = {
 const createStyles = (TG: TGPalette) => StyleSheet.create({
   root: { flex: 1 },
   scroll: { flex: 1 },
-  column: { width: '100%', maxWidth: 640, alignSelf: 'center', gap: 24 },
+  column: { width: '100%', maxWidth: 640, alignSelf: 'center', gap: 20 },
 
   card: {
     backgroundColor: TG.card,
-    borderRadius: 12,
+    borderRadius: RADIUS.lg,
     padding: 16,
-    gap: 16,
+    gap: 14,
     ...CARD_SHADOW,
   },
   rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
@@ -729,31 +733,40 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
   chipText: { fontSize: 11, lineHeight: 14, fontWeight: '600', fontFamily: FONT.semi },
 
   heroText: { flex: 1, minWidth: 0, gap: 2 },
-  overline: { color: TG.secondary, fontSize: 11, lineHeight: 14, fontWeight: '600', fontFamily: FONT.semi, letterSpacing: 0.6 },
-  heroTitle: { color: TG.ink, fontSize: 17, lineHeight: 22, fontWeight: '600', fontFamily: FONT.semi },
+  heroCard: {
+    backgroundColor: TG.primary,
+    borderRadius: RADIUS.xl,
+    padding: 20,
+    gap: 16,
+    ...ELEVATION.card,
+  },
   heroIconTile: {
     width: 44,
     height: 44,
-    borderRadius: 12,
-    backgroundColor: TG.container,
+    borderRadius: RADIUS.md,
+    backgroundColor: 'rgba(255,255,255,0.18)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-
-  inset: {
+  overline: {
+    color: 'rgba(255,255,255,0.72)', fontSize: 11, lineHeight: 14, fontWeight: '600',
+    fontFamily: FONT.semi, letterSpacing: 0.8,
+  },
+  heroTitle: { color: '#FFFFFF', fontSize: 22, lineHeight: 28, fontWeight: '700', fontFamily: FONT.bold, letterSpacing: -0.3 },
+  heroInset: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
-    backgroundColor: TG.low,
-    borderRadius: 8,
+    backgroundColor: 'rgba(255,255,255,0.10)',
+    borderRadius: RADIUS.md,
     padding: 12,
   },
   insetText: { flex: 1, minWidth: 0, gap: 4 },
-  insetTitle: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '700', fontFamily: FONT.bold },
-  insetMeta: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
-  insetHash: { color: TG.primary, fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi },
-  insetNeutral: { color: TG.outline, fontSize: 12, lineHeight: 16 },
-  ringPct: { color: TG.ink, fontSize: 17, lineHeight: 22, fontWeight: '700', fontFamily: FONT.bold },
+  insetTitle: { color: '#FFFFFF', fontSize: 15, lineHeight: 20, fontWeight: '700', fontFamily: FONT.bold },
+  insetMeta: { color: 'rgba(255,255,255,0.78)', fontSize: 13, lineHeight: 18 },
+  insetHash: { color: 'rgba(255,255,255,0.92)', fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi },
+  insetNeutral: { color: 'rgba(255,255,255,0.55)', fontSize: 12, lineHeight: 16 },
+  ringPct: { color: '#FFFFFF', fontSize: 17, lineHeight: 22, fontWeight: '700', fontFamily: FONT.bold },
 
   progressBlock: { gap: 8 },
   progressHeader: {
@@ -762,35 +775,38 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     justifyContent: 'space-between',
     gap: 12,
   },
-  progressText: { color: TG.secondary, fontSize: 13, lineHeight: 18, flexShrink: 1 },
-  progressPct: { color: TG.primary, fontSize: 13, lineHeight: 18, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 0 },
+  progressText: { color: 'rgba(255,255,255,0.78)', fontSize: 13, lineHeight: 18, flexShrink: 1 },
+  progressPct: { color: '#FFFFFF', fontSize: 13, lineHeight: 18, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 0 },
 
-  primaryButton: {
+  heroCta: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
     minHeight: 52,
     borderRadius: RADIUS.md,
-    paddingHorizontal: 16,
-    backgroundColor: TG.onPrimaryContainer,
+    backgroundColor: '#FFFFFF',
   },
-  primaryButtonText: { color: '#FFFFFF', fontSize: 15, lineHeight: 20, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 1 },
-  secondaryButton: {
+  heroCtaText: {
+    color: TG.primary, fontSize: 15, lineHeight: 20, fontWeight: '700',
+    fontFamily: FONT.semi, flexShrink: 1,
+  },
+  heroActions: { flexDirection: 'row', gap: 10 },
+  heroSecondary: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    minHeight: 52,
+    gap: 6,
+    minHeight: 44,
     borderRadius: RADIUS.md,
-    paddingHorizontal: 16,
-    backgroundColor: TG.low,
+    backgroundColor: 'rgba(255,255,255,0.14)',
   },
-  secondaryButtonText: { color: TG.onPrimaryContainer, fontSize: 15, lineHeight: 20, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 1 },
+  heroSecondaryText: { color: '#FFFFFF', fontSize: 13, lineHeight: 18, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 1 },
 
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
-  sectionTitle: { color: TG.ink, fontSize: 17, lineHeight: 22, fontWeight: '600', fontFamily: FONT.semi },
+  sectionTitle: { color: TG.ink, fontSize: 18, lineHeight: 24, fontWeight: '700', fontFamily: FONT.bold, letterSpacing: -0.2 },
   sectionAction: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
   sectionLink: { color: TG.primary, fontSize: 13, lineHeight: 18, fontWeight: '600', fontFamily: FONT.semi },
 
@@ -799,7 +815,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     flexGrow: 1,
     flexBasis: '46%',
     backgroundColor: TG.card,
-    borderRadius: 12,
+    borderRadius: RADIUS.lg,
     padding: 16,
     gap: 6,
     ...CARD_SHADOW,
@@ -807,13 +823,13 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
   statIconTile: {
     width: 34,
     height: 34,
-    borderRadius: 8,
+    borderRadius: RADIUS.sm,
     backgroundColor: TG.low,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  statValue: { color: TG.ink, fontSize: 22, lineHeight: 28, fontWeight: '600', fontFamily: FONT.semi },
-  statLabel: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
+  statValue: { color: TG.ink, fontSize: 22, lineHeight: 28, fontWeight: '700', fontFamily: FONT.bold, letterSpacing: -0.3 },
+  statLabel: { color: TG.secondary, fontSize: 12, lineHeight: 16 },
 
   folderRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12 },
   folderIconTile: {
@@ -844,7 +860,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     minHeight: 48,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.low,
   },
   addButtonText: { color: TG.primary, fontSize: 14, lineHeight: 20, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 1 },
