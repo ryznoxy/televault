@@ -120,10 +120,17 @@
     "semantic_hash": ""
   },
   "__tests__/theme.test.ts": {
+<<<<<<< HEAD
     "mtime": 1792337804.2369034,
     "seen": 1792338343.9148612,
     "ast_hash": "46fb49d2737bf2a781a6ec6a2a94e567",
     "semantic_hash": "46fb49d2737bf2a781a6ec6a2a94e567"
+=======
+    "mtime": 1792335106.002948,
+    "seen": 1792335200.8384824,
+    "ast_hash": "36f520fb331535a7b023bf18ade51cba",
+    "semantic_hash": ""
+>>>>>>> 3952859 (chore(graph): refresh after the typography and radius changes)
   },
   "__tests__/uploadRetry.test.ts": {
     "mtime": 1792338312.6309092,
@@ -330,9 +337,15 @@
     "semantic_hash": "256cf8f69189b590c344e9cf28eccd80"
   },
   "src/components/ui.tsx": {
+<<<<<<< HEAD
     "mtime": 1792337804.36861,
     "seen": 1792338343.9148612,
     "ast_hash": "a494fb0946ae8e5ea6e70412d9686c04",
+=======
+    "mtime": 1792335074.571808,
+    "seen": 1792335200.8384824,
+    "ast_hash": "fcf0c33672b9ee82115681f9e819e8a8",
+>>>>>>> 3952859 (chore(graph): refresh after the typography and radius changes)
     "semantic_hash": ""
   },
   "src/db/db.ts": {
@@ -384,6 +397,7 @@
     "semantic_hash": ""
   },
   "src/screens/HomeScreen.tsx": {
+<<<<<<< HEAD
     "mtime": 1792338312.6887603,
     "seen": 1792338343.9148612,
     "ast_hash": "6e2262ffb371659f4dac52b0ebbf4870",
@@ -417,6 +431,41 @@
     "mtime": 1792338312.692379,
     "seen": 1792338343.9148612,
     "ast_hash": "62a7ccaf19004ffd961daf5af194fbfe",
+=======
+    "mtime": 1792335029.1916566,
+    "seen": 1792335200.8384824,
+    "ast_hash": "bfe494fbabc79d609d46201a229500ee",
+    "semantic_hash": ""
+  },
+  "src/screens/RestoreScreen.tsx": {
+    "mtime": 1792335029.1961257,
+    "seen": 1792335200.8384824,
+    "ast_hash": "b0e546c2edc69c953489531c4a7d565b",
+    "semantic_hash": ""
+  },
+  "src/screens/SettingsScreen.tsx": {
+    "mtime": 1792335029.2002325,
+    "seen": 1792335200.8384824,
+    "ast_hash": "e65514746cb02cbf9494951295048a68",
+    "semantic_hash": ""
+  },
+  "src/screens/SetupScreen.tsx": {
+    "mtime": 1792335029.2065575,
+    "seen": 1792335200.8384824,
+    "ast_hash": "0b5dae4b6dbad758c11341485cdb9b7e",
+    "semantic_hash": ""
+  },
+  "src/screens/StatsScreen.tsx": {
+    "mtime": 1792335029.2123873,
+    "seen": 1792335200.8384824,
+    "ast_hash": "a63020d3cd551b882edbf0b4543b5987",
+    "semantic_hash": ""
+  },
+  "src/screens/TroubleshootScreen.tsx": {
+    "mtime": 1792335029.2217765,
+    "seen": 1792335200.8384824,
+    "ast_hash": "4ffc1a9b4edf4a18cb3a5e69ebc6c7d0",
+>>>>>>> 3952859 (chore(graph): refresh after the typography and radius changes)
     "semantic_hash": ""
   },
   "src/state/clipboard.ts": {
@@ -462,10 +511,17 @@
     "semantic_hash": "fbb62bab31e1b3a31aea1b7cf043e26c"
   },
   "src/theme/theme.ts": {
+<<<<<<< HEAD
     "mtime": 1792337804.3881629,
     "seen": 1792338343.9148612,
     "ast_hash": "cf0650939a412a3f6e14af5d7a0372d9",
     "semantic_hash": "cf0650939a412a3f6e14af5d7a0372d9"
+=======
+    "mtime": 1792335042.5647006,
+    "seen": 1792335200.8384824,
+    "ast_hash": "f72fefc0d17fa10e2ef1fbb12aee60bc",
+    "semantic_hash": ""
+>>>>>>> 3952859 (chore(graph): refresh after the typography and radius changes)
   },
   "src/types/models.ts": {
     "mtime": 1792338312.6939054,
@@ -480,8 +536,13 @@
     "semantic_hash": "b5783f87a2a7475a698005e681560a34"
   },
   "README.md": {
+<<<<<<< HEAD
     "mtime": 1792338312.6200652,
     "seen": 1792338343.9148612,
+=======
+    "mtime": 1792244801.1108797,
+    "seen": 1792334786.4091008,
+>>>>>>> 3952859 (chore(graph): refresh after the typography and radius changes)
     "ast_hash": "4ee543d2c67b059b42ffa9e13294ff60",
     "semantic_hash": ""
   },
@@ -564,8 +625,13 @@
     "semantic_hash": ""
   },
   "docs/release-checklist.md": {
+<<<<<<< HEAD
     "mtime": 1792338312.6559987,
     "seen": 1792338343.9148612,
+=======
+    "mtime": 1792244790.3983097,
+    "seen": 1792334786.4091008,
+>>>>>>> 3952859 (chore(graph): refresh after the typography and radius changes)
     "ast_hash": "8e995249c17efec90c7dfe6776dfb4a1",
     "semantic_hash": ""
   },

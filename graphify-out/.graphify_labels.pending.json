@@ -2,8 +2,15 @@
   "0": "StatsScreen.tsx",
   "1": "restoreRunner.ts",
   "5": "backupRunner.ts",
-  "7": "HomeScreen.tsx",
+  "7": "SettingsScreen.tsx",
+  "20": "HomeScreen.tsx",
   "28": "Checklist rilis",
-  "40": "react",
+  "29": "SetupScreen.tsx",
+  "30": "TroubleshootScreen.tsx",
+  "31": "AppNav.tsx",
+  "32": "react-native",
+  "33": "secureStore.ts",
+  "34": "react-native-safe-area-context",
+  "40": "App.tsx",
   "41": "AGENTS.md"
 }
