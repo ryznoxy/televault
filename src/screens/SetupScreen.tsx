@@ -72,6 +72,8 @@ export default function SetupScreen({ navigation }: Props) {
   const [sentTo, setSentTo] = useState<string | null>(null);
   const sendTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const [detecting, setDetecting] = useState(false);
+
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -201,6 +203,57 @@ export default function SetupScreen({ navigation }: Props) {
     } catch (error) {
       setSendStatus('error');
       setSendError(error instanceof Error ? error.message : String(error));
+    }
+  };
+
+  const onDetectChatId = async () => {
+    if (!token.trim() || detecting) {
+      return;
+    }
+    setDetecting(true);
+    try {
+      const api = new TelegramBotApi(token, '0');
+      const chats = await api.getRecentChats();
+      if (chats.length === 0) {
+        Alert.alert(
+          'Belum ada chat terdeteksi',
+          'Buka bot Anda di Telegram, tekan Start (atau kirim pesan apa pun), lalu coba lagi. Bot hanya bisa melihat chat yang pernah mengirim pesan kepadanya.',
+        );
+        return;
+      }
+      const label = (chat: (typeof chats)[number]): string => {
+        const name = chat.title ?? chat.first_name ?? (chat.username ? `@${chat.username}` : String(chat.id));
+        return `${name} — ${chat.id}`;
+      };
+      if (chats.length === 1) {
+        setChatId(String(chats[0].id));
+        showToast('Chat ID ditemukan', label(chats[0]), 'success');
+        return;
+      }
+      // Newest chat first: getUpdates returns oldest-first, so reverse.
+      const recent = [...chats].reverse().slice(0, 2);
+      Alert.alert(
+        'Pilih chat tujuan',
+        'Beberapa chat pernah mengirim pesan ke bot ini.',
+        [
+          ...recent.map(chat => ({
+            text: label(chat),
+            onPress: () => {
+              setChatId(String(chat.id));
+              showToast('Chat ID ditemukan', label(chat), 'success');
+            },
+          })),
+          { text: 'Isi manual', style: 'cancel' },
+        ],
+      );
+    } catch (error) {
+      showToast(
+        'Deteksi gagal',
+        error instanceof Error ? error.message : String(error),
+        'error',
+      );
+    } finally {
+      setDetecting(false);
     }
   };
 
@@ -424,7 +477,7 @@ export default function SetupScreen({ navigation }: Props) {
               <TextInput
                 value={chatId}
                 onChangeText={setChatId}
-                placeholder="-1001234567890 atau @channelusername"
+                placeholder="-1001234567890"
                 placeholderTextColor={TG.outline}
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -452,10 +505,30 @@ export default function SetupScreen({ navigation }: Props) {
                   {sendLabel}
                 </Text>
               </Pressable>
+              <Pressable
+                onPress={onDetectChatId}
+                disabled={detecting || !token.trim()}
+                accessibilityRole="button"
+                accessibilityLabel="Deteksi Chat ID otomatis"
+                style={({ pressed }) => [
+                  styles.secondaryButton,
+                  (detecting || !token.trim()) && styles.disabled,
+                  pressed && styles.pressed,
+                ]}>
+                {detecting ? (
+                  <ActivityIndicator color={TG.ink} size="small" />
+                ) : (
+                  <TgIcon name="search" color={TG.primaryContainer} size={16} />
+                )}
+                <Text style={styles.secondaryButtonText} numberOfLines={1}>
+                  {detecting ? 'Mendeteksi\u2026' : 'Deteksi Otomatis'}
+                </Text>
+              </Pressable>
             </View>
             <Text style={styles.helperMuted}>
-              Pakai ID angka (mis. -1001234567890) atau @username kanal/grup tujuan
-              arsip Anda. Keduanya didukung.
+              Wajib pakai ID angka (mis. -1001234567890) — bot Telegram tidak bisa
+              mengirim ke @username untuk chat pribadi atau grup privat. Kirim
+              pesan ke bot, tekan Deteksi Otomatis, dan ID-nya terisi sendiri.
             </Text>
             {sendStatus === 'sent' && sentTo ? (
               <View style={styles.feedbackBanner}>

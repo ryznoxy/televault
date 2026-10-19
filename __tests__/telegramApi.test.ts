@@ -38,6 +38,28 @@ beforeEach(() => {
   blob.config.mockReturnValue({ fetch: blob.fetch });
 });
 
+test('getRecentChats returns one entry per distinct chat, newest last', async () => {
+  const { transport, calls } = fakeTransport({
+    status: 200,
+    body: JSON.stringify({
+      ok: true,
+      result: [
+        { message: { chat: { id: 111, first_name: 'Ann', type: 'private' } } },
+        { message: { chat: { id: -100222, title: 'Arsip', type: 'supergroup' } } },
+        { message: { chat: { id: 111, first_name: 'Ann', type: 'private' } } },
+        {},
+      ],
+    }),
+  });
+  const api = new TelegramBotApi('token', '0', transport);
+  const chats = await api.getRecentChats();
+  expect(chats).toEqual([
+    { id: 111, first_name: 'Ann', type: 'private' },
+    { id: -100222, title: 'Arsip', type: 'supergroup' },
+  ]);
+  expect(calls[0].url).toBe('https://api.telegram.org/bottoken/getUpdates?limit=100');
+});
+
 test('testConnection returns the bot username', async () => {
   const { transport } = fakeTransport({
     status: 200,

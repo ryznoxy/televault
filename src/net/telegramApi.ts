@@ -184,6 +184,33 @@ export class TelegramBotApi {
     };
   }
 
+  /**
+   * Distinct chats that have messaged the bot recently, newest last. A bot can
+   * only read updates from chats where a user actually wrote to it, so this is
+   * how the app finds the numeric chat id without the user opening getUpdates
+   * in a browser. Channel posts are not included — add `channel_post` here if
+   * archiving into a channel the bot administers ever needs detection.
+   */
+  async getRecentChats(): Promise<
+    { id: number; title?: string; username?: string; first_name?: string; type: string }[]
+  > {
+    const response = await this.request({
+      url: `${this.baseUrl}/getUpdates?limit=100`,
+      method: 'GET',
+    });
+    const updates = (this.parse(response).result ?? []) as Array<{
+      message?: { chat?: { id: number; title?: string; username?: string; first_name?: string; type: string } };
+    }>;
+    const chats = new Map<number, { id: number; title?: string; username?: string; first_name?: string; type: string }>();
+    for (const update of updates) {
+      const chat = update.message?.chat;
+      if (chat && !chats.has(chat.id)) {
+        chats.set(chat.id, chat);
+      }
+    }
+    return [...chats.values()];
+  }
+
   async sendMessage(text: string, disableNotification = false): Promise<SendResult> {
     // No `parse_mode`: the only messages this app sends are fixed plain strings
     // (the run summary and the setup test message). Markdown would 400 on any
