@@ -19,8 +19,9 @@ import {
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../theme/ThemeProvider';
 import { AppHeader, TgIcon } from '../components/ui';
-import { FONT,  RADIUS, TG } from '../theme/theme';
+import { FONT,  RADIUS, tgTheme, TG_LIGHT as TG } from '../theme/theme';
 import {
   findManifestPath,
   loadManifestFromFolder,
@@ -68,6 +69,8 @@ function phaseLabel(phase: RestorePhase): string {
 }
 
 export default function RestoreScreen({ navigation }: Props) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;

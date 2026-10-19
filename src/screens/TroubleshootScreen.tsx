@@ -11,8 +11,9 @@ import {
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../theme/ThemeProvider';
 import { AppHeader, SectionLabel, TgIcon, useToast, type TgIconName } from '../components/ui';
-import { FONT,  RADIUS, TG } from '../theme/theme';
+import { FONT,  RADIUS, tgTheme, TG_LIGHT as TG } from '../theme/theme';
 import { sessionsRepo } from '../db/repositories/sessions';
 import { isCryptoAvailable } from '../backup/crypto';
 import { secureStore } from '../state/secureStore';
@@ -72,6 +73,8 @@ const EMPTY_DIAGNOSTICS: Diagnostics = {
 };
 
 export default function TroubleshootScreen({ navigation }: Props) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const gutter = width >= 768 ? 24 : 16;

@@ -12,6 +12,7 @@ import {
 import { pickDirectory } from '@react-native-documents/picker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../theme/ThemeProvider';
 import {
   AppHeader,
   ProgressBar,
@@ -21,8 +22,7 @@ import {
   useToast,
   type TgIconName,
 } from '../components/ui';
-import { FONT,  RADIUS, TG } from '../theme/theme';
-import { runBackupInForeground, BACKUP_IN_FLIGHT_ERROR } from '../background/foregroundService';
+import { FONT,  RADIUS, tgTheme, TG_LIGHT as TG } from '../theme/theme';import { runBackupInForeground, BACKUP_IN_FLIGHT_ERROR } from '../background/foregroundService';
 import { isFileUri } from '../backup/fileScanner';
 import { requestNotificationPermission } from '../backup/permissions';
 import { filesRepo } from '../db/repositories/files';
@@ -137,6 +137,8 @@ function barVerb(phase: string): string {
 }
 
 export default function HomeScreen({ navigation }: Props) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;

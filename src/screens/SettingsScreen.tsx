@@ -13,6 +13,7 @@ import {
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { pickDirectory } from '@react-native-documents/picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../theme/ThemeProvider';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import BackgroundService from 'react-native-background-actions';
 import {
@@ -25,7 +26,7 @@ import {
   useToast,
   type TgIconName,
 } from '../components/ui';
-import { FONT,  RADIUS, TG } from '../theme/theme';
+import { FONT,  RADIUS, tgTheme, TG_LIGHT as TG } from '../theme/theme';
 import { requestNotificationPermission } from '../backup/permissions';
 import { isActiveTempDir } from '../backup/tempDirs';
 import { isCryptoAvailable, newSaltB64 } from '../backup/crypto';
@@ -194,6 +195,8 @@ async function pathSize(path: string): Promise<number> {
 }
 
 export default function SettingsScreen({ navigation }: Props) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;

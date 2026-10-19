@@ -19,7 +19,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeProvider';
-import { FONT,  ELEVATION, RADIUS, SPACE, TG, TYPE } from '../theme/theme';
+import { FONT,  ELEVATION, RADIUS, SPACE, TG_LIGHT, tgTheme, TYPE } from '../theme/theme';
 import { parseClampedInt } from './number';
 
 /* ------------------------------------------------------------------ */
@@ -127,11 +127,14 @@ export function AppHeader({
   const isTablet = width >= 768;
   const gutter = isTablet ? 24 : 16;
   const insets = useSafeAreaInsets();
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const headerBg = mode === 'dark' ? 'rgba(19,26,33,0.96)' : 'rgba(248,249,255,0.96)';
   return (
     <View
       style={[
         styles.appHeader,
-        { paddingTop: insets.top + 8, paddingHorizontal: gutter },
+        { paddingTop: insets.top + 8, paddingHorizontal: gutter, backgroundColor: headerBg },
       ]}>
       <View style={styles.appHeaderInner}>
         {onBack ? (
@@ -230,6 +233,8 @@ export function Toast({
       useNativeDriver: true,
     }).start();
   }, [toast, visible]);
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
   if (!toast) {
     return null;
   }
@@ -325,12 +330,13 @@ export function Hint({ children }: { children: React.ReactNode }) {
 
 /** Uppercase section eyebrow with a trailing glyph, used above each card. */
 export function SectionLabel({ title, icon }: { title: string; icon: TgIconName }) {
+  const { mode } = useTheme();
   return (
     <View style={styles.sectionLabel}>
       <Text style={styles.sectionLabelText} numberOfLines={1}>
         {title}
       </Text>
-      <TgIcon name={icon} color={TG.secondary} size={16} />
+      <TgIcon name={icon} color={tgTheme(mode).secondary} size={16} />
     </View>
   );
 }
@@ -485,6 +491,8 @@ export function TgSwitch({
   onValueChange: (value: boolean) => void;
   accessibilityLabel?: string;
 }) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
   return (
     <Switch
       value={value}
@@ -561,6 +569,7 @@ export function RangeSlider({
   onChange: (value: number) => void;
   accessibilityLabel?: string;
 }) {
+  const { mode } = useTheme();
   const [trackWidth, setTrackWidth] = useState(0);
   const widthRef = useRef(0);
   const valueRef = useRef(value);
@@ -615,9 +624,9 @@ export function RangeSlider({
       }}
       {...responder.panHandlers}
       style={styles.sliderHit}>
-      <View style={[styles.sliderTrack, { backgroundColor: TG.highest }]} />
+      <View style={[styles.sliderTrack, { backgroundColor: tgTheme(mode).highest }]} />
       <View
-        style={[styles.sliderFill, { width: fillWidth, backgroundColor: TG.primaryContainer }]}
+        style={[styles.sliderFill, { width: fillWidth, backgroundColor: tgTheme(mode).primaryContainer }]}
       />
       <View style={[styles.sliderThumb, ELEVATION.card, { left: thumbLeft, shadowColor: '#0B1C30' }]} />
     </View>
@@ -797,9 +806,10 @@ const TABS: { key: TabKey; label: string; icon: TgIconName }[] = [
   { key: 'stats', label: 'Riwayat', icon: 'history' },
 ];
 
-const NAV_ACTIVE = TG.primaryContainer;
+const NAV_ACTIVE = TG_LIGHT.primaryContainer;
+const NAV_IDLE = TG_LIGHT.secondary;
 
-/** Fixed light bar (translucent card fill + hairline top border). */
+/** Fixed bar (translucent card fill + hairline top border), theme-aware. */
 export function BottomNav({
   active,
   onChange,
@@ -809,6 +819,7 @@ export function BottomNav({
 }) {
   const insets = useSafeAreaInsets();
   const { mode } = useTheme();
+  const TG = tgTheme(mode);
   return (
     <View
       accessibilityRole="tablist"
@@ -833,14 +844,14 @@ export function BottomNav({
             <View style={[styles.navIcon, selected && styles.navIconActive]}>
               <TgIcon
                 name={tab.icon}
-                color={selected ? NAV_ACTIVE : TG.secondary}
+                color={selected ? NAV_ACTIVE : NAV_IDLE}
                 size={20}
               />
             </View>
             <Text
               style={[
                 styles.navLabel,
-                { color: selected ? NAV_ACTIVE : TG.secondary, fontFamily: selected ? FONT.semi : FONT.medium },
+                { color: selected ? NAV_ACTIVE : NAV_IDLE, fontFamily: selected ? FONT.semi : FONT.medium },
               ]}
               numberOfLines={1}>
               {tab.label}
@@ -1551,7 +1562,7 @@ export function TgIcon({
               borderWidth: stroke,
               borderColor: color,
               borderRadius: s * 0.14,
-              backgroundColor: TG.bg,
+              backgroundColor: 'transparent',
             }}
           />
         </View>
@@ -2303,7 +2314,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACE.xs,
   },
   sectionLabelText: {
-    color: TG.secondary,
+    color: TG_LIGHT.secondary,
     fontSize: 12,
     lineHeight: 16,
     fontWeight: '600', fontFamily: FONT.semi,
@@ -2457,14 +2468,13 @@ const styles = StyleSheet.create({
     paddingVertical: SPACE.xs,
   },
   navIcon: { paddingHorizontal: 18, paddingVertical: 3, borderRadius: RADIUS.md },
-  navIconActive: { backgroundColor: TG.low },
+  navIconActive: { backgroundColor: TG_LIGHT.low },
   navLabel: { fontSize: 11 },
 
   appHeader: {
     paddingBottom: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: TG.highest,
-    backgroundColor: 'rgba(248,249,255,0.96)',
+    borderBottomColor: TG_LIGHT.highest,
   },
   appHeaderInner: {
     width: '100%',
@@ -2478,15 +2488,15 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: RADIUS.md,
-    backgroundColor: TG.card,
+    backgroundColor: TG_LIGHT.card,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: TG.highest,
+    borderColor: TG_LIGHT.highest,
     alignItems: 'center',
     justifyContent: 'center',
   },
   appHeaderText: { flex: 1, minWidth: 0 },
   appHeaderTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  appHeaderWordmark: { color: TG.ink, fontSize: 24, lineHeight: 30, letterSpacing: -0.5, fontFamily: FONT.bold },
+  appHeaderWordmark: { color: TG_LIGHT.ink, fontSize: 24, lineHeight: 30, letterSpacing: -0.5, fontFamily: FONT.bold },
   appHeaderE2eePill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -2494,15 +2504,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: RADIUS.md,
-    backgroundColor: TG.primaryFixed,
+    backgroundColor: TG_LIGHT.primaryFixed,
   },
   appHeaderE2eeText: {
-    color: TG.onPrimaryContainer,
+    color: TG_LIGHT.onPrimaryContainer,
     fontSize: 11,
     lineHeight: 14,
     fontWeight: '600', fontFamily: FONT.semi,
   },
-  appHeaderSubtitle: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
+  appHeaderSubtitle: { color: TG_LIGHT.secondary, fontSize: 13, lineHeight: 18 },
 
   toastWrap: {
     position: 'absolute',
@@ -2515,13 +2525,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: TG.card,
+    backgroundColor: TG_LIGHT.card,
     borderRadius: 12,
     padding: 14,
     width: '100%',
     maxWidth: 400,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: TG.highest,
+    borderColor: TG_LIGHT.highest,
   },
   toastIcon: {
     width: 32,
@@ -2531,6 +2541,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   toastText: { flex: 1, minWidth: 0, gap: 2 },
-  toastTitle: { color: TG.ink, fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi },
-  toastMsg: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
+  toastTitle: { color: TG_LIGHT.ink, fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi },
+  toastMsg: { color: TG_LIGHT.secondary, fontSize: 13, lineHeight: 18 },
 });

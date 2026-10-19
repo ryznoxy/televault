@@ -13,9 +13,10 @@ import {
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../theme/ThemeProvider';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import { AppHeader, PulsingDot, TgIcon, useToast, type TgIconName } from '../components/ui';
-import { FONT,  RADIUS, TG } from '../theme/theme';
+import { FONT,  RADIUS, tgTheme, TG_LIGHT as TG } from '../theme/theme';
 import { sessionsRepo, type SessionRecord } from '../db/repositories/sessions';
 import { runBackupInForeground, BACKUP_IN_FLIGHT_ERROR } from '../background/foregroundService';
 import { secureStore } from '../state/secureStore';
@@ -94,6 +95,8 @@ const FILTER_DEFS: { key: SessionFilter; label: string; dot?: 'success' | 'faile
 ];
 
 export default function StatsScreen({ navigation }: Props) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const gutter = width >= 768 ? 24 : 16;

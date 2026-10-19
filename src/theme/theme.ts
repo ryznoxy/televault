@@ -82,10 +82,11 @@ export const themes: Record<ThemeMode, Theme> = {
 };
 
 /**
- * TeleVault / Telegram-blue light palette. Used by the Home screen and the
- * bottom nav only; the rest of the app keeps reading `themes`.
+ * TeleVault / Telegram-blue palette. Used by the Home screen and the bottom
+ * nav; the rest of the app keeps reading `themes`. `tgTheme(mode)` returns the
+ * palette for the active ThemeProvider mode so Home and the nav go dark too.
  */
-export const TG = {
+export const TG_LIGHT = {
   bg: '#F8F9FF',
   card: '#FFFFFF',
   low: '#EFF4FF',
@@ -104,6 +105,36 @@ export const TG = {
   error: '#BA1A1A',
   errorSoft: 'rgba(186,26,26,0.10)',
 } as const;
+
+export type TGPalette = { [K in keyof typeof TG_LIGHT]: string };
+
+/** Telegram-blue dark palette — same hues, dark surfaces, lifted text. */
+export const TG_DARK: TGPalette = {
+  bg: '#0B0F14',
+  card: '#131A21',
+  low: '#16222C',
+  container: '#1A2833',
+  high: '#203040',
+  highest: '#27394A',
+  primary: '#7FCBF2',
+  primaryContainer: '#229ED9',
+  onPrimaryContainer: '#DFF3FF',
+  ink: '#E8F0F8',
+  variant: '#AAB7C2',
+  secondary: '#93A2B1',
+  outline: '#5E6C79',
+  secondaryContainer: '#22313F',
+  primaryFixed: '#15425C',
+  error: '#FF6369',
+  errorSoft: 'rgba(255,99,105,0.14)',
+} as const;
+
+/** Back-compat alias resolved per mode via `tgTheme`. */
+export const TG = TG_LIGHT;
+
+export function tgTheme(mode: ThemeMode): TGPalette {
+  return mode === 'dark' ? TG_DARK : TG_LIGHT;
+}
 
 /** 8-point spacing grid. */
 export const SPACE = { xs: 4, sm: 8, md: 12, base: 16, lg: 24, xl: 32 } as const;

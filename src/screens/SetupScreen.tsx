@@ -13,13 +13,14 @@ import {
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../theme/ThemeProvider';
 import {
   AppHeader,
   PulsingDot,
   TgIcon,
   useToast,
 } from '../components/ui';
-import { FONT,  ELEVATION, RADIUS, TG } from '../theme/theme';
+import { FONT,  ELEVATION, RADIUS, tgTheme, TG_LIGHT as TG } from '../theme/theme';
 import { isCryptoAvailable, newSaltB64 } from '../backup/crypto';
 import { TelegramBotApi } from '../net/telegramApi';
 import { stopScheduler } from '../background/scheduler';
@@ -39,6 +40,8 @@ type SaveStatus = 'idle' | 'saving' | 'saved';
 const HIT_SLOP = { top: 10, bottom: 10, left: 10, right: 10 } as const;
 
 export default function SetupScreen({ navigation }: Props) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
