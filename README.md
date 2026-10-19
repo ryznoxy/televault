@@ -8,10 +8,11 @@ Status: aplikasi React Native 0.87, Android jadi target utama, iOS ikut terbangu
 
 - **Kategori backup** — Photos, Videos, Documents, dan folder custom bebas lewat SAF (juga di Android). Contacts & SMS menyusul (lihat Batasan).
 - **Enkripsi di perangkat** — AES-256-GCM, kunci dari PBKDF2-SHA256 (210.000 iterasi, salt 16 byte, IV 12 byte **per potongan**). Passphrase tidak pernah dikirim ke Telegram; hanya salt dan IV-nya.
-- **Chunking** — file dipecah maksimal 49 MB per bagian (`nama.zip.001`, `.002`, …) supaya lolos batas 50 MB Bot API; dengan enkripsi aktif batasnya 16 MB supaya puncak RAM tetap rendah. Setiap potongan dienkripsi sendiri, jadi backup multi-GB tidak perlu menahan seluruh arsip di memori.
-- **Backup inkremental** — file yang `mtime`-nya tidak berubah dilewati, jadi backup harian hanya mengunggah yang baru.
+- **Chunking** — file dipecah maksimal 49 MB per bagian supaya lolos batas 50 MB Bot API; dengan enkripsi aktif batasnya 16 MB supaya puncak RAM tetap rendah. Arsip dinamai `backup_<kategori>_<tanggal>.zip`, potongannya `…zip.001`, `.002`, … Setiap potongan dienkripsi sendiri, jadi backup multi-GB tidak perlu menahan seluruh arsip di memori.
+- **Backup inkremental** — file yang `mtime`-nya tidak berubah dilewati, jadi backup harian hanya mengunggah yang baru. Maksimal berkas per run bisa diatur (default 250); sisanya lanjut otomatis di run berikutnya.
 - **Manifest + skrip reassembly** — setiap arsip mengirim `<nama>.manifest.json` (ukuran, jumlah chunk, SHA-256, daftar IV, info enkripsi) plus skrip `.sh`/`.bat` untuk menyatukan potongan tanpa aplikasi.
-- **Restore dari Telegram** — pilih potongan → gabung → verifikasi SHA-256 → dekripsi per potongan → ekstrak zip, dengan status per berkas. Iterasi PBKDF2 restore mengikuti yang tercatat di manifest (minimum 210.000), jadi backup lama tetap bisa dibuka.
+- **Restore one-tap dari bot** — pilih sesi di layar Pulihkan, manifest dan semua potongan diunduh otomatis dari chat bot, lalu gabung → verifikasi SHA-256 → dekripsi per potongan → ekstrak zip. Tersedia untuk backup yang dibuat sejak v1.1.0 (app menyimpan `file_id` Telegram tiap potongan; DB lokal yang menyimpannya hilang kalau app dihapus). Backup lama tetap bisa dipulihkan manual: download potongan + manifest dari Telegram, lalu "Pilih berkas backup". Iterasi PBKDF2 restore mengikuti yang tercatat di manifest (minimum 210.000), jadi backup lama tetap bisa dibuka.
+- **Setup tanpa browser** — Chat ID dideteksi otomatis: kirim pesan ke bot, tekan Deteksi Otomatis, kolom terisi sendiri (wajib ID angka; bot tidak bisa mengirim ke @username untuk chat pribadi/grup privat).
 - **Penjadwalan** — manual, interval (jam), jam tertentu tiap hari, atau hanya saat charging.
 - **Jalan di background** — `react-native-background-fetch` + foreground service, termasuk headless task saat aplikasi tertutup.
 - **Upload tahan putus** — retry dengan backoff (`Retry-After` 429 dihormati, dibatasi 60 detik); progres, riwayat sesi, dan statistik tersimpan lokal (SQLite) dan bisa diekspor CSV.
@@ -23,13 +24,13 @@ Status: aplikasi React Native 0.87, Android jadi target utama, iOS ikut terbangu
 
 ```
 scan kategori → saring file berubah → (opsional) zip → potong 49 MB → enkripsi per potongan
-   → upload sendDocument ke chat bot → upload manifest + skrip → catat sesi di SQLite
+   → upload sendDocument ke chat bot (simpan file_id tiap potongan & manifest) → catat sesi di SQLite
 ```
 
 ## Prasyarat
 
 - Node.js >= 22.11, JDK 17, Android SDK (mengikuti [set up environment](https://reactnative.dev/docs/set-up-your-environment)).
-- Bot Telegram: buat lewat [@BotFather](https://t.me/BotFather), lalu ambil **chat ID** (kirim pesan ke bot, buka `https://api.telegram.org/bot<TOKEN>/getUpdates`).
+- Bot Telegram: buat lewat [@BotFather](https://t.me/BotFather). Chat ID tidak perlu dicari manual — kirim pesan ke bot, lalu di layar Setup tekan **Deteksi Otomatis**.
 - Untuk iOS: Xcode + CocoaPods (`bundle install && bundle exec pod install`).
 
 Token bot, chat ID, dan passphrase enkripsi disimpan di keychain/keystore perangkat lewat `react-native-keychain`, bukan di source atau `.env`. Ketiganya hanya dibaca saat backup/restore berjalan dan tidak pernah dikirim ke Telegram. Menghapus aplikasi menghapus keychain-nya — simpan passphrase di tempat lain juga.
@@ -43,7 +44,9 @@ npm run android    # terminal lain
 npm run ios
 ```
 
-Di aplikasi: layar Setup → tempel token bot → validasi → tempel chat ID → kirim pesan tes → pilih kategori, jadwal, dan passphrase → backup pertama.
+Di aplikasi: layar Setup → tempel token bot → kirim pesan ke bot → Deteksi Otomatis chat ID → kirim pesan tes → pilih kategori, jadwal, dan passphrase → backup pertama.
+
+APK siap install (tanpa Metro/PC) ada di halaman [Releases](https://github.com/ryznoxy/televault/releases).
 
 ## Pengembangan
 
@@ -107,6 +110,8 @@ Bundle id `com.televault.app`, `MARKETING_VERSION` di `ios/TelebotBackupRN.xcode
 - **Documents di Android 11+ bisa kosong** — scoped storage membatasi folder `Download`/`Documents`. Kategori yang terbaca 0 berkas akan memberitahukannya di ringkasan backup.
 - **Android 15+ membatasi foreground service `dataSync` ±6 jam per hari** — backup yang lebih lama dari itu bisa dihentikan sistem; jalankan ulang atau kecilkan jumlah berkas per run (`maxFilesPerRun`).
 - **Jadwal global, bukan per folder** — satu jadwal untuk semua kategori terpilih.
+- **Restore one-tap butuh DB lokal** — `file_id` potongan disimpan di SQLite app. Hapus app = hilang; restore HP baru tetap bisa lewat jalur manual (download dari Telegram).
+- **APK debug butuh Metro; pakai build release** — hanya `assembleRelease`/`bundleRelease` yang membundel JS. APK di Releases sudah release build.
 - **iOS belum diuji di device.**
 - **Package Kotlin masih `com.telebotbackuprn`** (nama modul Xcode `TelebotBackupRN`), tapi id yang dipasang/dipublikasikan adalah `com.televault.app` di kedua platform — ganti sekarang kalau mau nama lain, karena id ini permanen setelah rilis pertama.
 
