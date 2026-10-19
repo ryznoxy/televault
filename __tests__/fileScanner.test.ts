@@ -28,3 +28,24 @@ test('localizes content:// uris sharing a trailing name to distinct cache paths'
   expect(first.endsWith('_a.jpg')).toBe(true);
   expect(second.endsWith('_a.jpg')).toBe(true);
 });
+
+test('scanCameraRoll stops when a page comes back empty though more pages are claimed', async () => {
+  const { CameraRoll } = jest.requireMock('@react-native-camera-roll/camera-roll');
+  const { scanCategory } = jest.requireActual('../src/backup/fileScanner');
+  const { Category } = jest.requireActual('../src/types/models');
+  let calls = 0;
+  CameraRoll.getPhotos.mockImplementation(async () => {
+    calls += 1;
+    return {
+      edges: [],
+      page_info: { has_next_page: true, end_cursor: `cursor-${calls}` },
+    };
+  });
+  await scanCategory(Category.PHOTO, null);
+  expect(calls).toBe(1);
+  CameraRoll.getPhotos.mockReset();
+  CameraRoll.getPhotos.mockResolvedValue({
+    edges: [],
+    page_info: { has_next_page: false },
+  });
+});

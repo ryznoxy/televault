@@ -69,7 +69,11 @@ async function scanCameraRoll(category: CategoryKey): Promise<ScanResult[]> {
         category,
       });
     }
-    if (!page.page_info.has_next_page) {
+    // A page that returns nothing (or hands back the same cursor) while claiming
+    // to have more is a camera-roll pagination bug on some Android builds; with
+    // a pure `has_next_page` check the loop spins forever and the backup hangs
+    // in its scan phase, so bail on both.
+    if (!page.page_info.has_next_page || page.edges.length === 0 || page.page_info.end_cursor === after) {
       break;
     }
     after = page.page_info.end_cursor;
