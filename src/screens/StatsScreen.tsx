@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeProvider';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import { AppHeader, PulsingDot, TgIcon, useToast, type TgIconName } from '../components/ui';
-import { FONT,  RADIUS, tgTheme, TG_LIGHT as TG } from '../theme/theme';
+import { FONT,  RADIUS, tgTheme, type TGPalette } from '../theme/theme';
 import { sessionsRepo, type SessionRecord } from '../db/repositories/sessions';
 import { runBackupInForeground, BACKUP_IN_FLIGHT_ERROR } from '../background/foregroundService';
 import { secureStore } from '../state/secureStore';
@@ -97,6 +97,7 @@ const FILTER_DEFS: { key: SessionFilter; label: string; dot?: 'success' | 'faile
 export default function StatsScreen({ navigation }: Props) {
   const { mode } = useTheme();
   const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const gutter = width >= 768 ? 24 : 16;
@@ -464,6 +465,9 @@ export default function StatsScreen({ navigation }: Props) {
 }
 
 function ActiveRunCard({ session }: { session: SessionRecord }) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   const automationPaused = useSettingsStore(state => state.config.automationPaused);
   const setAutomationPaused = useSettingsStore(state => state.setAutomationPaused);
   const totalParts = session.chunks_total || 0;
@@ -541,6 +545,9 @@ function SessionCard({
   retryPhase: string;
   onRetry: () => void;
 }) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   const title = session.archive_name || categoryLabel(session.category);
   const link = telegramMessageUrl(chatId, session.manifest_id);
   const hasHash = !!session.manifest_id;
@@ -659,6 +666,9 @@ function SessionCard({
 }
 
 function StatusPill({ status, reason }: { status: string; reason: string | null }) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   if (status === 'failed') {
     return (
       <View style={[styles.statusPill, { backgroundColor: TG.errorSoft }]}>
@@ -700,6 +710,9 @@ function StatusPill({ status, reason }: { status: string; reason: string | null 
 }
 
 function MetaChip({ icon, label }: { icon: TgIconName; label: string }) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   return (
     <View style={styles.chip}>
       <TgIcon name={icon} color={TG.secondary} size={14} />
@@ -721,6 +734,9 @@ function MenuItem({
   disabled?: boolean;
   onPress: () => void;
 }) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   return (
     <Pressable
       onPress={onPress}
@@ -738,7 +754,7 @@ function MenuItem({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (TG: TGPalette) => StyleSheet.create({
   root: { flex: 1, backgroundColor: TG.bg },
   scroll: { flex: 1 },
   column: { width: '100%', maxWidth: 640, alignSelf: 'center', gap: 16 },

@@ -26,7 +26,7 @@ import {
   useToast,
   type TgIconName,
 } from '../components/ui';
-import { FONT,  RADIUS, tgTheme, TG_LIGHT as TG } from '../theme/theme';
+import { FONT,  RADIUS, tgTheme, type TGPalette } from '../theme/theme';
 import { requestNotificationPermission } from '../backup/permissions';
 import { isActiveTempDir } from '../backup/tempDirs';
 import { isCryptoAvailable, newSaltB64 } from '../backup/crypto';
@@ -197,6 +197,7 @@ async function pathSize(path: string): Promise<number> {
 export default function SettingsScreen({ navigation }: Props) {
   const { mode } = useTheme();
   const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
@@ -946,6 +947,9 @@ function LinkRow({
   subtitle: string;
   onPress: () => void;
 }) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   return (
     <Pressable
       onPress={onPress}
@@ -981,6 +985,9 @@ function IconToggleRow({
   value: boolean;
   onValueChange: (value: boolean) => void;
 }) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   return (
     <View style={styles.toggleRow}>
       <View style={styles.toggleIcon}>
@@ -1011,6 +1018,9 @@ function DisabledToggleRow({
   subtitle: string;
   badge: string;
 }) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   return (
     <View
       style={[styles.toggleRow, styles.muted]}
@@ -1036,7 +1046,7 @@ function DisabledToggleRow({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (TG: TGPalette) => StyleSheet.create({
   root: { flex: 1, backgroundColor: TG.bg },
   scroll: { flex: 1 },
   column: { width: '100%', maxWidth: 640, alignSelf: 'center', gap: 24 },

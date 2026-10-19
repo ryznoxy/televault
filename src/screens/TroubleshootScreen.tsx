@@ -13,7 +13,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeProvider';
 import { AppHeader, SectionLabel, TgIcon, useToast, type TgIconName } from '../components/ui';
-import { FONT,  RADIUS, tgTheme, TG_LIGHT as TG } from '../theme/theme';
+import { FONT,  RADIUS, tgTheme, type TGPalette } from '../theme/theme';
 import { sessionsRepo } from '../db/repositories/sessions';
 import { isCryptoAvailable } from '../backup/crypto';
 import { secureStore } from '../state/secureStore';
@@ -75,6 +75,7 @@ const EMPTY_DIAGNOSTICS: Diagnostics = {
 export default function TroubleshootScreen({ navigation }: Props) {
   const { mode } = useTheme();
   const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const gutter = width >= 768 ? 24 : 16;
@@ -293,6 +294,9 @@ function InfoRow({
   value: string;
   tone: 'ok' | 'warn' | 'error' | 'plain';
 }) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   const valueColor =
     tone === 'ok'
       ? TG.primary
@@ -316,7 +320,7 @@ function InfoRow({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (TG: TGPalette) => StyleSheet.create({
   root: { flex: 1, backgroundColor: TG.bg },
   scroll: { flex: 1 },
   column: { width: '100%', maxWidth: 640, alignSelf: 'center', gap: 24 },

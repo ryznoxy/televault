@@ -22,7 +22,7 @@ import {
   useToast,
   type TgIconName,
 } from '../components/ui';
-import { FONT,  RADIUS, tgTheme, TG_LIGHT as TG } from '../theme/theme';import { runBackupInForeground, BACKUP_IN_FLIGHT_ERROR } from '../background/foregroundService';
+import { FONT,  RADIUS, tgTheme, type TGPalette } from '../theme/theme';import { runBackupInForeground, BACKUP_IN_FLIGHT_ERROR } from '../background/foregroundService';
 import { isFileUri } from '../backup/fileScanner';
 import { requestNotificationPermission } from '../backup/permissions';
 import { filesRepo } from '../db/repositories/files';
@@ -139,6 +139,7 @@ function barVerb(phase: string): string {
 export default function HomeScreen({ navigation }: Props) {
   const { mode } = useTheme();
   const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
@@ -572,6 +573,9 @@ function StatTile({
   value: string;
   label: string;
 }) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   return (
     <View style={styles.statTile}>
       <View style={styles.statIconTile}>
@@ -596,6 +600,9 @@ function FolderRow({
   last: boolean;
   onPress: () => void;
 }) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   const meta = folder.schedule === 'realtime' ? 'Real-time sync' : `Otomatis tiap ${folder.schedule}`;
   return (
     <Pressable
@@ -635,6 +642,9 @@ function PreferenceRow({
   value: boolean;
   onValueChange: (next: boolean) => void;
 }) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   return (
     <View style={styles.prefRow}>
       <View style={styles.prefIconTile}>
@@ -668,7 +678,7 @@ const CARD_SHADOW = {
   shadowColor: '#0B1C30',
 };
 
-const styles = StyleSheet.create({
+const createStyles = (TG: TGPalette) => StyleSheet.create({
   root: { flex: 1 },
   scroll: { flex: 1 },
   column: { width: '100%', maxWidth: 640, alignSelf: 'center', gap: 24 },

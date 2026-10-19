@@ -21,7 +21,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeProvider';
 import { AppHeader, TgIcon } from '../components/ui';
-import { FONT,  RADIUS, tgTheme, TG_LIGHT as TG } from '../theme/theme';
+import { FONT,  RADIUS, tgTheme, type TGPalette } from '../theme/theme';
 import {
   findManifestPath,
   loadManifestFromFolder,
@@ -71,6 +71,7 @@ function phaseLabel(phase: RestorePhase): string {
 export default function RestoreScreen({ navigation }: Props) {
   const { mode } = useTheme();
   const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
@@ -454,7 +455,7 @@ const CARD_SHADOW = {
   shadowColor: '#0B1C30',
 };
 
-const styles = StyleSheet.create({
+const createStyles = (TG: TGPalette) => StyleSheet.create({
   root: { flex: 1 },
   scroll: { flex: 1 },
   column: { width: '100%', maxWidth: 640, alignSelf: 'center', gap: 24 },

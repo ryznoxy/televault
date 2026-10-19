@@ -20,7 +20,7 @@ import {
   TgIcon,
   useToast,
 } from '../components/ui';
-import { FONT,  ELEVATION, RADIUS, tgTheme, TG_LIGHT as TG } from '../theme/theme';
+import { FONT,  ELEVATION, RADIUS, tgTheme, type TGPalette } from '../theme/theme';
 import { isCryptoAvailable, newSaltB64 } from '../backup/crypto';
 import { TelegramBotApi } from '../net/telegramApi';
 import { stopScheduler } from '../background/scheduler';
@@ -42,6 +42,7 @@ const HIT_SLOP = { top: 10, bottom: 10, left: 10, right: 10 } as const;
 export default function SetupScreen({ navigation }: Props) {
   const { mode } = useTheme();
   const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
@@ -640,7 +641,7 @@ const CARD_SHADOW = {
   shadowColor: '#0B1C30',
 };
 
-const styles = StyleSheet.create({
+const createStyles = (TG: TGPalette) => StyleSheet.create({
   root: { flex: 1, backgroundColor: TG.bg },
   scroll: { flex: 1 },
   column: { width: '100%', maxWidth: 640, alignSelf: 'center', gap: 24 },
