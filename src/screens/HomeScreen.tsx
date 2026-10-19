@@ -12,6 +12,7 @@ import {
 import { pickDirectory } from '@react-native-documents/picker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../theme/ThemeProvider';
 import {
   AppHeader,
   ProgressBar,
@@ -21,7 +22,7 @@ import {
   useToast,
   type TgIconName,
 } from '../components/ui';
-import { TG } from '../theme/theme';
+import { FONT, ELEVATION, ON_ACCENT, RADIUS, SPACE, TG_LIGHT, tgTheme, TYPE, type TGPalette } from '../theme/theme';
 import { runBackupInForeground, BACKUP_IN_FLIGHT_ERROR } from '../background/foregroundService';
 import { requestNotificationPermission } from '../backup/permissions';
 import { filesRepo } from '../db/repositories/files';
@@ -136,10 +137,13 @@ function barVerb(phase: string): string {
 }
 
 export default function HomeScreen({ navigation }: Props) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
-  const gutter = isTablet ? 24 : 16;
+  const gutter = isTablet ? SPACE.lg : SPACE.base;
 
   const config = useSettingsStore(state => state.config);
   const setWifiOnly = useSettingsStore(state => state.setWifiOnly);
@@ -285,7 +289,7 @@ export default function HomeScreen({ navigation }: Props) {
 
   const contentContainer = {
     paddingHorizontal: gutter,
-    paddingTop: 16,
+    paddingTop: SPACE.base,
     paddingBottom: 120 + insets.bottom,
   };
 
@@ -348,33 +352,35 @@ export default function HomeScreen({ navigation }: Props) {
                     { backgroundColor: TG.primaryContainer },
                     pressed && styles.pressed,
                   ]}>
-                  <Text style={[styles.chipText, { color: '#FFFFFF' }]}>Setup</Text>
+                  <Text style={[styles.chipText, { color: TG.onPrimaryContainer }]}>Setup</Text>
                 </Pressable>
               )}
             </View>
           </View>
 
           {/* Hero Backup Control */}
-          <View style={styles.card}>
+          <View style={styles.heroCard}>
             <View style={styles.rowBetween}>
               <View style={styles.heroText}>
-                <Text style={styles.overline}>STATUS SINKRONISASI</Text>
+                <Text style={styles.overline}>
+                  {configured ? 'STATUS SINKRONISASI' : 'BELUM TERKONFIGURASI'}
+                </Text>
                 <Text style={styles.heroTitle} numberOfLines={1}>
                   {busy ? 'Mencadangkan\u2026' : 'Siap Mencadangkan'}
                 </Text>
               </View>
               <View style={styles.heroIconTile}>
-                <TgIcon name="cloudDone" color={TG.primaryContainer} size={22} />
+                <TgIcon name="cloudDone" color={ON_ACCENT.strong} size={22} />
               </View>
             </View>
 
-            <View style={styles.inset}>
+            <View style={styles.heroInset}>
               <ProgressRing
                 size={92}
                 stroke={8}
                 progress={ringProgress}
-                color={TG.primaryContainer}
-                trackColor={TG.high}>
+                color={ON_ACCENT.strong}
+                trackColor={ON_ACCENT.track}>
                 <Text style={styles.ringPct}>{Math.round(ringProgress * 100)}%</Text>
               </ProgressRing>
               <View style={styles.insetText}>
@@ -412,51 +418,51 @@ export default function HomeScreen({ navigation }: Props) {
               accessibilityRole="button"
               accessibilityState={{ disabled: !configured || busy }}
               style={({ pressed }) => [
-                styles.primaryButton,
+                styles.heroCta,
                 (!configured || busy) && styles.disabled,
                 pressed && styles.pressed,
               ]}>
               {busy ? (
-                <ActivityIndicator color="#FFFFFF" size="small" />
+                <ActivityIndicator color={TG.onPrimaryContainer} size="small" />
               ) : (
-                <TgIcon name="backup" color="#FFFFFF" size={20} />
+                <TgIcon name="backup" color={TG.onPrimaryContainer} size={20} />
               )}
-              <Text style={styles.primaryButtonText} numberOfLines={1}>
+              <Text style={styles.heroCtaText} numberOfLines={1}>
                 {busy ? status ?? 'Mencadangkan\u2026' : 'Mulai Backup Sekarang'}
               </Text>
             </Pressable>
 
-            <Pressable
-              onPress={onTogglePause}
-              accessibilityRole="button"
-              style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}>
-              <TgIcon
-                name={config.automationPaused ? 'play' : 'pause'}
-                color={TG.onPrimaryContainer}
-                size={20}
-              />
-              <Text style={styles.secondaryButtonText} numberOfLines={1}>
-                {config.automationPaused ? 'Lanjutkan Otomasi' : 'Jeda Otomasi'}
-              </Text>
-            </Pressable>
-
-            <Pressable
-              onPress={() => navigation.navigate('Restore')}
-              accessibilityRole="button"
-              style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}>
-              <TgIcon name="folderZip" color={TG.onPrimaryContainer} size={20} />
-              <Text style={styles.secondaryButtonText} numberOfLines={1}>
-                Pulihkan Backup
-              </Text>
-            </Pressable>
+            <View style={styles.heroActions}>
+              <Pressable
+                onPress={onTogglePause}
+                accessibilityRole="button"
+                style={({ pressed }) => [styles.heroSecondary, pressed && styles.pressed]}>
+                <TgIcon
+                  name={config.automationPaused ? 'play' : 'pause'}
+                  color={ON_ACCENT.strong}
+                  size={18}
+                />
+                <Text style={styles.heroSecondaryText} numberOfLines={1}>
+                  {config.automationPaused ? 'Lanjutkan' : 'Jeda'}
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => navigation.navigate('Restore')}
+                accessibilityRole="button"
+                style={({ pressed }) => [styles.heroSecondary, pressed && styles.pressed]}>
+                <TgIcon name="folderZip" color={ON_ACCENT.strong} size={18} />
+                <Text style={styles.heroSecondaryText} numberOfLines={1}>
+                  Pulihkan
+                </Text>
+              </Pressable>
+            </View>
           </View>
 
           {/* Statistik Backup */}
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Statistik Backup</Text>
             <Text style={styles.sectionAction}>Bulan Ini</Text>
-          </View>
-          <View style={styles.grid}>
+          </View>          <View style={styles.grid}>
             <StatTile
               icon="box"
               value={formatBytes(totalSize)}
@@ -516,7 +522,9 @@ export default function HomeScreen({ navigation }: Props) {
           </View>
 
           {/* Preferensi Jaringan & File */}
-          <Text style={styles.sectionTitle}>Preferensi Jaringan & File</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Preferensi Jaringan & File</Text>
+          </View>
           <View style={styles.card}>
             <PreferenceRow
               icon="wifi"
@@ -559,6 +567,9 @@ function StatTile({
   value: string;
   label: string;
 }) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   return (
     <View style={styles.statTile}>
       <View style={styles.statIconTile}>
@@ -583,6 +594,9 @@ function FolderRow({
   last: boolean;
   onPress: () => void;
 }) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   const meta = folder.schedule === 'realtime' ? 'Real-time sync' : `Otomatis tiap ${folder.schedule}`;
   return (
     <Pressable
@@ -601,7 +615,7 @@ function FolderRow({
         </Text>
       </View>
       <View style={styles.folderRight}>
-        <View style={styles.statusDot} />
+        <View style={styles.statusDot} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" />
         <TgIcon name="chevron" color={TG.outline} size={16} />
       </View>
       {!last ? <View style={styles.folderDivider} /> : null}
@@ -622,6 +636,9 @@ function PreferenceRow({
   value: boolean;
   onValueChange: (next: boolean) => void;
 }) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   return (
     <View style={styles.prefRow}>
       <View style={styles.prefIconTile}>
@@ -640,7 +657,7 @@ function PreferenceRow({
         onValueChange={onValueChange}
         accessibilityLabel={title}
         trackColor={{ false: TG.highest, true: TG.primaryContainer }}
-        thumbColor="#FFFFFF"
+        thumbColor={TG.card}
         ios_backgroundColor={TG.highest}
       />
     </View>
@@ -652,160 +669,178 @@ const CARD_SHADOW = {
   shadowOpacity: 0.05,
   shadowRadius: 8,
   elevation: 2,
-  shadowColor: '#0B1C30',
+  shadowColor: TG_LIGHT.ink,
 };
 
-const styles = StyleSheet.create({
+const createStyles = (TG: TGPalette) => StyleSheet.create({
   root: { flex: 1 },
   scroll: { flex: 1 },
-  column: { width: '100%', maxWidth: 640, alignSelf: 'center', gap: 24 },
+  column: { width: '100%', maxWidth: 640, alignSelf: 'center', gap: SPACE.base + SPACE.xs },
 
   card: {
     backgroundColor: TG.card,
-    borderRadius: 12,
-    padding: 16,
-    gap: 16,
+    borderRadius: RADIUS.lg,
+    padding: SPACE.base,
+    gap: SPACE.base - SPACE.xs,
     ...CARD_SHADOW,
   },
-  rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: SPACE.md },
 
   pill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 12,
+    gap: SPACE.sm,
+    paddingHorizontal: SPACE.md,
     paddingVertical: 6,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
     flexShrink: 1,
   },
-  pillText: { fontSize: 12, lineHeight: 16, fontWeight: '600', flexShrink: 1 },
+  pillText: { ...TYPE.caption, lineHeight: 16, flexShrink: 1 },
   latencyPill: { backgroundColor: TG.low, flexShrink: 0 },
 
-  botRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  botRow: { flexDirection: 'row', alignItems: 'center', gap: SPACE.md },
   botTile: {
     width: 44,
     height: 44,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.container,
     alignItems: 'center',
     justifyContent: 'center',
   },
   botText: { flex: 1, minWidth: 0, gap: 2 },
   botNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  botName: { color: TG.ink, fontSize: 17, lineHeight: 22, fontWeight: '600', flexShrink: 1 },
+  botName: { ...TYPE.headline, color: TG.ink, lineHeight: 22, flexShrink: 1 },
   channelRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  channelText: { color: TG.secondary, fontSize: 13, lineHeight: 18, flexShrink: 1 },
+  channelText: { ...TYPE.footnote, color: TG.secondary, lineHeight: 18, flexShrink: 1 },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
+    paddingHorizontal: SPACE.base - 6,
+    paddingVertical: SPACE.xs,
+    borderRadius: RADIUS.md,
     flexShrink: 0,
   },
-  chipText: { fontSize: 11, lineHeight: 14, fontWeight: '600' },
+  chipText: { ...TYPE.caption, lineHeight: 14 },
 
   heroText: { flex: 1, minWidth: 0, gap: 2 },
-  overline: { color: TG.secondary, fontSize: 11, lineHeight: 14, fontWeight: '600', letterSpacing: 0.6 },
-  heroTitle: { color: TG.ink, fontSize: 17, lineHeight: 22, fontWeight: '600' },
+  heroCard: {
+    backgroundColor: TG.primaryContainer,
+    borderRadius: RADIUS.xl,
+    padding: SPACE.base + SPACE.xs,
+    gap: SPACE.base,
+    ...ELEVATION.card,
+  },
   heroIconTile: {
     width: 44,
     height: 44,
-    borderRadius: 12,
-    backgroundColor: TG.container,
+    borderRadius: RADIUS.md,
+    backgroundColor: ON_ACCENT.tint,
     alignItems: 'center',
     justifyContent: 'center',
   },
-
-  inset: {
+  overline: {
+    color: ON_ACCENT.body, fontSize: 11, lineHeight: 14, fontWeight: '600',
+    fontFamily: FONT.semi, letterSpacing: 0.8,
+  },
+  heroTitle: { ...TYPE.title, color: ON_ACCENT.strong, lineHeight: 28, fontFamily: FONT.bold },
+  heroInset: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
-    backgroundColor: TG.low,
-    borderRadius: 8,
-    padding: 12,
+    gap: SPACE.base,
+    backgroundColor: ON_ACCENT.tint,
+    borderRadius: RADIUS.md,
+    padding: SPACE.md,
   },
-  insetText: { flex: 1, minWidth: 0, gap: 4 },
-  insetTitle: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '700' },
-  insetMeta: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
-  insetHash: { color: TG.primary, fontSize: 12, lineHeight: 16, fontWeight: '600' },
-  insetNeutral: { color: TG.outline, fontSize: 12, lineHeight: 16 },
-  ringPct: { color: TG.ink, fontSize: 17, lineHeight: 22, fontWeight: '700' },
+  insetText: { flex: 1, minWidth: 0, gap: SPACE.xs },
+  insetTitle: { ...TYPE.label, color: ON_ACCENT.strong, fontFamily: FONT.bold },
+  insetMeta: { ...TYPE.footnote, color: ON_ACCENT.body, lineHeight: 18 },
+  insetHash: { ...TYPE.caption, color: ON_ACCENT.strong },
+  insetNeutral: { ...TYPE.caption, color: ON_ACCENT.muted, fontWeight: '400', fontFamily: FONT.regular },
+  ringPct: { ...TYPE.headline, color: ON_ACCENT.strong, fontFamily: FONT.bold },
 
-  progressBlock: { gap: 8 },
+  progressBlock: { gap: SPACE.sm },
   progressHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 12,
+    gap: SPACE.md,
   },
-  progressText: { color: TG.secondary, fontSize: 13, lineHeight: 18, flexShrink: 1 },
-  progressPct: { color: TG.primary, fontSize: 13, lineHeight: 18, fontWeight: '600', flexShrink: 0 },
+  progressText: { ...TYPE.footnote, color: ON_ACCENT.body, lineHeight: 18, flexShrink: 1 },
+  progressPct: { ...TYPE.caption, color: ON_ACCENT.strong, flexShrink: 0 },
 
-  primaryButton: {
+  heroCta: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    gap: SPACE.sm,
     minHeight: 52,
-    borderRadius: 999,
-    paddingHorizontal: 16,
-    backgroundColor: TG.onPrimaryContainer,
+    borderRadius: RADIUS.md,
+    backgroundColor: ON_ACCENT.strong,
   },
-  primaryButtonText: { color: '#FFFFFF', fontSize: 15, lineHeight: 20, fontWeight: '600', flexShrink: 1 },
-  secondaryButton: {
+  heroCtaText: {
+    color: TG.primary, ...TYPE.label, fontFamily: FONT.semi, flexShrink: 1,
+  },
+  heroActions: { flexDirection: 'row', gap: SPACE.md },
+  heroSecondary: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    minHeight: 52,
-    borderRadius: 999,
-    paddingHorizontal: 16,
-    backgroundColor: TG.low,
+    gap: 6,
+    minHeight: 44,
+    borderRadius: RADIUS.md,
+    backgroundColor: ON_ACCENT.tint,
   },
-  secondaryButtonText: { color: TG.onPrimaryContainer, fontSize: 15, lineHeight: 20, fontWeight: '600', flexShrink: 1 },
+  heroSecondaryText: { ...TYPE.caption, color: ON_ACCENT.strong, flexShrink: 1 },
 
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
-  sectionTitle: { color: TG.ink, fontSize: 17, lineHeight: 22, fontWeight: '600' },
-  sectionAction: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
-  sectionLink: { color: TG.primary, fontSize: 13, lineHeight: 18, fontWeight: '600' },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: SPACE.md },
+  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: SPACE.sm, flexShrink: 1 },
+  sectionTitle: { ...TYPE.headline, color: TG.ink, letterSpacing: -0.2 },
+  sectionAction: { ...TYPE.footnote, color: TG.secondary },
+  sectionLink: { ...TYPE.footnote, color: TG.primary, fontFamily: FONT.semi },
 
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACE.md },
   statTile: {
     flexGrow: 1,
     flexBasis: '46%',
     backgroundColor: TG.card,
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: RADIUS.lg,
+    padding: SPACE.base,
     gap: 6,
     ...CARD_SHADOW,
   },
   statIconTile: {
     width: 34,
     height: 34,
-    borderRadius: 8,
+    borderRadius: RADIUS.sm,
     backgroundColor: TG.low,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  statValue: { color: TG.ink, fontSize: 22, lineHeight: 28, fontWeight: '600' },
-  statLabel: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
+  statValue: { ...TYPE.title, color: TG.ink, fontFamily: FONT.bold, lineHeight: 26 },
+  statLabel: { ...TYPE.caption, color: TG.secondary, fontWeight: '400', fontFamily: FONT.regular },
 
-  folderRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12 },
+  folderRow: { flexDirection: 'row', alignItems: 'center', gap: SPACE.md, paddingVertical: SPACE.md },
   folderIconTile: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.low,
     alignItems: 'center',
     justifyContent: 'center',
   },
   folderText: { flex: 1, minWidth: 0, gap: 2 },
-  folderName: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '600' },
-  folderMeta: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
+  folderName: { ...TYPE.footnote, color: TG.ink, fontFamily: FONT.semi, lineHeight: 20 },
+  folderMeta: { ...TYPE.footnote, color: TG.secondary, lineHeight: 18 },
   folderRight: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 0 },
-  statusDot: { width: 8, height: 8, borderRadius: 8, backgroundColor: TG.primaryContainer },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 8,
+    backgroundColor: TG.primaryContainer,
+  },
+  // Decorative twin of the row's schedule text — hidden from a11y tree so
+  // status is never conveyed by color alone.
   folderDivider: {
     position: 'absolute',
     left: 52,
@@ -821,27 +856,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     minHeight: 48,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.low,
   },
-  addButtonText: { color: TG.primary, fontSize: 14, lineHeight: 20, fontWeight: '600', flexShrink: 1 },
+  addButtonText: { color: TG.primary, fontSize: 14, lineHeight: 20, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 1 },
   emptyText: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
 
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: TG.highest, marginLeft: 52 },
-  prefRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 4 },
+  prefRow: { flexDirection: 'row', alignItems: 'center', gap: SPACE.md, paddingVertical: SPACE.xs },
   prefIconTile: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.low,
     alignItems: 'center',
     justifyContent: 'center',
   },
   prefText: { flex: 1, minWidth: 0, gap: 2 },
-  prefTitle: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '600' },
-  prefSubtitle: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
+  prefTitle: { ...TYPE.footnote, color: TG.ink, fontFamily: FONT.semi, lineHeight: 20 },
+  prefSubtitle: { ...TYPE.footnote, color: TG.secondary, lineHeight: 18 },
 
-  status: { fontSize: 13, lineHeight: 18, paddingHorizontal: 4 },
+  status: { ...TYPE.footnote, lineHeight: 18, paddingHorizontal: SPACE.xs },
   pressed: { opacity: 0.85 },
   disabled: { opacity: 0.4 },
 });

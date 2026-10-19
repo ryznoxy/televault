@@ -13,9 +13,10 @@ import {
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../theme/ThemeProvider';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import { AppHeader, PulsingDot, TgIcon, useToast, type TgIconName } from '../components/ui';
-import { TG } from '../theme/theme';
+import { FONT, ON_ACCENT, TG_LIGHT,  RADIUS, tgTheme, type TGPalette } from '../theme/theme';
 import { sessionsRepo, type SessionRecord } from '../db/repositories/sessions';
 import { runBackupInForeground, BACKUP_IN_FLIGHT_ERROR } from '../background/foregroundService';
 import { secureStore } from '../state/secureStore';
@@ -43,14 +44,14 @@ const CARD_SHADOW = {
   shadowOpacity: 0.05,
   shadowRadius: 8,
   elevation: 2,
-  shadowColor: '#0B1C30',
+  shadowColor: TG_LIGHT.ink,
 };
 const FLOAT_SHADOW = {
   shadowOffset: { width: 0, height: 6 },
   shadowOpacity: 0.08,
   shadowRadius: 16,
   elevation: 4,
-  shadowColor: '#0B1C30',
+  shadowColor: TG_LIGHT.ink,
 };
 
 const ID_CATEGORY_LABELS: Record<string, string> = {
@@ -94,6 +95,9 @@ const FILTER_DEFS: { key: SessionFilter; label: string; dot?: 'success' | 'faile
 ];
 
 export default function StatsScreen({ navigation }: Props) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const gutter = width >= 768 ? 24 : 16;
@@ -461,6 +465,9 @@ export default function StatsScreen({ navigation }: Props) {
 }
 
 function ActiveRunCard({ session }: { session: SessionRecord }) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   const automationPaused = useSettingsStore(state => state.config.automationPaused);
   const setAutomationPaused = useSettingsStore(state => state.setAutomationPaused);
   const totalParts = session.chunks_total || 0;
@@ -538,6 +545,9 @@ function SessionCard({
   retryPhase: string;
   onRetry: () => void;
 }) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   const title = session.archive_name || categoryLabel(session.category);
   const link = telegramMessageUrl(chatId, session.manifest_id);
   const hasHash = !!session.manifest_id;
@@ -656,6 +666,9 @@ function SessionCard({
 }
 
 function StatusPill({ status, reason }: { status: string; reason: string | null }) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   if (status === 'failed') {
     return (
       <View style={[styles.statusPill, { backgroundColor: TG.errorSoft }]}>
@@ -697,6 +710,9 @@ function StatusPill({ status, reason }: { status: string; reason: string | null 
 }
 
 function MetaChip({ icon, label }: { icon: TgIconName; label: string }) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   return (
     <View style={styles.chip}>
       <TgIcon name={icon} color={TG.secondary} size={14} />
@@ -718,6 +734,9 @@ function MenuItem({
   disabled?: boolean;
   onPress: () => void;
 }) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   return (
     <Pressable
       onPress={onPress}
@@ -735,7 +754,7 @@ function MenuItem({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (TG: TGPalette) => StyleSheet.create({
   root: { flex: 1, backgroundColor: TG.bg },
   scroll: { flex: 1 },
   column: { width: '100%', maxWidth: 640, alignSelf: 'center', gap: 16 },
@@ -745,7 +764,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     height: 44,
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.card,
     paddingHorizontal: 12,
   },
@@ -761,7 +780,7 @@ const styles = StyleSheet.create({
   clearButton: {
     width: 40,
     height: 40,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: TG.low,
@@ -775,19 +794,19 @@ const styles = StyleSheet.create({
     gap: 6,
     height: 32,
     paddingHorizontal: 14,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
     flexShrink: 0,
   },
   pillActive: { backgroundColor: TG.ink },
   pillIdle: { backgroundColor: TG.card, ...CARD_SHADOW },
-  pillDot: { width: 6, height: 6, borderRadius: 6 },
-  pillText: { fontSize: 12, lineHeight: 16, fontWeight: '500', flexShrink: 1 },
-  pillTextActive: { color: '#FFFFFF', fontWeight: '600' },
+  pillDot: { width: 6, height: 6, borderRadius: '50%' },
+  pillText: { fontSize: 12, lineHeight: 16, fontWeight: '500', fontFamily: FONT.medium, flexShrink: 1 },
+  pillTextActive: { color: ON_ACCENT.strong, fontWeight: '600', fontFamily: FONT.semi },
   pillTextIdle: { color: TG.secondary },
 
   card: {
     backgroundColor: TG.card,
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     padding: 16,
     gap: 12,
     ...CARD_SHADOW,
@@ -804,38 +823,38 @@ const styles = StyleSheet.create({
     color: TG.primary,
     fontSize: 12,
     lineHeight: 16,
-    fontWeight: '600',
+    fontWeight: '600', fontFamily: FONT.semi,
     letterSpacing: 0.6,
     flexShrink: 1,
   },
   activeRight: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 0 },
   partsChip: {
     backgroundColor: TG.container,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
     paddingHorizontal: 10,
     paddingVertical: 4,
     flexShrink: 0,
   },
-  partsChipText: { color: TG.secondary, fontSize: 12, lineHeight: 16, fontWeight: '500' },
+  partsChipText: { color: TG.secondary, fontSize: 12, lineHeight: 16, fontWeight: '500', fontFamily: FONT.medium },
   pauseButton: {
     width: 28,
     height: 28,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.low,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
   activeTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  activeTitle: { color: TG.ink, fontSize: 17, lineHeight: 22, fontWeight: '600', flex: 1, minWidth: 0 },
+  activeTitle: { color: TG.ink, fontSize: 17, lineHeight: 22, fontWeight: '600', fontFamily: FONT.semi, flex: 1, minWidth: 0 },
   activeMeta: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
   progressTrack: {
     height: 6,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.highest,
     overflow: 'hidden',
   },
-  progressFill: { height: '100%', borderRadius: 999, backgroundColor: TG.primaryContainer },
+  progressFill: { height: '100%', borderRadius: RADIUS.md, backgroundColor: TG.primaryContainer },
 
   sectionHeader: {
     flexDirection: 'row',
@@ -845,17 +864,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1, minWidth: 0 },
-  sectionTitle: { color: TG.ink, fontSize: 17, lineHeight: 22, fontWeight: '700', flexShrink: 1 },
+  sectionTitle: { color: TG.ink, fontSize: 17, lineHeight: 22, fontWeight: '700', fontFamily: FONT.bold, flexShrink: 1 },
   countChip: {
     backgroundColor: TG.container,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
     paddingHorizontal: 8,
     paddingVertical: 2,
     flexShrink: 0,
   },
-  countChipText: { color: TG.secondary, fontSize: 12, lineHeight: 16, fontWeight: '500' },
+  countChipText: { color: TG.secondary, fontSize: 12, lineHeight: 16, fontWeight: '500', fontFamily: FONT.medium },
   sortButton: { flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 0 },
-  sortText: { color: TG.secondary, fontSize: 12, lineHeight: 16, fontWeight: '500' },
+  sortText: { color: TG.secondary, fontSize: 12, lineHeight: 16, fontWeight: '500', fontFamily: FONT.medium },
 
   sessionHeader: {
     flexDirection: 'row',
@@ -868,7 +887,7 @@ const styles = StyleSheet.create({
   moreIconButton: {
     width: 40,
     height: 40,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
@@ -876,7 +895,7 @@ const styles = StyleSheet.create({
 
   menu: {
     backgroundColor: TG.low,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     padding: 4,
     gap: 2,
   },
@@ -886,23 +905,23 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 8,
     paddingHorizontal: 8,
-    borderRadius: 6,
+    borderRadius: RADIUS.sm,
   },
-  menuItemText: { color: TG.ink, fontSize: 13, lineHeight: 18, fontWeight: '500', flexShrink: 1 },
+  menuItemText: { color: TG.ink, fontSize: 13, lineHeight: 18, fontWeight: '500', fontFamily: FONT.medium, flexShrink: 1 },
 
   statusPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
     paddingHorizontal: 8,
     paddingVertical: 2,
     flexShrink: 0,
     maxWidth: '100%',
   },
-  statusText: { fontSize: 11, lineHeight: 14, fontWeight: '500', flexShrink: 1 },
+  statusText: { fontSize: 11, lineHeight: 14, fontWeight: '500', fontFamily: FONT.medium, flexShrink: 1 },
 
-  sessionTitle: { color: TG.ink, fontSize: 16, lineHeight: 22, fontWeight: '600' },
+  sessionTitle: { color: TG.ink, fontSize: 16, lineHeight: 22, fontWeight: '600', fontFamily: FONT.semi },
 
   chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: {
@@ -910,13 +929,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     backgroundColor: TG.low,
-    borderRadius: 6,
+    borderRadius: RADIUS.sm,
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
   chipEncrypted: { backgroundColor: TG.container },
-  chipText: { color: TG.secondary, fontSize: 12, lineHeight: 16, fontWeight: '500' },
-  chipTextEncrypted: { color: TG.primary, fontWeight: '600' },
+  chipText: { color: TG.secondary, fontSize: 12, lineHeight: 16, fontWeight: '500', fontFamily: FONT.medium },
+  chipTextEncrypted: { color: TG.primary, fontWeight: '600', fontFamily: FONT.semi },
 
   sessionFooter: {
     flexDirection: 'row',
@@ -931,12 +950,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     backgroundColor: TG.container,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     paddingHorizontal: 12,
     paddingVertical: 6,
     flexShrink: 0,
   },
-  openButtonText: { color: TG.primary, fontSize: 12, lineHeight: 16, fontWeight: '600' },
+  openButtonText: { color: TG.primary, fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi },
 
   retryButton: {
     flexDirection: 'row',
@@ -944,10 +963,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     minHeight: 40,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.low,
   },
-  retryText: { color: TG.ink, fontSize: 12, lineHeight: 16, fontWeight: '600', flexShrink: 1 },
+  retryText: { color: TG.ink, fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 1 },
 
   emptyText: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
 
@@ -955,18 +974,18 @@ const styles = StyleSheet.create({
   endText: { color: TG.secondary, fontSize: 11, lineHeight: 14, flexShrink: 1 },
   moreButton: {
     minHeight: 44,
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.low,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  moreButtonText: { color: TG.primary, fontSize: 13, lineHeight: 18, fontWeight: '600' },
+  moreButtonText: { color: TG.primary, fontSize: 13, lineHeight: 18, fontWeight: '600', fontFamily: FONT.semi },
 
   utilBar: {
     flexDirection: 'row',
     gap: 12,
     backgroundColor: TG.card,
-    borderRadius: 16,
+    borderRadius: RADIUS.lg,
     padding: 12,
   },
   utilButton: {
@@ -977,11 +996,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     height: 44,
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
   },
   utilButtonPrimary: { backgroundColor: TG.container },
   utilButtonSecondary: { backgroundColor: TG.low },
-  utilText: { fontSize: 12, lineHeight: 16, fontWeight: '600', flexShrink: 1 },
+  utilText: { fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 1 },
 
   muted: { opacity: 0.5 },
   pressed: { opacity: 0.85 },

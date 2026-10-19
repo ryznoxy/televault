@@ -19,7 +19,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeProvider';
-import { ELEVATION, RADIUS, SPACE, TG, TYPE } from '../theme/theme';
+import { FONT,  ELEVATION, RADIUS, SPACE, TG_DARK, TG_LIGHT, tgTheme, TYPE } from '../theme/theme';
 import { parseClampedInt } from './number';
 
 /* ------------------------------------------------------------------ */
@@ -127,11 +127,14 @@ export function AppHeader({
   const isTablet = width >= 768;
   const gutter = isTablet ? 24 : 16;
   const insets = useSafeAreaInsets();
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const headerBg = mode === 'dark' ? 'rgba(19,26,33,0.96)' : 'rgba(248,249,255,0.96)';
   return (
     <View
       style={[
         styles.appHeader,
-        { paddingTop: insets.top + 8, paddingHorizontal: gutter },
+        { paddingTop: insets.top + 8, paddingHorizontal: gutter, backgroundColor: headerBg },
       ]}>
       <View style={styles.appHeaderInner}>
         {onBack ? (
@@ -146,12 +149,12 @@ export function AppHeader({
         ) : null}
         <View style={styles.appHeaderText}>
           <View style={styles.appHeaderTitleRow}>
-            <Text style={styles.appHeaderWordmark}>TeleVault</Text>
-            <View style={styles.appHeaderE2eePill}>
-              <Text style={styles.appHeaderE2eeText}>E2EE</Text>
+            <Text style={[styles.appHeaderWordmark, { color: TG.ink }]}>TeleVault</Text>
+            <View style={[styles.appHeaderE2eePill, { backgroundColor: TG.low }]}>
+              <Text style={[styles.appHeaderE2eeText, { color: TG.primary }]}>E2EE</Text>
             </View>
           </View>
-          <Text style={styles.appHeaderSubtitle}>{subtitle}</Text>
+          <Text style={[styles.appHeaderSubtitle, { color: TG.secondary }]}>{subtitle}</Text>
         </View>
       </View>
     </View>
@@ -230,6 +233,8 @@ export function Toast({
       useNativeDriver: true,
     }).start();
   }, [toast, visible]);
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
   if (!toast) {
     return null;
   }
@@ -325,12 +330,13 @@ export function Hint({ children }: { children: React.ReactNode }) {
 
 /** Uppercase section eyebrow with a trailing glyph, used above each card. */
 export function SectionLabel({ title, icon }: { title: string; icon: TgIconName }) {
+  const { mode } = useTheme();
   return (
     <View style={styles.sectionLabel}>
       <Text style={styles.sectionLabelText} numberOfLines={1}>
         {title}
       </Text>
-      <TgIcon name={icon} color={TG.secondary} size={16} />
+      <TgIcon name={icon} color={tgTheme(mode).secondary} size={16} />
     </View>
   );
 }
@@ -485,6 +491,8 @@ export function TgSwitch({
   onValueChange: (value: boolean) => void;
   accessibilityLabel?: string;
 }) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
   return (
     <Switch
       value={value}
@@ -561,6 +569,7 @@ export function RangeSlider({
   onChange: (value: number) => void;
   accessibilityLabel?: string;
 }) {
+  const { mode } = useTheme();
   const [trackWidth, setTrackWidth] = useState(0);
   const widthRef = useRef(0);
   const valueRef = useRef(value);
@@ -615,9 +624,9 @@ export function RangeSlider({
       }}
       {...responder.panHandlers}
       style={styles.sliderHit}>
-      <View style={[styles.sliderTrack, { backgroundColor: TG.highest }]} />
+      <View style={[styles.sliderTrack, { backgroundColor: tgTheme(mode).highest }]} />
       <View
-        style={[styles.sliderFill, { width: fillWidth, backgroundColor: TG.primaryContainer }]}
+        style={[styles.sliderFill, { width: fillWidth, backgroundColor: tgTheme(mode).primaryContainer }]}
       />
       <View style={[styles.sliderThumb, ELEVATION.card, { left: thumbLeft, shadowColor: '#0B1C30' }]} />
     </View>
@@ -797,9 +806,13 @@ const TABS: { key: TabKey; label: string; icon: TgIconName }[] = [
   { key: 'stats', label: 'Riwayat', icon: 'history' },
 ];
 
-const NAV_ACTIVE = TG.primaryContainer;
+/** Bottom nav accent colors — resolved per mode inside BottomNav. */
+const navColors = (mode: 'light' | 'dark') => ({
+  active: mode === 'dark' ? TG_DARK.primary : TG_LIGHT.primaryContainer,
+  idle: mode === 'dark' ? TG_DARK.secondary : TG_LIGHT.secondary,
+});
 
-/** Fixed light bar (translucent card fill + hairline top border). */
+/** Fixed bar (translucent card fill + hairline top border), theme-aware. */
 export function BottomNav({
   active,
   onChange,
@@ -808,13 +821,16 @@ export function BottomNav({
   onChange: (key: TabKey) => void;
 }) {
   const insets = useSafeAreaInsets();
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const NAV = navColors(mode);
   return (
     <View
       accessibilityRole="tablist"
       style={[
         styles.nav,
         {
-          backgroundColor: 'rgba(255,255,255,0.94)',
+          backgroundColor: mode === 'dark' ? 'rgba(16,16,20,0.92)' : 'rgba(255,255,255,0.94)',
           borderTopColor: TG.outline + '22',
           paddingBottom: insets.bottom + SPACE.sm,
         },
@@ -829,15 +845,17 @@ export function BottomNav({
             accessibilityState={{ selected }}
             accessibilityLabel={tab.label}
             style={({ pressed }) => [styles.navItem, pressed && { opacity: 0.7 }]}>
-            <TgIcon
-              name={tab.icon}
-              color={selected ? NAV_ACTIVE : TG.secondary}
-              size={22}
-            />
+            <View style={[styles.navIcon, selected && styles.navIconActive]}>
+              <TgIcon
+                name={tab.icon}
+                color={selected ? NAV.active : NAV.idle}
+                size={20}
+              />
+            </View>
             <Text
               style={[
                 styles.navLabel,
-                { color: selected ? NAV_ACTIVE : TG.secondary, fontWeight: selected ? '600' : '500' },
+                { color: selected ? NAV.active : NAV.idle, fontFamily: selected ? FONT.semi : FONT.medium },
               ]}
               numberOfLines={1}>
               {tab.label}
@@ -1548,7 +1566,7 @@ export function TgIcon({
               borderWidth: stroke,
               borderColor: color,
               borderRadius: s * 0.14,
-              backgroundColor: TG.bg,
+              backgroundColor: 'transparent',
             }}
           />
         </View>
@@ -2270,7 +2288,7 @@ const styles = StyleSheet.create({
   backButton: {
     width: 40,
     height: 40,
-    borderRadius: RADIUS.pill,
+    borderRadius: RADIUS.md,
     borderWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
     justifyContent: 'center',
@@ -2300,10 +2318,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACE.xs,
   },
   sectionLabelText: {
-    color: TG.secondary,
+    color: TG_LIGHT.secondary,
     fontSize: 12,
     lineHeight: 16,
-    fontWeight: '600',
+    fontWeight: '600', fontFamily: FONT.semi,
     letterSpacing: 0.6,
     flexShrink: 1,
   },
@@ -2318,19 +2336,19 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 6,
-    borderRadius: RADIUS.pill,
+    borderRadius: RADIUS.md,
   },
   sliderFill: {
     position: 'absolute',
     left: 0,
     height: 6,
-    borderRadius: RADIUS.pill,
+    borderRadius: RADIUS.md,
   },
   sliderThumb: {
     position: 'absolute',
     width: SLIDER_THUMB,
     height: SLIDER_THUMB,
-    borderRadius: RADIUS.pill,
+    borderRadius: RADIUS.md,
     backgroundColor: '#FFFFFF',
   },
 
@@ -2368,7 +2386,7 @@ const styles = StyleSheet.create({
     gap: SPACE.sm,
     minHeight: 52,
     paddingHorizontal: SPACE.lg,
-    borderRadius: RADIUS.pill,
+    borderRadius: RADIUS.md,
   },
   buttonLabel: { ...(TYPE.headline as TextStyle) },
   pressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
@@ -2377,18 +2395,18 @@ const styles = StyleSheet.create({
   segmented: {
     flexDirection: 'row',
     padding: SPACE.xs,
-    borderRadius: RADIUS.pill,
+    borderRadius: RADIUS.md,
     gap: SPACE.xs,
   },
   segment: {
     flex: 1,
     minHeight: 38,
-    borderRadius: RADIUS.pill,
+    borderRadius: RADIUS.md,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: SPACE.sm,
   },
-  segmentActive: { borderRadius: RADIUS.pill },
+  segmentActive: { borderRadius: RADIUS.md },
   segmentLabel: { ...(TYPE.label as TextStyle), fontSize: 14 },
 
   numberField: {
@@ -2399,7 +2417,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACE.md,
     paddingVertical: SPACE.sm,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '600', fontFamily: FONT.semi,
   },
   textField: {
     minHeight: 52,
@@ -2410,8 +2428,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 
-  track: { height: 8, borderRadius: RADIUS.pill, overflow: 'hidden' },
-  fill: { height: '100%', borderRadius: RADIUS.pill },
+  track: { height: 8, borderRadius: RADIUS.md, overflow: 'hidden' },
+  fill: { height: '100%', borderRadius: RADIUS.md },
 
   badge: {
     flexDirection: 'row',
@@ -2420,7 +2438,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     paddingHorizontal: SPACE.md,
     paddingVertical: 6,
-    borderRadius: RADIUS.pill,
+    borderRadius: RADIUS.md,
   },
   badgeDot: { width: 7, height: 7, borderRadius: 7 },
   badgeLabel: { ...(TYPE.caption as TextStyle), fontSize: 13 },
@@ -2453,13 +2471,14 @@ const styles = StyleSheet.create({
     gap: SPACE.xs,
     paddingVertical: SPACE.xs,
   },
+  navIcon: { paddingHorizontal: 18, paddingVertical: 3, borderRadius: RADIUS.md },
+  navIconActive: { backgroundColor: TG_LIGHT.low },
   navLabel: { fontSize: 11 },
 
   appHeader: {
-    paddingBottom: 12,
+    paddingBottom: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: TG.highest,
-    backgroundColor: 'rgba(248,249,255,0.96)',
+    borderBottomColor: TG_LIGHT.highest,
   },
   appHeaderInner: {
     width: '100%',
@@ -2472,32 +2491,32 @@ const styles = StyleSheet.create({
   appHeaderBack: {
     width: 40,
     height: 40,
-    borderRadius: 999,
-    backgroundColor: TG.card,
+    borderRadius: RADIUS.md,
+    backgroundColor: TG_LIGHT.card,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: TG.highest,
+    borderColor: TG_LIGHT.highest,
     alignItems: 'center',
     justifyContent: 'center',
   },
   appHeaderText: { flex: 1, minWidth: 0 },
   appHeaderTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  appHeaderWordmark: { color: TG.ink, fontSize: 22, lineHeight: 28, fontWeight: '600' },
+  appHeaderWordmark: { color: TG_LIGHT.ink, fontSize: 24, lineHeight: 30, letterSpacing: -0.5, fontFamily: FONT.bold },
   appHeaderE2eePill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 999,
-    backgroundColor: TG.primaryFixed,
+    borderRadius: RADIUS.md,
+    backgroundColor: TG_LIGHT.primaryFixed,
   },
   appHeaderE2eeText: {
-    color: TG.onPrimaryContainer,
+    color: TG_LIGHT.onPrimaryContainer,
     fontSize: 11,
     lineHeight: 14,
-    fontWeight: '600',
+    fontWeight: '600', fontFamily: FONT.semi,
   },
-  appHeaderSubtitle: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
+  appHeaderSubtitle: { color: TG_LIGHT.secondary, fontSize: 13, lineHeight: 18 },
 
   toastWrap: {
     position: 'absolute',
@@ -2510,13 +2529,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: TG.card,
+    backgroundColor: TG_LIGHT.card,
     borderRadius: 12,
     padding: 14,
     width: '100%',
     maxWidth: 400,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: TG.highest,
+    borderColor: TG_LIGHT.highest,
   },
   toastIcon: {
     width: 32,
@@ -2526,6 +2545,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   toastText: { flex: 1, minWidth: 0, gap: 2 },
-  toastTitle: { color: TG.ink, fontSize: 12, lineHeight: 16, fontWeight: '600' },
-  toastMsg: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
+  toastTitle: { color: TG_LIGHT.ink, fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi },
+  toastMsg: { color: TG_LIGHT.secondary, fontSize: 13, lineHeight: 18 },
 });

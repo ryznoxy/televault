@@ -12,6 +12,7 @@ import {
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { pickDirectory } from '@react-native-documents/picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../theme/ThemeProvider';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import BackgroundService from 'react-native-background-actions';
 import {
@@ -24,7 +25,7 @@ import {
   useToast,
   type TgIconName,
 } from '../components/ui';
-import { TG } from '../theme/theme';
+import { FONT, ON_ACCENT, TG_LIGHT,  RADIUS, tgTheme, type TGPalette } from '../theme/theme';
 import { requestNotificationPermission } from '../backup/permissions';
 import { isActiveTempDir } from '../backup/tempDirs';
 import { isCryptoAvailable, newSaltB64 } from '../backup/crypto';
@@ -52,7 +53,7 @@ const CARD_SHADOW = {
   shadowOpacity: 0.05,
   shadowRadius: 8,
   elevation: 2,
-  shadowColor: '#0B1C30',
+  shadowColor: TG_LIGHT.ink,
 };
 
 type FreqKey = 'hour' | 'day' | 'week' | 'realtime';
@@ -192,6 +193,9 @@ async function pathSize(path: string): Promise<number> {
 }
 
 export default function SettingsScreen({ navigation }: Props) {
+  const { mode, toggle } = useTheme();
+  const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
@@ -880,11 +884,12 @@ export default function SettingsScreen({ navigation }: Props) {
           <View style={styles.section}>
             <SectionLabel title="TAMPILAN" icon="tune" />
             <View style={styles.card}>
-              <DisabledToggleRow
+              <IconToggleRow
                 icon="eye"
                 title="Mode Gelap"
-                subtitle="Tampilan gelap belum aktif di versi ini."
-                badge="Segera hadir"
+                subtitle="Ganti tampilan aplikasi antara terang dan gelap"
+                value={mode === 'dark'}
+                onValueChange={() => toggle()}
               />
             </View>
           </View>
@@ -919,6 +924,9 @@ function LinkRow({
   subtitle: string;
   onPress: () => void;
 }) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   return (
     <Pressable
       onPress={onPress}
@@ -954,6 +962,9 @@ function IconToggleRow({
   value: boolean;
   onValueChange: (value: boolean) => void;
 }) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   return (
     <View style={styles.toggleRow}>
       <View style={styles.toggleIcon}>
@@ -984,6 +995,9 @@ function DisabledToggleRow({
   subtitle: string;
   badge: string;
 }) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   return (
     <View
       style={[styles.toggleRow, styles.muted]}
@@ -1009,7 +1023,7 @@ function DisabledToggleRow({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (TG: TGPalette) => StyleSheet.create({
   root: { flex: 1, backgroundColor: TG.bg },
   scroll: { flex: 1 },
   column: { width: '100%', maxWidth: 640, alignSelf: 'center', gap: 24 },
@@ -1021,7 +1035,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 12,
     backgroundColor: TG.container,
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     padding: 16,
     ...CARD_SHADOW,
   },
@@ -1031,16 +1045,16 @@ const styles = StyleSheet.create({
     color: TG.secondary,
     fontSize: 11,
     lineHeight: 14,
-    fontWeight: '600',
+    fontWeight: '600', fontFamily: FONT.semi,
     letterSpacing: 0.6,
     flexShrink: 1,
   },
-  bannerTitle: { color: TG.ink, fontSize: 17, lineHeight: 22, fontWeight: '600' },
+  bannerTitle: { color: TG.ink, fontSize: 17, lineHeight: 22, fontWeight: '600', fontFamily: FONT.semi },
   bannerSubtitle: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
   bannerTile: {
     width: 40,
     height: 40,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.card,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1049,58 +1063,58 @@ const styles = StyleSheet.create({
 
   card: {
     backgroundColor: TG.card,
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     padding: 16,
     gap: 12,
     ...CARD_SHADOW,
   },
 
-  fieldLabel: { color: TG.secondary, fontSize: 11, lineHeight: 14, fontWeight: '500' },
+  fieldLabel: { color: TG.secondary, fontSize: 11, lineHeight: 14, fontWeight: '500', fontFamily: FONT.medium },
 
   segmentTrack: {
     flexDirection: 'row',
     backgroundColor: TG.container,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     padding: 4,
     gap: 4,
   },
   segmentItem: {
     flex: 1,
     minHeight: 34,
-    borderRadius: 6,
+    borderRadius: RADIUS.sm,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 4,
   },
   segmentItemActive: { backgroundColor: TG.card, ...CARD_SHADOW },
   segmentText: { fontSize: 12, lineHeight: 16, flexShrink: 1 },
-  segmentTextActive: { color: TG.ink, fontWeight: '600' },
-  segmentTextIdle: { color: TG.secondary, fontWeight: '500' },
+  segmentTextActive: { color: TG.ink, fontWeight: '600', fontFamily: FONT.semi },
+  segmentTextIdle: { color: TG.secondary, fontWeight: '500', fontFamily: FONT.medium },
 
   execRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
     backgroundColor: TG.low,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     padding: 12,
   },
   execIcon: { flexShrink: 0 },
   execText: { flex: 1, minWidth: 0, gap: 2 },
-  execTitle: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '500' },
+  execTitle: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '500', fontFamily: FONT.medium },
   execSubtitle: { color: TG.secondary, fontSize: 11, lineHeight: 14 },
   execPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     backgroundColor: TG.card,
-    borderRadius: 6,
+    borderRadius: RADIUS.sm,
     paddingHorizontal: 10,
     paddingVertical: 4,
     flexShrink: 0,
     ...CARD_SHADOW,
   },
-  execHour: { color: TG.primary, fontSize: 12, lineHeight: 16, fontWeight: '600' },
+  execHour: { color: TG.primary, fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi },
   execWib: { color: TG.secondary, fontSize: 11, lineHeight: 14 },
   execChevron: { transform: [{ rotate: '0deg' }] },
   execChevronOpen: { transform: [{ rotate: '90deg' }] },
@@ -1108,7 +1122,7 @@ const styles = StyleSheet.create({
   hourPicker: {
     gap: 12,
     backgroundColor: TG.low,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     padding: 12,
   },
   stepperRow: {
@@ -1120,29 +1134,29 @@ const styles = StyleSheet.create({
   stepperButton: {
     width: 44,
     height: 44,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.card,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
     ...CARD_SHADOW,
   },
-  stepperGlyph: { color: TG.primary, fontSize: 22, lineHeight: 26, fontWeight: '600' },
+  stepperGlyph: { color: TG.primary, fontSize: 22, lineHeight: 26, fontWeight: '600', fontFamily: FONT.semi },
   stepperValue: { flex: 1, minWidth: 0, alignItems: 'center', gap: 2 },
-  stepperHour: { color: TG.ink, fontSize: 28, lineHeight: 34, fontWeight: '700' },
-  stepperWib: { color: TG.secondary, fontSize: 11, lineHeight: 14, fontWeight: '500' },
+  stepperHour: { color: TG.ink, fontSize: 28, lineHeight: 34, fontWeight: '700', fontFamily: FONT.bold },
+  stepperWib: { color: TG.secondary, fontSize: 11, lineHeight: 14, fontWeight: '500', fontFamily: FONT.medium },
   presetRow: { flexDirection: 'row', gap: 8 },
   presetChip: {
     flex: 1,
     minHeight: 34,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
   presetChipActive: { backgroundColor: TG.primaryContainer },
   presetChipIdle: { backgroundColor: TG.card },
-  presetText: { fontSize: 12, lineHeight: 16, fontWeight: '600' },
-  presetTextActive: { color: '#FFFFFF' },
+  presetText: { fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi },
+  presetTextActive: { color: ON_ACCENT.strong },
   presetTextIdle: { color: TG.primary },
   hourNote: { color: TG.secondary, fontSize: 11, lineHeight: 15 },
 
@@ -1150,23 +1164,23 @@ const styles = StyleSheet.create({
   toggleIcon: {
     width: 32,
     height: 32,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.container,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
   toggleText: { flex: 1, minWidth: 0, gap: 2 },
-  toggleTitle: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '500' },
+  toggleTitle: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '500', fontFamily: FONT.medium },
   toggleSubtitle: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
   soonPill: {
     backgroundColor: TG.container,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
     paddingHorizontal: 10,
     paddingVertical: 4,
     flexShrink: 0,
   },
-  soonPillText: { color: TG.primary, fontSize: 11, lineHeight: 14, fontWeight: '600' },
+  soonPillText: { color: TG.primary, fontSize: 11, lineHeight: 14, fontWeight: '600', fontFamily: FONT.semi },
 
   formatGrid: { flexDirection: 'row', gap: 12 },
   formatCard: {
@@ -1175,27 +1189,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 8,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     padding: 12,
     minWidth: 0,
   },
   formatCardActive: { backgroundColor: TG.primaryFixed },
   formatCardIdle: { backgroundColor: TG.low },
   formatText: { flex: 1, minWidth: 0, gap: 2 },
-  formatTitle: { fontSize: 14, lineHeight: 20, fontWeight: '600' },
+  formatTitle: { fontSize: 14, lineHeight: 20, fontWeight: '600', fontFamily: FONT.semi },
   formatTitleActive: { color: TG.primary },
   formatTitleIdle: { color: TG.ink },
   formatSub: { color: TG.secondary, fontSize: 11, lineHeight: 14 },
-  radio: { width: 16, height: 16, borderRadius: 999, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  radio: { width: 16, height: 16, borderRadius: RADIUS.md, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   radioActive: { backgroundColor: TG.primaryContainer },
   radioIdle: { backgroundColor: TG.container },
-  radioDot: { width: 8, height: 8, borderRadius: 999, backgroundColor: '#FFFFFF' },
+  radioDot: { width: 8, height: 8, borderRadius: '50%', backgroundColor: ON_ACCENT.strong },
 
   cacheRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   cacheTile: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.container,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1203,20 +1217,20 @@ const styles = StyleSheet.create({
   },
   cacheText: { flex: 1, minWidth: 0, gap: 2 },
   cacheTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  cacheTitle: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '600', flexShrink: 1 },
-  cacheSize: { color: TG.primary, fontSize: 12, lineHeight: 16, fontWeight: '600', flexShrink: 0 },
+  cacheTitle: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 1 },
+  cacheSize: { color: TG.primary, fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 0 },
   cacheSubtitle: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
   clearButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     backgroundColor: TG.container,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     paddingHorizontal: 12,
     paddingVertical: 6,
     flexShrink: 0,
   },
-  clearButtonText: { color: TG.ink, fontSize: 12, lineHeight: 16, fontWeight: '600' },
+  clearButtonText: { color: TG.ink, fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi },
 
   cardHeaderRow: {
     flexDirection: 'row',
@@ -1228,36 +1242,36 @@ const styles = StyleSheet.create({
     color: TG.secondary,
     fontSize: 11,
     lineHeight: 14,
-    fontWeight: '600',
+    fontWeight: '600', fontFamily: FONT.semi,
     letterSpacing: 0.6,
     flexShrink: 1,
   },
   countChip: {
     backgroundColor: TG.container,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
     paddingHorizontal: 8,
     paddingVertical: 2,
     flexShrink: 0,
   },
-  countChipText: { color: TG.primary, fontSize: 11, lineHeight: 14, fontWeight: '600' },
+  countChipText: { color: TG.primary, fontSize: 11, lineHeight: 14, fontWeight: '600', fontFamily: FONT.semi },
 
   folderRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 2 },
   folderIcon: {
     width: 32,
     height: 32,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.container,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
   folderText: { flex: 1, minWidth: 0, gap: 2 },
-  folderName: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '500' },
+  folderName: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '500', fontFamily: FONT.medium },
   folderUri: { color: TG.secondary, fontSize: 11, lineHeight: 15 },
   removeButton: {
     width: 36,
     height: 36,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.low,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1270,10 +1284,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     minHeight: 44,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.primaryContainer,
   },
-  addFolderText: { color: '#FFFFFF', fontSize: 12, lineHeight: 16, fontWeight: '600', flexShrink: 1 },
+  addFolderText: { color: ON_ACCENT.strong, fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 1 },
 
   emptyText: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
 
@@ -1283,14 +1297,14 @@ const styles = StyleSheet.create({
   passBox: {
     gap: 10,
     backgroundColor: TG.low,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     padding: 12,
   },
   passField: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: TG.card,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     paddingLeft: 12,
     paddingRight: 4,
     minHeight: 44,
@@ -1312,26 +1326,26 @@ const styles = StyleSheet.create({
   },
   strengthRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   strengthBar: { flex: 1, minWidth: 0, flexDirection: 'row', gap: 4 },
-  strengthSeg: { flex: 1, height: 4, borderRadius: 2 },
-  strengthLabel: { color: TG.secondary, fontSize: 11, lineHeight: 14, fontWeight: '500' },
+  strengthSeg: { flex: 1, height: 4, borderRadius: '50%' },
+  strengthLabel: { color: TG.secondary, fontSize: 11, lineHeight: 14, fontWeight: '500', fontFamily: FONT.medium },
   passActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8 },
   passCancel: {
     minHeight: 36,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     paddingHorizontal: 14,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: TG.card,
   },
-  passCancelText: { color: TG.secondary, fontSize: 13, lineHeight: 18, fontWeight: '500' },
+  passCancelText: { color: TG.secondary, fontSize: 13, lineHeight: 18, fontWeight: '500', fontFamily: FONT.medium },
   passConfirm: {
     minHeight: 36,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     paddingHorizontal: 14,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: TG.primaryContainer,
   },
-  passConfirmText: { color: '#FFFFFF', fontSize: 13, lineHeight: 18, fontWeight: '600' },
+  passConfirmText: { color: ON_ACCENT.strong, fontSize: 13, lineHeight: 18, fontWeight: '600', fontFamily: FONT.semi },
   passNote: { color: TG.secondary, fontSize: 11, lineHeight: 15 },
 });

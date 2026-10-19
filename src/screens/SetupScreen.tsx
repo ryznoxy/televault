@@ -13,13 +13,14 @@ import {
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../theme/ThemeProvider';
 import {
   AppHeader,
   PulsingDot,
   TgIcon,
   useToast,
 } from '../components/ui';
-import { ELEVATION, TG } from '../theme/theme';
+import { FONT, ON_ACCENT, TG_LIGHT,  ELEVATION, RADIUS, SPACE, tgTheme, type TGPalette } from '../theme/theme';
 import { isCryptoAvailable, newSaltB64 } from '../backup/crypto';
 import { TelegramBotApi } from '../net/telegramApi';
 import { stopScheduler } from '../background/scheduler';
@@ -39,6 +40,9 @@ type SaveStatus = 'idle' | 'saving' | 'saved';
 const HIT_SLOP = { top: 10, bottom: 10, left: 10, right: 10 } as const;
 
 export default function SetupScreen({ navigation }: Props) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
@@ -562,9 +566,9 @@ export default function SetupScreen({ navigation }: Props) {
               pressed && styles.pressed,
             ]}>
             {saving ? (
-              <ActivityIndicator color="#FFFFFF" size="small" />
+              <ActivityIndicator color={ON_ACCENT.strong} size="small" />
             ) : (
-              <TgIcon name="checkCircle" color="#FFFFFF" size={18} />
+              <TgIcon name="checkCircle" color={ON_ACCENT.strong} size={18} />
             )}
             <Text style={styles.primaryActionText} numberOfLines={1}>
               {saveLabel}
@@ -634,16 +638,16 @@ const CARD_SHADOW = {
   shadowOpacity: 0.05,
   shadowRadius: 8,
   elevation: 2,
-  shadowColor: '#0B1C30',
+  shadowColor: TG_LIGHT.ink,
 };
 
-const styles = StyleSheet.create({
+const createStyles = (TG: TGPalette) => StyleSheet.create({
   root: { flex: 1, backgroundColor: TG.bg },
   scroll: { flex: 1 },
   column: { width: '100%', maxWidth: 640, alignSelf: 'center', gap: 24 },
   card: {
     backgroundColor: TG.card,
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     padding: 16,
     gap: 12,
     overflow: 'hidden',
@@ -657,29 +661,29 @@ const styles = StyleSheet.create({
     bottom: -24,
     width: 112,
     height: 112,
-    borderRadius: 999,
-    backgroundColor: 'rgba(0,101,142,0.05)',
+    borderRadius: RADIUS.md,
+    backgroundColor: TG.low,
   },
 
-  guidanceRow: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
+  guidanceRow: { flexDirection: 'row', gap: SPACE.md, alignItems: 'flex-start' },
   guidanceIcon: {
     width: 44,
     height: 44,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.container,
     alignItems: 'center',
     justifyContent: 'center',
   },
   guidanceText: { flex: 1, minWidth: 0, gap: 6 },
   guidanceTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
-  guidanceTitle: { color: TG.ink, fontSize: 17, lineHeight: 22, fontWeight: '600' },
+  guidanceTitle: { color: TG.ink, fontSize: 17, lineHeight: 22, fontWeight: '600', fontFamily: FONT.semi },
   aesPill: {
-    backgroundColor: 'rgba(34,158,217,0.15)',
+    backgroundColor: TG.low,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
   },
-  aesText: { color: TG.primary, fontSize: 10, lineHeight: 14, fontWeight: '600', letterSpacing: 0.6 },
+  aesText: { color: TG.primary, fontSize: 10, lineHeight: 14, fontWeight: '600', fontFamily: FONT.semi, letterSpacing: 0.6 },
   guidanceBody: { color: TG.secondary, fontSize: 13, lineHeight: 19 },
 
   labelRow: {
@@ -692,12 +696,12 @@ const styles = StyleSheet.create({
     color: TG.ink,
     fontSize: 12,
     lineHeight: 16,
-    fontWeight: '600',
+    fontWeight: '600', fontFamily: FONT.semi,
     letterSpacing: 0.5,
   },
   labelInline: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  helperRight: { color: TG.secondary, fontSize: 12, lineHeight: 16, fontWeight: '500' },
-  secondaryTag: { color: TG.primary, fontSize: 11, lineHeight: 14, fontWeight: '600' },
+  helperRight: { color: TG.secondary, fontSize: 12, lineHeight: 16, fontWeight: '500', fontFamily: FONT.medium },
+  secondaryTag: { color: TG.primary, fontSize: 11, lineHeight: 14, fontWeight: '600', fontFamily: FONT.semi },
 
   statusPill: {
     flexDirection: 'row',
@@ -705,15 +709,15 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
     flexShrink: 1,
   },
-  statusPillText: { fontSize: 11, lineHeight: 14, fontWeight: '600', flexShrink: 1 },
+  statusPillText: { fontSize: 11, lineHeight: 14, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 1 },
 
   inputWrap: { position: 'relative' },
   codeInput: {
     backgroundColor: TG.low,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     paddingHorizontal: 14,
     paddingVertical: 10,
     minHeight: 44,
@@ -734,7 +738,7 @@ const styles = StyleSheet.create({
   iconButton: {
     width: 40,
     height: 40,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -747,9 +751,9 @@ const styles = StyleSheet.create({
   },
   helperInfo: { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, minWidth: 0 },
   helperText: { color: TG.secondary, fontSize: 13, lineHeight: 18, flexShrink: 1 },
-  helperHighlight: { color: TG.ink, fontWeight: '600' },
+  helperHighlight: { color: TG.ink, fontWeight: '600', fontFamily: FONT.semi },
   helperMuted: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
-  linkText: { color: TG.primary, fontSize: 13, lineHeight: 18, fontWeight: '600' },
+  linkText: { color: TG.primary, fontSize: 13, lineHeight: 18, fontWeight: '600', fontFamily: FONT.semi },
 
   inputSplit: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   secondaryButton: {
@@ -758,14 +762,14 @@ const styles = StyleSheet.create({
     gap: 6,
     minHeight: 44,
     paddingHorizontal: 14,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.container,
   },
   secondaryButtonText: {
     color: TG.ink,
     fontSize: 12,
     lineHeight: 16,
-    fontWeight: '600',
+    fontWeight: '600', fontFamily: FONT.semi,
   },
 
   feedbackBanner: {
@@ -773,7 +777,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     padding: 10,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.container,
   },
   errorBanner: { backgroundColor: TG.errorSoft },
@@ -781,14 +785,14 @@ const styles = StyleSheet.create({
 
   strengthRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   strengthBar: { flex: 1, flexDirection: 'row', gap: 4 },
-  strengthSeg: { flex: 1, height: 6, borderRadius: 3 },
-  strengthLabel: { color: TG.secondary, fontSize: 12, lineHeight: 16, fontWeight: '600' },
+  strengthSeg: { flex: 1, height: 6, borderRadius: '50%' },
+  strengthLabel: { color: TG.secondary, fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi },
 
   infoBox: {
     flexDirection: 'row',
     gap: 8,
     padding: 10,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.low,
     alignItems: 'flex-start',
   },
@@ -801,15 +805,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     minHeight: 44,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.primary,
     paddingHorizontal: 16,
   },
   primaryActionText: {
-    color: '#FFFFFF',
+    color: ON_ACCENT.strong,
     fontSize: 12,
     lineHeight: 16,
-    fontWeight: '600',
+    fontWeight: '600', fontFamily: FONT.semi,
     flexShrink: 1,
   },
 
@@ -819,17 +823,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     minHeight: 44,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.card,
     paddingHorizontal: 16,
     ...ELEVATION.card,
-    shadowColor: '#0B1C30',
+    shadowColor: TG_LIGHT.ink,
   },
   secondaryActionText: {
     color: TG.ink,
     fontSize: 12,
     lineHeight: 16,
-    fontWeight: '600',
+    fontWeight: '600', fontFamily: FONT.semi,
     flexShrink: 1,
   },
 
@@ -840,7 +844,7 @@ const styles = StyleSheet.create({
     color: TG.secondary,
     fontSize: 12,
     lineHeight: 16,
-    fontWeight: '600',
+    fontWeight: '600', fontFamily: FONT.semi,
     textAlign: 'center',
   },
   disconnectBody: {
@@ -856,11 +860,11 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     backgroundColor: 'transparent',
     minHeight: 36,
   },
-  disconnectText: { color: TG.secondary, fontSize: 12, lineHeight: 16, fontWeight: '600' },
+  disconnectText: { color: TG.secondary, fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi },
 
   pressed: { opacity: 0.85 },
   disabled: { opacity: 0.4 },

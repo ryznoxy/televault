@@ -1,6 +1,19 @@
 export type ThemeMode = 'light' | 'dark';
 
 /**
+ * Plus Jakarta Sans — brand typeface. Android resolves by file name
+ * (android/app/src/main/assets/fonts); iOS needs the same TTFs bundled in
+ * Xcode + UIAppFonts (not wired yet).
+ */
+export const FONT = {
+  regular: 'PlusJakartaSans-Regular',
+  medium: 'PlusJakartaSans-Medium',
+  semi: 'PlusJakartaSans-SemiBold',
+  bold: 'PlusJakartaSans-Bold',
+  xbold: 'PlusJakartaSans-ExtraBold',
+} as const;
+
+/**
  * Design tokens — Liquid Glass, premium light-first.
  * Every component reads colors from here; never hardcode hex in screens.
  */
@@ -69,10 +82,11 @@ export const themes: Record<ThemeMode, Theme> = {
 };
 
 /**
- * TeleVault / Telegram-blue light palette. Used by the Home screen and the
- * bottom nav only; the rest of the app keeps reading `themes`.
+ * TeleVault / Telegram-blue palette. Used by the Home screen and the bottom
+ * nav; the rest of the app keeps reading `themes`. `tgTheme(mode)` returns the
+ * palette for the active ThemeProvider mode so Home and the nav go dark too.
  */
-export const TG = {
+export const TG_LIGHT = {
   bg: '#F8F9FF',
   card: '#FFFFFF',
   low: '#EFF4FF',
@@ -92,21 +106,63 @@ export const TG = {
   errorSoft: 'rgba(186,26,26,0.10)',
 } as const;
 
+export type TGPalette = { [K in keyof typeof TG_LIGHT]: string };
+
+/** Telegram-blue dark palette — same hues, dark surfaces, lifted text. */
+export const TG_DARK: TGPalette = {
+  bg: '#0B0F14',
+  card: '#131A21',
+  low: '#16222C',
+  container: '#1A2833',
+  high: '#203040',
+  highest: '#27394A',
+  primary: '#7FCBF2',
+  primaryContainer: '#229ED9',
+  onPrimaryContainer: '#DFF3FF',
+  ink: '#E8F0F8',
+  variant: '#AAB7C2',
+  secondary: '#93A2B1',
+  outline: '#5E6C79',
+  secondaryContainer: '#22313F',
+  primaryFixed: '#15425C',
+  error: '#FF6369',
+  errorSoft: 'rgba(255,99,105,0.14)',
+} as const;
+
+/** Back-compat alias resolved per mode via `tgTheme`. */
+export const TG = TG_LIGHT;
+
+export function tgTheme(mode: ThemeMode): TGPalette {
+  return mode === 'dark' ? TG_DARK : TG_LIGHT;
+}
+
 /** 8-point spacing grid. */
 export const SPACE = { xs: 4, sm: 8, md: 12, base: 16, lg: 24, xl: 32 } as const;
 
-/** Corner radii — rounded / pill language. */
-export const RADIUS = { sm: 12, md: 16, lg: 20, xl: 24, pill: 999 } as const;
+/** Corner radii — soft-rounded system, no pills. */
+export const RADIUS = { sm: 10, md: 14, lg: 18, xl: 22 } as const;
 
-/** Type scale (size, weight, tracking). */
+/** Type scale (size, weight, tracking) — Plus Jakarta Sans throughout. */
 export const TYPE = {
-  display: { fontSize: 28, fontWeight: '700', letterSpacing: -0.5 },
-  title: { fontSize: 20, fontWeight: '700', letterSpacing: -0.2 },
-  headline: { fontSize: 17, fontWeight: '600' },
-  body: { fontSize: 16, fontWeight: '400' },
-  label: { fontSize: 15, fontWeight: '500' },
-  footnote: { fontSize: 13, fontWeight: '400' },
-  caption: { fontSize: 12, fontWeight: '600', letterSpacing: 0.4 },
+  display: { fontSize: 28, fontWeight: '700', letterSpacing: -0.6, fontFamily: FONT.bold },
+  title: { fontSize: 20, fontWeight: '700', letterSpacing: -0.3, fontFamily: FONT.semi },
+  headline: { fontSize: 17, fontWeight: '600', fontFamily: FONT.semi },
+  body: { fontSize: 16, fontWeight: '400', fontFamily: FONT.regular },
+  label: { fontSize: 15, fontWeight: '500', fontFamily: FONT.medium },
+  footnote: { fontSize: 13, fontWeight: '400', fontFamily: FONT.regular },
+  caption: { fontSize: 12, fontWeight: '600', letterSpacing: 0.4, fontFamily: FONT.semi },
+} as const;
+
+/**
+ * Opacity ramp for content drawn on an accent fill (HeroCard, primary CTA).
+ * Keeps screens free of raw rgba() while preserving the accent hierarchy.
+ */
+export const ON_ACCENT = {
+  strong: 'rgba(255,255,255,0.94)', // text/icons on accent fill, primary CTA surface
+  body: 'rgba(255,255,255,0.80)',   // supporting text on accent
+  muted: 'rgba(255,255,255,0.62)',  // tertiary text on accent
+  tint: 'rgba(255,255,255,0.14)',   // inset/secondary surface on accent
+  track: 'rgba(255,255,255,0.24)',  // progress tracks on accent
 } as const;
 
 /** Soft elevation used by every raised surface. */

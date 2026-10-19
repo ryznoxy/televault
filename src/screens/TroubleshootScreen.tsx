@@ -11,8 +11,9 @@ import {
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../theme/ThemeProvider';
 import { AppHeader, SectionLabel, TgIcon, useToast, type TgIconName } from '../components/ui';
-import { TG } from '../theme/theme';
+import { FONT, ON_ACCENT, TG_LIGHT,  RADIUS, tgTheme, type TGPalette } from '../theme/theme';
 import { sessionsRepo } from '../db/repositories/sessions';
 import { isCryptoAvailable } from '../backup/crypto';
 import { secureStore } from '../state/secureStore';
@@ -26,7 +27,7 @@ const CARD_SHADOW = {
   shadowOpacity: 0.05,
   shadowRadius: 8,
   elevation: 2,
-  shadowColor: '#0B1C30',
+  shadowColor: TG_LIGHT.ink,
 };
 
 const OEM_GUIDE: { oem: string; path: string }[] = [
@@ -72,6 +73,9 @@ const EMPTY_DIAGNOSTICS: Diagnostics = {
 };
 
 export default function TroubleshootScreen({ navigation }: Props) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const gutter = width >= 768 ? 24 : 16;
@@ -213,7 +217,7 @@ export default function TroubleshootScreen({ navigation }: Props) {
                 accessibilityRole="button"
                 accessibilityLabel="Izinkan tanpa optimasi baterai"
                 style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}>
-                <TgIcon name="batteryCharging" color="#FFFFFF" size={18} />
+                <TgIcon name="batteryCharging" color={ON_ACCENT.strong} size={18} />
                 <Text style={styles.primaryButtonText} numberOfLines={1}>
                   Izinkan Tanpa Optimasi Baterai
                 </Text>
@@ -290,6 +294,9 @@ function InfoRow({
   value: string;
   tone: 'ok' | 'warn' | 'error' | 'plain';
 }) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const styles = createStyles(TG);
   const valueColor =
     tone === 'ok'
       ? TG.primary
@@ -313,14 +320,14 @@ function InfoRow({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (TG: TGPalette) => StyleSheet.create({
   root: { flex: 1, backgroundColor: TG.bg },
   scroll: { flex: 1 },
   column: { width: '100%', maxWidth: 640, alignSelf: 'center', gap: 24 },
   section: { gap: 12 },
   card: {
     backgroundColor: TG.card,
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     padding: 16,
     gap: 12,
     ...CARD_SHADOW,
@@ -331,7 +338,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: 8,
     backgroundColor: TG.errorSoft,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     padding: 10,
   },
   warningText: { color: TG.error, fontSize: 13, lineHeight: 18, flex: 1, minWidth: 0 },
@@ -340,14 +347,14 @@ const styles = StyleSheet.create({
   infoIcon: {
     width: 32,
     height: 32,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.container,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
-  infoLabel: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '500', flex: 1, minWidth: 0 },
-  infoValue: { fontSize: 12, lineHeight: 16, fontWeight: '600', maxWidth: '50%', textAlign: 'right' },
+  infoLabel: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '500', fontFamily: FONT.medium, flex: 1, minWidth: 0 },
+  infoValue: { fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi, maxWidth: '50%', textAlign: 'right' },
 
   primaryButton: {
     flexDirection: 'row',
@@ -355,15 +362,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     minHeight: 44,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.primary,
     paddingHorizontal: 16,
   },
   primaryButtonText: {
-    color: '#FFFFFF',
+    color: ON_ACCENT.strong,
     fontSize: 12,
     lineHeight: 16,
-    fontWeight: '600',
+    fontWeight: '600', fontFamily: FONT.semi,
     flexShrink: 1,
   },
   secondaryButton: {
@@ -372,24 +379,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     minHeight: 44,
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.container,
     paddingHorizontal: 16,
   },
-  secondaryButtonText: { color: TG.ink, fontSize: 12, lineHeight: 16, fontWeight: '600', flexShrink: 1 },
+  secondaryButtonText: { color: TG.ink, fontSize: 12, lineHeight: 16, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 1 },
 
   oemRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   oemIcon: {
     width: 32,
     height: 32,
-    borderRadius: 999,
+    borderRadius: RADIUS.md,
     backgroundColor: TG.low,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
   oemText: { flex: 1, minWidth: 0, gap: 2 },
-  oemName: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '600' },
+  oemName: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '600', fontFamily: FONT.semi },
   oemPath: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
 
   pressed: { opacity: 0.85 },
