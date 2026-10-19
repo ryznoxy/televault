@@ -107,5 +107,5 @@ export const DEFAULT_CONFIG: BackupConfig = {
   silentNotifications: false,
   alertOnFailure: true,
   batteryMinEnabled: true,
-  maxFilesPerRun: 500,
+  maxFilesPerRun: 250,
 };

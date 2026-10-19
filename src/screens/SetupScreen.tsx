@@ -207,7 +207,11 @@ export default function SetupScreen({ navigation }: Props) {
   };
 
   const onDetectChatId = async () => {
-    if (!token.trim() || detecting) {
+    if (!token.trim()) {
+      showToast('Token belum ada', 'Isi token bot dulu di atas, lalu deteksi lagi.', 'error');
+      return;
+    }
+    if (detecting) {
       return;
     }
     setDetecting(true);
@@ -225,16 +229,18 @@ export default function SetupScreen({ navigation }: Props) {
         const name = chat.title ?? chat.first_name ?? (chat.username ? `@${chat.username}` : String(chat.id));
         return `${name} — ${chat.id}`;
       };
+      // Fill the field first, always: newest chat is the most likely target.
+      // The picker below only exists to switch when several chats wrote to the bot.
+      const newest = chats[chats.length - 1];
+      setChatId(String(newest.id));
       if (chats.length === 1) {
-        setChatId(String(chats[0].id));
         showToast('Chat ID ditemukan', label(chats[0]), 'success');
         return;
       }
-      // Newest chat first: getUpdates returns oldest-first, so reverse.
       const recent = [...chats].reverse().slice(0, 2);
       Alert.alert(
-        'Pilih chat tujuan',
-        'Beberapa chat pernah mengirim pesan ke bot ini.',
+        'Chat ID terisi — sesuaikan bila perlu',
+        `Kolom terisi dengan chat terbaru (${label(newest)}). Pilih yang lain bila tujuan arsipnya berbeda.`,
         [
           ...recent.map(chat => ({
             text: label(chat),
@@ -243,7 +249,7 @@ export default function SetupScreen({ navigation }: Props) {
               showToast('Chat ID ditemukan', label(chat), 'success');
             },
           })),
-          { text: 'Isi manual', style: 'cancel' },
+          { text: 'Pakai yang terisi', style: 'cancel' },
         ],
       );
     } catch (error) {

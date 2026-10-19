@@ -23,13 +23,12 @@ import {
   type TgIconName,
 } from '../components/ui';
 import { FONT, ELEVATION, ON_ACCENT, RADIUS, SPACE, TG_LIGHT, tgTheme, TYPE, type TGPalette } from '../theme/theme';
-import { runBackupInForeground, BACKUP_IN_FLIGHT_ERROR } from '../background/foregroundService';
-import { requestNotificationPermission } from '../backup/permissions';
-import { filesRepo } from '../db/repositories/files';
+import { requestNotificationPermission } from '../backup/permissions';import { filesRepo } from '../db/repositories/files';
 import { sessionsRepo, type SessionRecord } from '../db/repositories/sessions';
 import { TelegramBotApi } from '../net/telegramApi';
 import { secureStore } from '../state/secureStore';
 import { useSettingsStore } from '../state/settingsStore';
+import { useBackupUiStore } from '../state/backupUiStore';
 import {
   CATEGORY_LABELS,
   makeWatchedFolder,
@@ -104,38 +103,6 @@ function folderIcon(name: string): TgIconName {
   return 'folder';
 }
 
-/** Turn engine phases into plain-language status text. */
-function phaseText(phase: string, category?: string, current = 0, total = 0): string {
-  switch (phase) {
-    case 'scanning':
-      return 'Mencari berkas baru\u2026';
-    case 'zipping':
-      return 'Menyiapkan berkas\u2026';
-    case 'uploading':
-      return total > 0
-        ? `Mengunggah ${category ?? 'berkas'} (${current}/${total})\u2026`
-        : 'Mengunggah\u2026';
-    case 'manifest':
-      return 'Menyimpan indeks backup\u2026';
-    default:
-      return 'Menyelesaikan\u2026';
-  }
-}
-
-/** Short verb for the progress bar, so it never claims to be uploading while zipping. */
-function barVerb(phase: string): string {
-  switch (phase) {
-    case 'scanning':
-      return 'Memindai';
-    case 'zipping':
-      return 'Menyiapkan';
-    case 'manifest':
-      return 'Menyimpan indeks';
-    default:
-      return 'Mengunggah';
-  }
-}
-
 export default function HomeScreen({ navigation }: Props) {
   const { mode } = useTheme();
   const TG = tgTheme(mode);
@@ -153,6 +120,16 @@ export default function HomeScreen({ navigation }: Props) {
 
   const { toast } = useToast('bottom');
 
+  // Progress lives in the store, not here: the run keeps going in the
+  // foreground service while the user is on another screen, and coming back
+  // shows exactly where it is instead of looking cancelled.
+  const busy = useBackupUiStore(state => state.busy);
+  const failed = useBackupUiStore(state => state.failed);
+  const progress = useBackupUiStore(state => state.progress);
+  const status = useBackupUiStore(state => state.status);
+  const progressLabel = useBackupUiStore(state => state.progressLabel);
+  const startBackup = useBackupUiStore(state => state.startBackup);
+
   const [configured, setConfigured] = useState(false);
   const [chatId, setChatId] = useState('');
   const [botUsername, setBotUsername] = useState<string | null>(null);
@@ -161,16 +138,6 @@ export default function HomeScreen({ navigation }: Props) {
   const [totalSize, setTotalSize] = useState(0);
   const [fileCount, setFileCount] = useState(0);
   const [ratio, setRatio] = useState<number | null>(null);
-  const [status, setStatus] = useState<string | null>(null);
-  const [failed, setFailed] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [progressLabel, setProgressLabel] = useState<{
-    current: number;
-    total: number;
-    category?: string;
-    verb: string;
-  } | null>(null);
-  const [busy, setBusy] = useState(false);
 
   const refresh = useCallback(async () => {
     const ok = await secureStore.isConfigured();
@@ -210,52 +177,15 @@ export default function HomeScreen({ navigation }: Props) {
   }, [navigation, refresh]);
 
   const onBackupNow = async () => {
-    setBusy(true);
-    setFailed(false);
-    setProgress(0);
-    setProgressLabel(null);
-    setStatus('Memulai backup\u2026');
     try {
       // The foreground service notification needs this grant on Android 13+;
       // ask here, where the user just tapped something (P2-4).
       await requestNotificationPermission();
-      const result = await runBackupInForeground(next => {
-        setStatus(phaseText(next.phase, next.category, next.current, next.total));
-        if (next.overall.total > 0) {
-          setProgress(next.overall.current / next.overall.total);
-          setProgressLabel({
-            current: next.overall.current,
-            total: next.overall.total,
-            category: next.category,
-            verb: barVerb(next.phase),
-          });
-        }
+      await startBackup(async () => {
+        await refresh();
       });
-      const note = result.notes && result.notes.length > 0 ? ` ${result.notes.join(' ')}` : '';
-      if (result.status === 'failed' && result.error === BACKUP_IN_FLIGHT_ERROR) {
-        setFailed(true);
-        setStatus(`${BACKUP_IN_FLIGHT_ERROR}.`);
-      } else {
-        setFailed(result.status === 'failed');
-        setProgress(1);
-        const summary =
-          result.status === 'success'
-            ? result.files === 0
-              ? 'Semua berkas sudah tercadangkan. Tidak ada yang baru.'
-              : result.deferred > 0
-                ? `Backup selesai. ${result.files} berkas diunggah, ${result.deferred} tersisa dan akan lanjut otomatis di backup berikutnya.`
-                : `Backup selesai. ${result.files} berkas diunggah.`
-            : result.status === 'partial'
-              ? 'Backup selesai dengan peringatan. Lihat Riwayat untuk detail.'
-              : `Backup gagal. ${result.error ?? 'Coba lagi nanti.'}`;
-        setStatus(`${summary}${note}`);
-      }
-      await refresh();
-    } catch (error) {
-      setFailed(true);
-      setStatus(error instanceof Error ? error.message : 'Backup gagal');
-    } finally {
-      setBusy(false);
+    } catch {
+      // permission request cancelled; startBackup surfaces its own errors
     }
   };
 
