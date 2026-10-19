@@ -23,7 +23,6 @@ import {
 } from '../components/ui';
 import { TG } from '../theme/theme';
 import { runBackupInForeground, BACKUP_IN_FLIGHT_ERROR } from '../background/foregroundService';
-import { isFileUri } from '../backup/fileScanner';
 import { requestNotificationPermission } from '../backup/permissions';
 import { filesRepo } from '../db/repositories/files';
 import { sessionsRepo, type SessionRecord } from '../db/repositories/sessions';
@@ -148,7 +147,7 @@ export default function HomeScreen({ navigation }: Props) {
   const setAutomationPaused = useSettingsStore(state => state.setAutomationPaused);
   const addWatchedFolder = useSettingsStore(state => state.addWatchedFolder);
 
-  const { toast, showToast } = useToast('bottom');
+  const { toast } = useToast('bottom');
 
   const [configured, setConfigured] = useState(false);
   const [chatId, setChatId] = useState('');
@@ -259,16 +258,6 @@ export default function HomeScreen({ navigation }: Props) {
   const onAddFolder = async () => {
     try {
       const result = await pickDirectory();
-      // Android hands back a `content://` SAF tree the scanner cannot walk;
-      // storing it would show a successful backup that read nothing.
-      if (!isFileUri(result.uri)) {
-        showToast(
-          'Folder tidak didukung',
-          'Android memberi akses folder sebagai content:// yang belum bisa dibaca aplikasi ini.',
-          'error',
-        );
-        return;
-      }
       addWatchedFolder(makeWatchedFolder(result.uri));
     } catch {
       // user cancelled
