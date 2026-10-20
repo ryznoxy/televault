@@ -4,7 +4,7 @@ export type NewChunk = {
   sessionId: number;
   chunkIndex: number;
   size: number;
-  /** Uploaded part name (e.g. `backup_photo_2026-01-31.zip.001`). */
+  /** Uploaded part name (e.g. `backup-2026-01-31-08-05-00.zip.001`). */
   partName: string;
 };
 
