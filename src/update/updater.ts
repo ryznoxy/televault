@@ -105,6 +105,14 @@ export async function downloadAndInstall(
   const state = ReactNativeBlobUtil.config({
     path: destination,
   });
+  // Drop APKs from earlier update attempts so a failed install never leaves
+  // several tens of MB behind.
+  const oldApks = (await ReactNativeBlobUtil.fs.ls(ReactNativeBlobUtil.fs.dirs.CacheDir)).filter(
+    name => name.endsWith('.apk') && name !== destination.split('/').pop(),
+  );
+  for (const name of oldApks) {
+    await ReactNativeBlobUtil.fs.unlink(`${ReactNativeBlobUtil.fs.dirs.CacheDir}/${name}`);
+  }
   const downloaded = await state.fetch('GET', update.apkUrl).progress(onProgress);
   const sha256 = (await ReactNativeBlobUtil.fs.hash(destination, 'sha256')).toUpperCase();
   if (sha256 !== update.sha256.toUpperCase()) {
@@ -114,8 +122,11 @@ export async function downloadAndInstall(
       'Checksum APK tidak cocok. Unduhan dibatalkan; coba lagi atau unduh manual dari halaman rilis.',
     );
   }
+  // RNBU resolves the FileProvider URI itself from a plain absolute path;
+  // a `file://` prefix here double-escapes it and the installer fails with
+  // "Failed to find configured root that contains /file:/data/...".
   await ReactNativeBlobUtil.android.actionViewIntent(
-    `file://${destination}`,
+    destination,
     'application/vnd.android.package-archive',
   );
 }
