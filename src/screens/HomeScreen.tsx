@@ -63,6 +63,19 @@ function formatCount(value: number): string {
   return value.toLocaleString('en-US');
 }
 
+function formatSpeed(bps: number): string {
+  return `${formatBytes(bps)}/s`;
+}
+
+function formatDuration(totalSec: number): string {
+  if (totalSec < 60) return `${totalSec}s`;
+  const minutes = Math.floor(totalSec / 60);
+  const sec = totalSec % 60;
+  if (minutes < 60) return sec > 0 ? `${minutes}m ${sec}s` : `${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  return `${hours}h ${minutes % 60}m`;
+}
+
 function relativeTime(timestamp: number): string {
   const diff = Date.now() - timestamp;
   if (diff < 60_000) {
@@ -336,6 +349,8 @@ export default function HomeScreen({ navigation }: Props) {
                   <Text style={styles.progressText} numberOfLines={1}>
                     {`${progressLabel.verb} ${Math.round(progressLabel.current)}/${progressLabel.total} berkas${
                       progressCategory ? ` \u00b7 ${progressCategory}` : ''
+                    }${progressLabel.speedBps ? ` \u00b7 ${formatSpeed(progressLabel.speedBps)}` : ''}${
+                      progressLabel.etaSec ? ` \u00b7 sisa ${formatDuration(progressLabel.etaSec)}` : ''
                     }`}
                   </Text>
                   <Text style={styles.progressPct}>{Math.round(progress * 100)}%</Text>
