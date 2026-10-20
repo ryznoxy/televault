@@ -472,15 +472,16 @@ export function Toggle({
   onValueChange: (value: boolean) => void;
   accessibilityLabel?: string;
 }) {
-  const { theme } = useTheme();
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
   return (
     <Switch
       value={value}
       onValueChange={onValueChange}
       accessibilityLabel={accessibilityLabel}
-      trackColor={{ false: theme.surfaceAlt, true: theme.accent }}
+      trackColor={{ false: TG.highest, true: TG.primaryContainer }}
       thumbColor="#FFFFFF"
-      ios_backgroundColor={theme.surfaceAlt}
+      ios_backgroundColor={TG.highest}
     />
   );
 }
@@ -736,14 +737,15 @@ export function TextField({
 /* ------------------------------------------------------------------ */
 
 export function ProgressBar({ progress }: { progress: number }) {
-  const { theme } = useTheme();
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
   const pct = Math.max(0, Math.min(1, progress)) * 100;
   return (
     <View
       accessibilityRole="progressbar"
       accessibilityValue={{ min: 0, max: 100, now: Math.round(pct) }}
-      style={[styles.track, { backgroundColor: theme.surfaceAlt }]}>
-      <View style={[styles.fill, { width: `${pct}%`, backgroundColor: theme.accent }]} />
+      style={[styles.track, { backgroundColor: TG.low }]}>
+      <View style={[styles.fill, { width: `${pct}%`, backgroundColor: TG.primaryContainer }]} />
     </View>
   );
 }
