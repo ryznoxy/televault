@@ -487,7 +487,7 @@ export default function SetupScreen({ navigation }: Props) {
               autoCapitalize="none"
               autoCorrect={false}
               accessibilityLabel="ID chat tujuan"
-              style={[styles.codeInput, { paddingRight: 14 }]}
+              style={[styles.codeInput, { paddingRight: 14, alignSelf: 'stretch' }]}
               numberOfLines={1}
             />
             <View style={styles.actionRow}>

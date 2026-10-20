@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Animated,
   Easing,
   PanResponder,
@@ -21,6 +22,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeProvider';
 import { FONT,  ELEVATION, RADIUS, SPACE, TG_DARK, TG_LIGHT, tgTheme, TYPE } from '../theme/theme';
 import { parseClampedInt } from './number';
+import { useUpdateStore } from '../state/updateStore';
 
 /* ------------------------------------------------------------------ */
 /* Layout                                                              */
@@ -472,15 +474,16 @@ export function Toggle({
   onValueChange: (value: boolean) => void;
   accessibilityLabel?: string;
 }) {
-  const { theme } = useTheme();
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
   return (
     <Switch
       value={value}
       onValueChange={onValueChange}
       accessibilityLabel={accessibilityLabel}
-      trackColor={{ false: theme.surfaceAlt, true: theme.accent }}
+      trackColor={{ false: TG.highest, true: TG.primaryContainer }}
       thumbColor="#FFFFFF"
-      ios_backgroundColor={theme.surfaceAlt}
+      ios_backgroundColor={TG.highest}
     />
   );
 }
@@ -736,14 +739,15 @@ export function TextField({
 /* ------------------------------------------------------------------ */
 
 export function ProgressBar({ progress }: { progress: number }) {
-  const { theme } = useTheme();
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
   const pct = Math.max(0, Math.min(1, progress)) * 100;
   return (
     <View
       accessibilityRole="progressbar"
       accessibilityValue={{ min: 0, max: 100, now: Math.round(pct) }}
-      style={[styles.track, { backgroundColor: theme.surfaceAlt }]}>
-      <View style={[styles.fill, { width: `${pct}%`, backgroundColor: theme.accent }]} />
+      style={[styles.track, { backgroundColor: TG.low }]}>
+      <View style={[styles.fill, { width: `${pct}%`, backgroundColor: TG.primaryContainer }]} />
     </View>
   );
 }
@@ -817,6 +821,58 @@ const navColors = (mode: 'light' | 'dark') => ({
   active: mode === 'dark' ? TG_DARK.primaryContainer : TG_LIGHT.primaryContainer,
   idle: mode === 'dark' ? TG_DARK.secondary : TG_LIGHT.secondary,
 });
+
+/**
+ * Update banner shown above the bottom nav on every tab, so a download keeps
+ * running (and visible) while the user navigates.
+ */
+export function UpdateBanner() {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const { update, phase, progress, startDownload, cancelDownload, dismiss } = useUpdateStore();
+  if (!update) return null;
+  const busy = phase === 'downloading' || phase === 'opening';
+  return (
+    <View
+      style={[styles.updateCard, { backgroundColor: TG.primaryFixed }]}
+      accessibilityLiveRegion="polite">
+      <Pressable
+        onPress={() => startDownload(() => undefined)}
+        disabled={busy}
+        accessibilityRole="button"
+        accessibilityLabel={`Perbarui aplikasi ke ${update.tag}`}
+        style={({ pressed }) => [styles.updateBody, pressed && !busy && styles.pressed]}>
+        {phase === 'downloading' ? (
+          <ActivityIndicator color={TG.onPrimaryContainer} size="small" />
+        ) : (
+          <TgIcon name="download" color={TG.onPrimaryContainer} size={20} />
+        )}
+        <View style={styles.updateText}>
+          <Text style={[styles.updateTitle, { color: TG.onPrimaryContainer }]}>
+            {phase === 'downloading'
+              ? `Mengunduh ${update.tag}… ${Math.round(progress * 100)}%`
+              : phase === 'opening'
+                ? `Membuka penginstal ${update.tag}…`
+                : `Pembaruan ${update.tag} tersedia`}
+          </Text>
+          {phase === 'idle' ? (
+            <Text style={[styles.updateSub, { color: TG.onPrimaryContainer }]}>
+              Tap untuk unduh & pasang
+            </Text>
+          ) : null}
+        </View>
+      </Pressable>
+      <Pressable
+        onPress={() => (busy ? cancelDownload() : dismiss())}
+        accessibilityRole="button"
+        accessibilityLabel={busy ? 'Batalkan unduhan' : 'Tutup banner pembaruan'}
+        hitSlop={8}
+        style={({ pressed }) => [styles.updateClose, pressed && styles.pressed]}>
+        <TgIcon name="close" color={TG.onPrimaryContainer} size={16} />
+      </Pressable>
+    </View>
+  );
+}
 
 /** Fixed bar (translucent card fill + hairline top border), theme-aware. */
 export function BottomNav({
@@ -2291,6 +2347,27 @@ const styles = StyleSheet.create({
   screen: { flex: 1 },
   content: { gap: SPACE.base },
   column: { width: '100%', maxWidth: 640, alignSelf: 'center', gap: SPACE.base },
+
+  updateCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: RADIUS.md,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    gap: 10,
+    marginBottom: SPACE.sm,
+  },
+  updateBody: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  updateText: { flex: 1, minWidth: 0 },
+  updateTitle: { fontSize: 13, lineHeight: 18, fontWeight: '600', fontFamily: FONT.semi },
+  updateSub: { fontSize: 12, lineHeight: 16, marginTop: 2 },
+  updateClose: {
+    width: 32,
+    height: 32,
+    borderRadius: RADIUS.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 
   header: { gap: SPACE.md, paddingTop: SPACE.sm, paddingBottom: SPACE.xs },
   headerTop: { flexDirection: 'row', alignItems: 'center', gap: SPACE.md },
