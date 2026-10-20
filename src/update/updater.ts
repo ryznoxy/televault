@@ -159,10 +159,17 @@ export async function downloadAndInstall(
   for (const name of oldApks) {
     await ReactNativeBlobUtil.fs.unlink(`${ReactNativeBlobUtil.fs.dirs.CacheDir}/${name}`);
   }
-  const downloaded = await state.fetch('GET', update.apkUrl).progress(onProgress);
+  let downloaded: Awaited<ReturnType<typeof state.fetch>> | null = null;
+  try {
+    downloaded = await state.fetch('GET', update.apkUrl).progress(onProgress);
+  } catch (error) {
+    // Progress-callback abort (user cancel) surfaces here; clean up the partial.
+    await ReactNativeBlobUtil.fs.unlink(destination).catch(() => undefined);
+    throw error;
+  }
   const sha256 = (await ReactNativeBlobUtil.fs.hash(destination, 'sha256')).toUpperCase();
   if (sha256 !== update.sha256.toUpperCase()) {
-    await downloaded.flush();
+    await downloaded?.flush();
     await ReactNativeBlobUtil.fs.unlink(destination);
     throw new Error(
       'Checksum APK tidak cocok. Unduhan dibatalkan; coba lagi atau unduh manual dari halaman rilis.',
