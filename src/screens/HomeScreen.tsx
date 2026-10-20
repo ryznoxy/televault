@@ -29,6 +29,7 @@ import { TelegramBotApi } from '../net/telegramApi';
 import { secureStore } from '../state/secureStore';
 import { useSettingsStore } from '../state/settingsStore';
 import { useBackupUiStore } from '../state/backupUiStore';
+import { checkForUpdate, downloadAndInstall, type AvailableUpdate } from '../update/updater';
 import {
   CATEGORY_LABELS,
   makeWatchedFolder,
@@ -118,7 +119,7 @@ export default function HomeScreen({ navigation }: Props) {
   const setAutomationPaused = useSettingsStore(state => state.setAutomationPaused);
   const addWatchedFolder = useSettingsStore(state => state.addWatchedFolder);
 
-  const { toast } = useToast('bottom');
+  const { toast, showToast } = useToast('bottom');
 
   // Progress lives in the store, not here: the run keeps going in the
   // foreground service while the user is on another screen, and coming back
@@ -138,6 +139,9 @@ export default function HomeScreen({ navigation }: Props) {
   const [totalSize, setTotalSize] = useState(0);
   const [fileCount, setFileCount] = useState(0);
   const [ratio, setRatio] = useState<number | null>(null);
+  const [update, setUpdate] = useState<AvailableUpdate | null>(null);
+  const [updateState, setUpdateState] = useState<'idle' | 'downloading' | 'opening'>('idle');
+  const [updateProgress, setUpdateProgress] = useState(0);
 
   const refresh = useCallback(async () => {
     const ok = await secureStore.isConfigured();
@@ -175,6 +179,42 @@ export default function HomeScreen({ navigation }: Props) {
     refresh();
     return unsubscribe;
   }, [navigation, refresh]);
+
+  // One lightweight release check per cold start; failure just means no banner.
+  useEffect(() => {
+    let cancelled = false;
+    checkForUpdate()
+      .then(available => {
+        if (!cancelled) setUpdate(available);
+      })
+      .catch(() => {
+        // offline or rate-limited: no banner is the correct quiet fallback
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const onUpdatePress = async () => {
+    if (!update || updateState === 'downloading' || updateState === 'opening') return;
+    setUpdateState('downloading');
+    setUpdateProgress(0);
+    try {
+      await downloadAndInstall(update, (sent, total) => {
+        if (total > 0) setUpdateProgress(sent / total);
+      });
+      setUpdateState('opening');
+    } catch (error) {
+      showToast(
+        'Pembaruan gagal',
+        error instanceof Error ? error.message : 'Coba lagi nanti.',
+        'error',
+      );
+      setUpdateState('idle');
+      return;
+    }
+    setUpdateState('idle');
+  };
 
   const onBackupNow = async () => {
     try {
@@ -232,6 +272,31 @@ export default function HomeScreen({ navigation }: Props) {
         contentContainerStyle={contentContainer}
         showsVerticalScrollIndicator={false}>
         <View style={styles.column}>
+          {update ? (
+            <Pressable
+              onPress={onUpdatePress}
+              accessibilityRole="button"
+              accessibilityLabel={`Perbarui aplikasi ke ${update.tag}`}
+              style={({ pressed }) => [
+                styles.updateCard,
+                pressed && styles.pressed,
+                { backgroundColor: TG.primaryFixed },
+              ]}>
+              <TgIcon name="download" color={TG.onPrimaryContainer} size={20} />
+              <View style={styles.updateText}>
+                <Text style={[styles.updateTitle, { color: TG.onPrimaryContainer }]}>
+                  {updateState === 'downloading'
+                    ? `Mengunduh ${update.tag}… ${Math.round(updateProgress * 100)}%`
+                    : updateState === 'opening'
+                      ? `Membuka penginstal ${update.tag}…`
+                      : `Pembaruan ${update.tag} tersedia`}
+                </Text>
+                <Text style={[styles.updateSub, { color: TG.onPrimaryContainer }]}>
+                  {updateState === 'downloading' ? null : 'Tap untuk unduh & pasang'}
+                </Text>
+              </View>
+            </Pressable>
+          ) : null}
           {/* Status Koneksi */}
           <View style={styles.card}>
             <View style={styles.rowBetween}>
@@ -606,6 +671,18 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
   root: { flex: 1 },
   scroll: { flex: 1 },
   column: { width: '100%', maxWidth: 640, alignSelf: 'center', gap: SPACE.base + SPACE.xs },
+
+  updateCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACE.sm,
+    borderRadius: RADIUS.lg,
+    padding: SPACE.md,
+    ...ELEVATION.card,
+  },
+  updateText: { flex: 1 },
+  updateTitle: { ...TYPE.label, fontWeight: '600' },
+  updateSub: { ...TYPE.footnote, marginTop: 2 },
 
   card: {
     backgroundColor: TG.card,

@@ -85,8 +85,10 @@ android {
         applicationId "com.televault.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0.0"
+        // Overridable so the release workflow stamps the tag's version in
+        // without a source edit; local builds keep these defaults.
+        versionCode project.findProperty('TELEVAULT_VERSION_CODE') ?: 1
+        versionName project.findProperty('TELEVAULT_VERSION_NAME') ?: "1.0.0"
     }
     signingConfigs {
         debug {

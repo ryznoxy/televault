@@ -1,0 +1,73 @@
+name: Release
+
+# Tag `vX.Y.Z` → signed release APK + SHA256SUMS attached to a GitHub Release.
+# Requires these repo secrets:
+#   TELEVAULT_STORE_FILE_B64  — base64 of the release keystore (base64 -w0 < file.jks)
+#   TELEVAULT_STORE_PASSWORD, TELEVAULT_KEY_ALIAS, TELEVAULT_KEY_PASSWORD
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - run: npm ci
+      - name: Restore release keystore
+        env:
+          STORE_FILE_B64: ${{ secrets.TELEVAULT_STORE_FILE_B64 }}
+          STORE_PASSWORD: ${{ secrets.TELEVAULT_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.TELEVAULT_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.TELEVAULT_KEY_PASSWORD }}
+        run: |
+          if [ -z "$STORE_FILE_B64" ]; then
+            echo "::error::TELEVAULT_STORE_FILE_B64 is not set; refusing to publish an unsigned build."
+            exit 1
+          fi
+          echo "$STORE_FILE_B64" | base64 -d > android/app/release.keystore
+          cat >> android/gradle.properties <<EOF
+          TELEVAULT_STORE_FILE=release.keystore
+          TELEVAULT_STORE_PASSWORD=$STORE_PASSWORD
+          TELEVAULT_KEY_ALIAS=$KEY_ALIAS
+          TELEVAULT_KEY_PASSWORD=$KEY_PASSWORD
+          EOF
+      # Stamp the tag's version into the build so `Platform.constants.appVersion`
+      # (what the in-app updater compares against) matches the release tag.
+      # versionCode encodes semver: v1.2.3 → 1002003.
+      - name: Version from tag
+        id: ver
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          IFS='.' read -r MAJOR MINOR PATCH <<EOF
+          $TAG
+          EOF
+          echo "name=$TAG" >> "$GITHUB_OUTPUT"
+          echo "code=$((MAJOR * 10000 + MINOR * 100 + PATCH))" >> "$GITHUB_OUTPUT"
+      - run: |
+          cd android && ./gradlew assembleRelease \
+            -PTELEVAULT_VERSION_NAME=${{ steps.ver.outputs.name }} \
+            -PTELEVAULT_VERSION_CODE=${{ steps.ver.outputs.code }}
+      - name: Checksum
+        run: |
+          cd android/app/build/outputs/apk/release
+          APK=$(ls *.apk)
+          sha256sum "$APK" > SHA256SUMS
+          echo "apk=$(pwd)/$APK" >> "$GITHUB_ENV"
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ env.apk }}
+            SHA256SUMS
+          generate_release_notes: true

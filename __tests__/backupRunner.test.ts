@@ -307,9 +307,17 @@ test('a chunk that fails all retries leaves its archive out of the manifest and 
   statMock.mockResolvedValue({ size: 60 * 1024 * 1024, lastModified: 0, type: 'file' });
   // The photo archive loses its second part after all retries; the video archive
   // uploads cleanly, so the manifest still exists and must list only the video.
+  // Archive names no longer carry the category, so lock onto the first archive
+  // stem that uploads a part (photo is scanned first) and fail its .002 —
+  // retries included — while the other archive's parts all succeed.
+  let failingStem: string | null = null;
   apiMock.mockImplementation(() => ({
     sendDocument: jest.fn(async (file: { name: string }) => {
-      if (String(file.name).includes('photo') && String(file.name).endsWith('.002')) {
+      const name = String(file.name);
+      if (name.endsWith('.001') && failingStem === null) {
+        failingStem = name.slice(0, -'.001'.length);
+      }
+      if (failingStem !== null && name === `${failingStem}.002`) {
         throw Object.assign(new Error('Bad Request'), { httpCode: 400 });
       }
       return { messageId: 5, date: 1 };
@@ -332,7 +340,7 @@ test('a chunk that fails all retries leaves its archive out of the manifest and 
   );
   const manifest = JSON.parse(String(manifestRaw)) as { files: { name: string }[] };
   expect(manifest.files).toHaveLength(1);
-  expect(manifest.files[0].name).toMatch(/^backup-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}\.zip$/);
+  expect(manifest.files[0].name).toMatch(/^backup-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}( \(\d+\))?\.zip$/);
 
   const markedPaths = filesMock.markBackup.mock.calls.map(call => call[0]);
   expect(markedPaths).not.toContain('/photo/a.jpg');
