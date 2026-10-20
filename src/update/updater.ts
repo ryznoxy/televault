@@ -12,11 +12,13 @@ export type AvailableUpdate = {
   size: number;
 };
 
-export function appVersion(): string {
+export function appVersion(constants: { appVersion?: string } | undefined = Platform.OS === 'android' ? (Platform.constants as { appVersion?: string }) : undefined): string {
   // `Platform.constants.appVersion` mirrors versionName from build.gradle
   // (injected from the release tag by CI). Absent in tests/other platforms.
-  const constants = Platform.OS === 'android' ? Platform.constants : undefined;
-  return (constants as { appVersion?: string } | undefined)?.appVersion ?? '0.0.0';
+  // Missing constants must read as "latest" — an unknown version would make
+  // every release look newer and the banner would never go away.
+  const version = constants?.appVersion;
+  return version && version !== 'unknown' && /^\d/.test(version) ? version : '99.0.0';
 }
 
 /** Numeric-dot comparison; `1.10.0` > `1.9.0`. Non-numeric tails ignored. */
