@@ -265,12 +265,12 @@ test('names every uploaded part after the manifest entry, single part included',
   await runBackup();
 
   const names = latestApi().sendDocument.mock.calls.map(call => String(call[0].name));
-  expect(names.some(name => /^backup_photo_\d{4}-\d{2}-\d{2}\.zip\.001$/.test(name))).toBe(true);
+  expect(names.some(name => /^backup-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}\.zip\.001$/.test(name))).toBe(true);
   // Manifest and scripts carry the archive's name, so a downloaded file says
   // which zip it belongs to.
-  expect(names.some(name => /^backup_photo_\d{4}-\d{2}-\d{2}\.zip\.manifest\.json$/.test(name))).toBe(true);
-  expect(names.some(name => /^backup_photo_\d{4}-\d{2}-\d{2}\.zip\.reassemble\.sh$/.test(name))).toBe(true);
-  expect(names.some(name => /^backup_photo_\d{4}-\d{2}-\d{2}\.zip\.reassemble\.bat$/.test(name))).toBe(true);
+  expect(names.some(name => /^backup-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}\.zip\.manifest\.json$/.test(name))).toBe(true);
+  expect(names.some(name => /^backup-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}\.zip\.reassemble\.sh$/.test(name))).toBe(true);
+  expect(names.some(name => /^backup-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}\.zip\.reassemble\.bat$/.test(name))).toBe(true);
   expect(names).not.toContain('manifest.json');
 });
 
@@ -332,7 +332,7 @@ test('a chunk that fails all retries leaves its archive out of the manifest and 
   );
   const manifest = JSON.parse(String(manifestRaw)) as { files: { name: string }[] };
   expect(manifest.files).toHaveLength(1);
-  expect(manifest.files[0].name).toMatch(/^backup_video_/);
+  expect(manifest.files[0].name).toMatch(/^backup-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}\.zip$/);
 
   const markedPaths = filesMock.markBackup.mock.calls.map(call => call[0]);
   expect(markedPaths).not.toContain('/photo/a.jpg');
@@ -771,7 +771,7 @@ test('P0-1: an encrypted run stores one IV per part and hashes the plaintext arc
   expect(result.status).toBe('success');
   const names = latestApi().sendDocument.mock.calls.map(call => String(call[0].name));
   // Each part is encrypted on its own, so the uploaded name keeps its part index.
-  expect(names.filter(name => /^backup_photo_\d{4}-\d{2}-\d{2}\.zip\.enc\.\d{3}$/.test(name))).toHaveLength(2);
+  expect(names.filter(name => /^backup-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}\.zip\.enc\.\d{3}$/.test(name))).toHaveLength(2);
 
   const manifestName = names.find(name => name.endsWith('.manifest.json')) as string;
   const manifestRaw = await ReactNativeBlobUtil.fs.readFile(`/cache/meta_1/${manifestName}`, 'utf8');
@@ -788,7 +788,7 @@ test('P0-1: an encrypted run stores one IV per part and hashes the plaintext arc
   };
   const entry = manifest.files[0];
   expect(manifest.version).toBe('2.0');
-  expect(entry.name).toMatch(/^backup_photo_\d{4}-\d{2}-\d{2}\.zip\.enc$/);
+  expect(entry.name).toMatch(/^backup-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}\.zip\.enc$/);
   expect(entry.encrypted).toBe(true);
   expect(entry.ivs).toHaveLength(entry.chunks);
   expect(entry.ivs?.every(iv => typeof iv === 'string' && iv.length > 0)).toBe(true);

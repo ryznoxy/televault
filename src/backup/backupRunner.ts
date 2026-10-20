@@ -541,7 +541,13 @@ export async function runBackup(
         );
       }
       if (config.compressZip) {
-        const zipName = uniqueName(`backup_${category}_${new Date(Date.now()).toISOString().slice(0, 10)}.zip`);
+        // UTC, second precision, no colon: `backup-2026-10-20-09-31-00.zip`.
+        // `uniqueName` adds ` (2)` when two categories archive in the same second.
+        const stamp = new Date(Date.now())
+          .toISOString()
+          .slice(0, 19)
+          .replace(/[:T]/g, '-');
+        const zipName = uniqueName(`backup-${stamp}.zip`);
         const zipPath = `${stagingDir}/${zipName}`;
         emit('zipping', category, 0, pending.length);
         const zipSources: string[] = [];
