@@ -37,12 +37,13 @@ jobs:
             exit 1
           fi
           echo "$STORE_FILE_B64" | base64 -d > android/app/release.keystore
-          cat >> android/gradle.properties <<EOF
-          TELEVAULT_STORE_FILE=release.keystore
-          TELEVAULT_STORE_PASSWORD=$STORE_PASSWORD
-          TELEVAULT_KEY_ALIAS=$KEY_ALIAS
-          TELEVAULT_KEY_PASSWORD=$KEY_PASSWORD
-          EOF
+          {
+            echo ""
+            echo "TELEVAULT_STORE_FILE=release.keystore"
+            echo "TELEVAULT_STORE_PASSWORD=$STORE_PASSWORD"
+            echo "TELEVAULT_KEY_ALIAS=$KEY_ALIAS"
+            echo "TELEVAULT_KEY_PASSWORD=$KEY_PASSWORD"
+          } >> android/gradle.properties
       # Stamp the tag's version into the build so `Platform.constants.appVersion`
       # (what the in-app updater compares against) matches the release tag.
       # versionCode encodes semver: v1.2.3 → 1002003.
