@@ -131,7 +131,7 @@ export default function HomeScreen({ navigation }: Props) {
   const setAutomationPaused = useSettingsStore(state => state.setAutomationPaused);
   const addWatchedFolder = useSettingsStore(state => state.addWatchedFolder);
 
-  const { toast, showToast } = useToast('bottom');
+  const { toast } = useToast('bottom');
 
   // Progress lives in the store, not here: the run keeps going in the
   // foreground service while the user is on another screen, and coming back
