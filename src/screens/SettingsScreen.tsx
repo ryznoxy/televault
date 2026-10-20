@@ -33,6 +33,9 @@ import { sessionsRepo } from '../db/repositories/sessions';
 import { secureStore } from '../state/secureStore';
 import { passphraseStrength } from '../state/passphrase';
 import { useSettingsStore } from '../state/settingsStore';
+import { checkForUpdate, type AvailableUpdate } from '../update/updater';
+import { logError } from '../state/errorLog';
+import { useUpdateStore } from '../state/updateStore';
 import {
   ALL_CATEGORIES,
   CATEGORY_LABELS,
@@ -221,6 +224,7 @@ export default function SettingsScreen({ navigation }: Props) {
   const { toast, showToast } = useToast('bottom');
 
   const [showHourPicker, setShowHourPicker] = useState(false);
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
   const [cacheSize, setCacheSize] = useState(0);
   const [clearing, setClearing] = useState(false);
   const [passphrase, setPassphrase] = useState('');
@@ -371,6 +375,26 @@ export default function SettingsScreen({ navigation }: Props) {
       return;
     }
     setEditingPassphrase(true);
+  };
+
+  // Force-check bypasses the 6h throttle: the user asked explicitly.
+  const onCheckUpdate = async () => {
+    if (checkingUpdate) return;
+    setCheckingUpdate(true);
+    try {
+      const available = await checkForUpdate(undefined, undefined, true);
+      if (available) {
+        useUpdateStore.getState().setUpdate(available);
+        showToast('Pembaruan tersedia', `${available.tag} siap diunduh — lihat banner di beranda.`, 'success');
+      } else {
+        showToast('Sudah terbaru', 'Tidak ada rilis lebih baru dari versi ini.', 'success');
+      }
+    } catch (error) {
+      logError('update-check', error);
+      showToast('Gagal memeriksa', 'Tidak bisa menghubungi GitHub. Coba lagi nanti.', 'error');
+    } finally {
+      setCheckingUpdate(false);
+    }
   };
 
   const onSavePassphrase = async () => {
@@ -890,6 +914,18 @@ export default function SettingsScreen({ navigation }: Props) {
                 subtitle="Ganti tampilan aplikasi antara terang dan gelap"
                 value={mode === 'dark'}
                 onValueChange={() => toggle()}
+              />
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <SectionLabel title="APLIKASI" icon="info" />
+            <View style={styles.card}>
+              <LinkRow
+                icon="download"
+                title="Cek Pembaruan"
+                subtitle={checkingUpdate ? 'Memeriksa\u2026' : 'Periksa rilis baru dari GitHub sekarang'}
+                onPress={onCheckUpdate}
               />
             </View>
           </View>
