@@ -6,6 +6,7 @@ import {
   type NativeStackNavigationProp,
 } from '@react-navigation/native-stack';
 import { BottomNav, UpdateBanner, type TabKey } from '../components/ui';
+import { WhatsNewModal } from '../components/WhatsNewModal';
 import { useUpdateStore } from '../state/updateStore';
 import { useTheme } from '../theme/ThemeProvider';
 import { RootStackParamList, Routes } from './Routes';
@@ -61,7 +62,9 @@ export default function AppNav() {
     check();
   }, [check]);
   return (
-    <NavigationContainer>
+    <>
+      <WhatsNewModal />
+      <NavigationContainer>
       <Stack.Navigator
         initialRouteName={setupDone ? Routes.Home : Routes.Setup}
         screenOptions={{
@@ -100,7 +103,8 @@ export default function AppNav() {
         <Stack.Screen name={Routes.Troubleshoot} component={TroubleshootScreen} />
         <Stack.Screen name={Routes.Restore} component={RestoreScreen} />
       </Stack.Navigator>
-    </NavigationContainer>
+      </NavigationContainer>
+    </>
   );
 }
 
