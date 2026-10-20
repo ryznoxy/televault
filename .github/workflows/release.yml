@@ -62,13 +62,11 @@ jobs:
             -PTELEVAULT_VERSION_CODE=${{ steps.ver.outputs.code }}
       - name: Checksum
         run: |
-          cd android/app/build/outputs/apk/release
-          APK=$(ls *.apk)
-          sha256sum "$APK" > SHA256SUMS
-          echo "apk=$(pwd)/$APK" >> "$GITHUB_ENV"
+          cp android/app/build/outputs/apk/release/*.apk app-release.apk
+          sha256sum app-release.apk > SHA256SUMS
       - uses: softprops/action-gh-release@v2
         with:
           files: |
-            ${{ env.apk }}
+            app-release.apk
             SHA256SUMS
           generate_release_notes: true
