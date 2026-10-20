@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { checkForUpdate, downloadAndInstall, type AvailableUpdate } from '../update/updater';
 import { mmkv } from './mmkv';
+import { logError } from './errorLog';
 
 export type UpdatePhase = 'idle' | 'downloading' | 'opening';
 
@@ -28,8 +29,9 @@ export const useUpdateStore = create<UpdateUiState>()((set, get) => ({
     try {
       const available = await checkForUpdate();
       if (available) set({ update: available });
-    } catch {
+    } catch (error) {
       // offline or rate-limited: no banner is the correct quiet fallback
+      logError('update-check', error);
     }
   },
   startDownload: async onError => {
@@ -53,7 +55,10 @@ export const useUpdateStore = create<UpdateUiState>()((set, get) => ({
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       set({ phase: 'idle', progress: 0, cancelRequested: false });
-      if (message !== '__cancelled__') onError(message);
+      if (message !== '__cancelled__') {
+        logError('update-download', error);
+        onError(message);
+      }
     }
   },
   cancelDownload: () => {
