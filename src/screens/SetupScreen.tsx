@@ -42,7 +42,7 @@ const HIT_SLOP = { top: 10, bottom: 10, left: 10, right: 10 } as const;
 export default function SetupScreen({ navigation }: Props) {
   const { mode } = useTheme();
   const TG = tgTheme(mode);
-  const styles = createStyles(TG);
+  const styles = createStyles(TG, mode);
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
@@ -488,9 +488,11 @@ export default function SetupScreen({ navigation }: Props) {
                 autoCapitalize="none"
                 autoCorrect={false}
                 accessibilityLabel="ID chat tujuan"
-                style={[styles.codeInput, { flex: 1, minWidth: 0 }]}
+                style={styles.codeInput}
                 numberOfLines={1}
               />
+            </View>
+            <View style={styles.actionRow}>
               <Pressable
                 onPress={onSendTest}
                 disabled={sendStatus === 'sending' || !chatId.trim() || !token.trim()}
@@ -498,6 +500,7 @@ export default function SetupScreen({ navigation }: Props) {
                 accessibilityLabel="Kirim pesan uji"
                 style={({ pressed }) => [
                   styles.secondaryButton,
+                  styles.actionGrow,
                   (sendStatus === 'sending' || !chatId.trim() || !token.trim()) &&
                     styles.disabled,
                   pressed && styles.pressed,
@@ -518,6 +521,7 @@ export default function SetupScreen({ navigation }: Props) {
                 accessibilityLabel="Deteksi Chat ID otomatis"
                 style={({ pressed }) => [
                   styles.secondaryButton,
+                  styles.actionGrow,
                   (detecting || !token.trim()) && styles.disabled,
                   pressed && styles.pressed,
                 ]}>
@@ -645,9 +649,9 @@ export default function SetupScreen({ navigation }: Props) {
               pressed && styles.pressed,
             ]}>
             {saving ? (
-              <ActivityIndicator color={ON_ACCENT.strong} size="small" />
+              <ActivityIndicator color={mode === 'dark' ? '#003147' : ON_ACCENT.strong} size="small" />
             ) : (
-              <TgIcon name="checkCircle" color={ON_ACCENT.strong} size={18} />
+              <TgIcon name="checkCircle" color={mode === 'dark' ? '#003147' : ON_ACCENT.strong} size={18} />
             )}
             <Text style={styles.primaryActionText} numberOfLines={1}>
               {saveLabel}
@@ -720,7 +724,7 @@ const CARD_SHADOW = {
   shadowColor: TG_LIGHT.ink,
 };
 
-const createStyles = (TG: TGPalette) => StyleSheet.create({
+const createStyles = (TG: TGPalette, mode: 'light' | 'dark') => StyleSheet.create({
   root: { flex: 1, backgroundColor: TG.bg },
   scroll: { flex: 1 },
   column: { width: '100%', maxWidth: 640, alignSelf: 'center', gap: 24 },
@@ -835,6 +839,8 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
   linkText: { color: TG.primary, fontSize: 13, lineHeight: 18, fontWeight: '600', fontFamily: FONT.semi },
 
   inputSplit: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  actionRow: { flexDirection: 'row', gap: 8 },
+  actionGrow: { flex: 1, minWidth: 0 },
   secondaryButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -889,7 +895,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     paddingHorizontal: 16,
   },
   primaryActionText: {
-    color: ON_ACCENT.strong,
+    color: mode === 'dark' ? '#003147' : ON_ACCENT.strong,
     fontSize: 12,
     lineHeight: 16,
     fontWeight: '600', fontFamily: FONT.semi,

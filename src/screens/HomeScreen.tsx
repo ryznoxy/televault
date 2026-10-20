@@ -418,9 +418,9 @@ export default function HomeScreen({ navigation }: Props) {
                 pressed && styles.pressed,
               ]}>
               {busy ? (
-                <ActivityIndicator color={TG.onPrimaryContainer} size="small" />
+                <ActivityIndicator color="#003147" size="small" />
               ) : (
-                <TgIcon name="backup" color={TG.onPrimaryContainer} size={20} />
+                <TgIcon name="backup" color="#003147" size={20} />
               )}
               <Text style={styles.heroCtaText} numberOfLines={1}>
                 {busy ? status ?? 'Mencadangkan\u2026' : 'Mulai Backup Sekarang'}
@@ -651,9 +651,9 @@ function PreferenceRow({
         value={value}
         onValueChange={onValueChange}
         accessibilityLabel={title}
-        trackColor={{ false: TG.highest, true: TG.primaryContainer }}
-        thumbColor={TG.card}
-        ios_backgroundColor={TG.highest}
+        trackColor={{ false: TG.outline, true: TG.primaryContainer }}
+        thumbColor={value ? TG.onPrimaryContainer : TG.highest}
+        ios_backgroundColor={TG.outline}
       />
     </View>
   );
@@ -782,10 +782,10 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     gap: SPACE.sm,
     minHeight: 52,
     borderRadius: RADIUS.md,
-    backgroundColor: ON_ACCENT.strong,
+    backgroundColor: '#FFFFFF',
   },
   heroCtaText: {
-    color: TG.primary, ...TYPE.label, fontFamily: FONT.semi, flexShrink: 1,
+    color: '#003147', ...TYPE.label, fontFamily: FONT.semi, flexShrink: 1,
   },
   heroActions: { flexDirection: 'row', gap: SPACE.md },
   heroSecondary: {

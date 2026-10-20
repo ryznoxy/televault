@@ -1,4 +1,15 @@
-import { isNewerVersion, sha256For } from '../src/update/updater';
+import { appVersion, isNewerVersion, sha256For } from '../src/update/updater';
+
+describe('appVersion fallback', () => {
+  test.each([
+    [{ appVersion: '1.2.4' }, '1.2.4'],
+    [{ appVersion: 'unknown' }, '99.0.0'],
+    [{}, '99.0.0'],
+    [undefined, '99.0.0'],
+  ])('(%p) → %p', (input, expected) => {
+    expect(appVersion(input as { appVersion?: string } | undefined)).toBe(expected);
+  });
+});
 
 describe('isNewerVersion', () => {
   test.each([
