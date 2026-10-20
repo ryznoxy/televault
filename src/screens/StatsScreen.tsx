@@ -802,7 +802,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
   pillDot: { width: 6, height: 6, borderRadius: '50%' },
   pillText: { fontSize: 12, lineHeight: 16, fontWeight: '500', fontFamily: FONT.medium, flexShrink: 1 },
   pillTextActive: { color: ON_ACCENT.strong, fontWeight: '600', fontFamily: FONT.semi },
-  pillTextIdle: { color: TG.secondary },
+  pillTextIdle: { color: TG.ink },
 
   card: {
     backgroundColor: TG.card,
