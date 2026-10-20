@@ -87,8 +87,10 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         // Overridable so the release workflow stamps the tag's version in
         // without a source edit; local builds keep these defaults.
-        versionCode project.findProperty('TELEVAULT_VERSION_CODE') ?: 1
-        versionName project.findProperty('TELEVAULT_VERSION_NAME') ?: "1.0.0"
+        def vaultVersionCode = project.findProperty('TELEVAULT_VERSION_CODE')
+        def vaultVersionName = project.findProperty('TELEVAULT_VERSION_NAME')
+        versionCode vaultVersionCode != null ? vaultVersionCode.toInteger() : 1
+        versionName vaultVersionName != null ? vaultVersionName.toString() : "1.0.0"
     }
     signingConfigs {
         debug {
