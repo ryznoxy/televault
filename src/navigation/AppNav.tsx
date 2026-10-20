@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import {
   createNativeStackNavigator,
   type NativeStackNavigationProp,
 } from '@react-navigation/native-stack';
-import { BottomNav, type TabKey } from '../components/ui';
+import { BottomNav, UpdateBanner, type TabKey } from '../components/ui';
+import { useUpdateStore } from '../state/updateStore';
 import { useTheme } from '../theme/ThemeProvider';
 import { RootStackParamList, Routes } from './Routes';
 import { useSettingsStore } from '../state/settingsStore';
@@ -37,6 +38,7 @@ function TabShell({
   return (
     <View style={styles.shell}>
       {children}
+      <UpdateBanner />
       <BottomNav
         active={tab}
         onChange={next => {
@@ -52,6 +54,12 @@ function TabShell({
 export default function AppNav() {
   const { theme } = useTheme();
   const setupDone = useSettingsStore(state => state.setupDone);
+  const check = useUpdateStore(state => state.check);
+  // One lightweight release check per cold start; the banner lives above the
+  // bottom nav so a started download survives tab switches.
+  useEffect(() => {
+    check();
+  }, [check]);
   return (
     <NavigationContainer>
       <Stack.Navigator
