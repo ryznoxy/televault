@@ -33,7 +33,7 @@ import { sessionsRepo } from '../db/repositories/sessions';
 import { secureStore } from '../state/secureStore';
 import { passphraseStrength } from '../state/passphrase';
 import { useSettingsStore } from '../state/settingsStore';
-import { checkForUpdate, type AvailableUpdate } from '../update/updater';
+import { checkForUpdate } from '../update/updater';
 import { logError } from '../state/errorLog';
 import { useUpdateStore } from '../state/updateStore';
 import {
