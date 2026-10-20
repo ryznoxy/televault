@@ -1,0 +1,119 @@
+import { Platform } from 'react-native';
+import ReactNativeBlobUtil from 'react-native-blob-util';
+
+/** Repo the release workflow publishes to; the app must read it unauthenticated. */
+export const RELEASE_REPO = 'ryznoxy/televault';
+
+export type AvailableUpdate = {
+  tag: string;
+  apkUrl: string;
+  /** SHA-256 of the APK, upper-case, from the release's SHA256SUMS asset. */
+  sha256: string;
+  size: number;
+};
+
+export function appVersion(): string {
+  // `Platform.constants.appVersion` mirrors versionName from build.gradle
+  // (injected from the release tag by CI). Absent in tests/other platforms.
+  const constants = Platform.OS === 'android' ? Platform.constants : undefined;
+  return (constants as { appVersion?: string } | undefined)?.appVersion ?? '0.0.0';
+}
+
+/** Numeric-dot comparison; `1.10.0` > `1.9.0`. Non-numeric tails ignored. */
+export function isNewerVersion(candidate: string, current: string): boolean {
+  const parts = (version: string): number[] =>
+    version
+      .replace(/^v/, '')
+      .split('-')[0]
+      .split('.')
+      .map(segment => parseInt(segment, 10) || 0);
+  const a = parts(candidate);
+  const b = parts(current);
+  for (let i = 0; i < Math.max(a.length, b.length); i += 1) {
+    const diff = (a[i] ?? 0) - (b[i] ?? 0);
+    if (diff !== 0) return diff > 0;
+  }
+  return false;
+}
+
+/** Pulls the APK's digest out of a `SHA256SUMS` file (one `<hash>  <name>` per line). */
+export function sha256For(apkName: string, sums: string): string {
+  const line = sums
+    .split('\n')
+    .find(entry => entry.trim().endsWith(apkName) && /^[0-9a-fA-F]{64}\s/.test(entry.trim()));
+  return line ? line.trim().split(/\s+/)[0].toUpperCase() : '';
+}
+
+type ReleaseResponse = {
+  tag_name?: unknown;
+  assets?: { name?: unknown; browser_download_url?: unknown; size?: unknown }[];
+};
+
+/** Returns the pending update, or null when the install is current. */
+export async function checkForUpdate(
+  fetchFn: typeof fetch = fetch,
+  current: string = appVersion(),
+): Promise<AvailableUpdate | null> {
+  const response = await fetchFn(`https://api.github.com/repos/${RELEASE_REPO}/releases/latest`, {
+    headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'televault-app' },
+  });
+  if (!response.ok) throw new Error(`GitHub API ${response.status}`);
+  const release = (await response.json()) as ReleaseResponse;
+  if (typeof release.tag_name !== 'string') return null;
+  if (!isNewerVersion(release.tag_name, current)) return null;
+
+  const assets = release.assets ?? [];
+  const apk = assets.find(
+    asset =>
+      typeof asset.name === 'string' &&
+      typeof asset.browser_download_url === 'string' &&
+      asset.name.endsWith('.apk'),
+  );
+  const sums = assets.find(asset => asset.name === 'SHA256SUMS');
+  if (!apk?.browser_download_url || !sums?.browser_download_url) {
+    throw new Error('Rilis terbaru belum punya APK atau checksum.');
+  }
+  const sumsResponse = await fetchFn(String(sums.browser_download_url), {
+    headers: { 'User-Agent': 'televault-app' },
+  });
+  if (!sumsResponse.ok) throw new Error(`Checksum gagal diunduh (${sumsResponse.status})`);
+  const sha256 = sha256For(String(apk.name), await sumsResponse.text());
+  if (!sha256) throw new Error('Checksum APK tidak ditemukan di SHA256SUMS.');
+
+  return {
+    tag: release.tag_name,
+    apkUrl: String(apk.browser_download_url),
+    sha256,
+    size: typeof apk.size === 'number' ? apk.size : 0,
+  };
+}
+
+/**
+ * Downloads the APK, verifies it against the release's checksum, then hands it
+ * to the Android package installer (the OS shows its one unavoidable "Install"
+ * prompt). Rejects before opening anything if the digest does not match.
+ */
+export async function downloadAndInstall(
+  update: AvailableUpdate,
+  onProgress: (sent: number, total: number) => void,
+): Promise<void> {
+  const destination = `${ReactNativeBlobUtil.fs.dirs.CacheDir}/${update.tag.replace(/^v/, '')}.apk`;
+  // Cache bytes: the installer opens it once and it is deleted on mismatch;
+  // Android clears the cache dir under storage pressure anyway.
+  const state = ReactNativeBlobUtil.config({
+    path: destination,
+  });
+  const downloaded = await state.fetch('GET', update.apkUrl).progress(onProgress);
+  const sha256 = (await ReactNativeBlobUtil.fs.hash(destination, 'sha256')).toUpperCase();
+  if (sha256 !== update.sha256.toUpperCase()) {
+    await downloaded.flush();
+    await ReactNativeBlobUtil.fs.unlink(destination);
+    throw new Error(
+      'Checksum APK tidak cocok. Unduhan dibatalkan; coba lagi atau unduh manual dari halaman rilis.',
+    );
+  }
+  await ReactNativeBlobUtil.android.actionViewIntent(
+    `file://${destination}`,
+    'application/vnd.android.package-archive',
+  );
+}
