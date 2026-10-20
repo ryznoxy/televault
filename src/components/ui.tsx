@@ -130,6 +130,10 @@ export function AppHeader({
   const { mode } = useTheme();
   const TG = tgTheme(mode);
   const headerBg = mode === 'dark' ? 'rgba(19,26,33,0.96)' : 'rgba(248,249,255,0.96)';
+  const backStyle = [
+    styles.appHeaderBack,
+    { backgroundColor: TG.card, borderColor: TG.highest },
+  ];
   return (
     <View
       style={[
@@ -143,7 +147,7 @@ export function AppHeader({
             accessibilityRole="button"
             accessibilityLabel="Kembali"
             hitSlop={8}
-            style={({ pressed }) => [styles.appHeaderBack, pressed && styles.pressed]}>
+            style={({ pressed }) => [...backStyle, pressed && styles.pressed]}>
             <TgIcon name="chevron" color={TG.ink} size={16} direction="left" />
           </Pressable>
         ) : null}
@@ -808,7 +812,9 @@ const TABS: { key: TabKey; label: string; icon: TgIconName }[] = [
 
 /** Bottom nav accent colors — resolved per mode inside BottomNav. */
 const navColors = (mode: 'light' | 'dark') => ({
-  active: mode === 'dark' ? TG_DARK.primary : TG_LIGHT.primaryContainer,
+  // Dark active uses primaryContainer (#229ED9) — full primary (#7FCBF2)
+  // reads as glaring on the near-black bar.
+  active: mode === 'dark' ? TG_DARK.primaryContainer : TG_LIGHT.primaryContainer,
   idle: mode === 'dark' ? TG_DARK.secondary : TG_LIGHT.secondary,
 });
 
@@ -845,7 +851,11 @@ export function BottomNav({
             accessibilityState={{ selected }}
             accessibilityLabel={tab.label}
             style={({ pressed }) => [styles.navItem, pressed && { opacity: 0.7 }]}>
-            <View style={[styles.navIcon, selected && styles.navIconActive]}>
+            <View
+              style={[
+                styles.navIcon,
+                selected && { backgroundColor: TG.low },
+              ]}>
               <TgIcon
                 name={tab.icon}
                 color={selected ? NAV.active : NAV.idle}
@@ -2492,9 +2502,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: RADIUS.md,
-    backgroundColor: TG_LIGHT.card,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: TG_LIGHT.highest,
     alignItems: 'center',
     justifyContent: 'center',
   },

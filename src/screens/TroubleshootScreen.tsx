@@ -75,7 +75,7 @@ const EMPTY_DIAGNOSTICS: Diagnostics = {
 export default function TroubleshootScreen({ navigation }: Props) {
   const { mode } = useTheme();
   const TG = tgTheme(mode);
-  const styles = createStyles(TG);
+  const styles = createStyles(TG, mode);
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const gutter = width >= 768 ? 24 : 16;
@@ -217,7 +217,7 @@ export default function TroubleshootScreen({ navigation }: Props) {
                 accessibilityRole="button"
                 accessibilityLabel="Izinkan tanpa optimasi baterai"
                 style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}>
-                <TgIcon name="batteryCharging" color={ON_ACCENT.strong} size={18} />
+                <TgIcon name="batteryCharging" color={mode === 'dark' ? '#003147' : ON_ACCENT.strong} size={18} />
                 <Text style={styles.primaryButtonText} numberOfLines={1}>
                   Izinkan Tanpa Optimasi Baterai
                 </Text>
@@ -296,7 +296,7 @@ function InfoRow({
 }) {
   const { mode } = useTheme();
   const TG = tgTheme(mode);
-  const styles = createStyles(TG);
+  const styles = createStyles(TG, mode);
   const valueColor =
     tone === 'ok'
       ? TG.primary
@@ -320,7 +320,7 @@ function InfoRow({
   );
 }
 
-const createStyles = (TG: TGPalette) => StyleSheet.create({
+const createStyles = (TG: TGPalette, mode: 'light' | 'dark') => StyleSheet.create({
   root: { flex: 1, backgroundColor: TG.bg },
   scroll: { flex: 1 },
   column: { width: '100%', maxWidth: 640, alignSelf: 'center', gap: 24 },
@@ -367,7 +367,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     paddingHorizontal: 16,
   },
   primaryButtonText: {
-    color: ON_ACCENT.strong,
+    color: mode === 'dark' ? '#003147' : ON_ACCENT.strong,
     fontSize: 12,
     lineHeight: 16,
     fontWeight: '600', fontFamily: FONT.semi,

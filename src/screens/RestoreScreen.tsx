@@ -75,7 +75,7 @@ function phaseLabel(phase: RestorePhase): string {
 export default function RestoreScreen({ navigation }: Props) {
   const { mode } = useTheme();
   const TG = tgTheme(mode);
-  const styles = createStyles(TG);
+  const styles = createStyles(TG, mode);
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
@@ -333,7 +333,7 @@ export default function RestoreScreen({ navigation }: Props) {
                 busy && styles.disabled,
                 pressed && styles.pressed,
               ]}>
-              <TgIcon name="fileText" color={ON_ACCENT.strong} size={20} />
+              <TgIcon name="fileText" color={mode === 'dark' ? '#003147' : ON_ACCENT.strong} size={20} />
               <Text style={styles.primaryButtonText} numberOfLines={1}>
                 Pilih berkas backup
               </Text>
@@ -414,9 +414,9 @@ export default function RestoreScreen({ navigation }: Props) {
                     pressed && styles.pressed,
                   ]}>
                   {busy ? (
-                    <ActivityIndicator color={ON_ACCENT.strong} size="small" />
+                    <ActivityIndicator color={mode === 'dark' ? '#003147' : ON_ACCENT.strong} size="small" />
                   ) : (
-                    <TgIcon name="download" color={ON_ACCENT.strong} size={20} />
+                    <TgIcon name="download" color={mode === 'dark' ? '#003147' : ON_ACCENT.strong} size={20} />
                   )}
                   <Text style={styles.primaryButtonText} numberOfLines={1}>
                     {busy ? 'Mengunduh & memulihkan\u2026' : 'Pulihkan Sesi Ini'}
@@ -470,9 +470,9 @@ export default function RestoreScreen({ navigation }: Props) {
               pressed && styles.pressed,
             ]}>
             {busy ? (
-              <ActivityIndicator color={ON_ACCENT.strong} size="small" />
+              <ActivityIndicator color={mode === 'dark' ? '#003147' : ON_ACCENT.strong} size="small" />
             ) : (
-              <TgIcon name="download" color={ON_ACCENT.strong} size={20} />
+              <TgIcon name="download" color={mode === 'dark' ? '#003147' : ON_ACCENT.strong} size={20} />
             )}
             <Text style={styles.primaryButtonText} numberOfLines={1}>
               {busy ? 'Memulihkan\u2026' : 'Pulihkan Sekarang'}
@@ -568,7 +568,7 @@ const CARD_SHADOW = {
   shadowColor: TG_LIGHT.ink,
 };
 
-const createStyles = (TG: TGPalette) => StyleSheet.create({
+const createStyles = (TG: TGPalette, mode: 'light' | 'dark') => StyleSheet.create({
   root: { flex: 1 },
   scroll: { flex: 1 },
   column: { width: '100%', maxWidth: 640, alignSelf: 'center', gap: 24 },
@@ -660,9 +660,9 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     minHeight: 52,
     borderRadius: RADIUS.md,
     paddingHorizontal: 16,
-    backgroundColor: TG.onPrimaryContainer,
+    backgroundColor: TG.primary,
   },
-  primaryButtonText: { color: ON_ACCENT.strong, fontSize: 15, lineHeight: 20, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 1 },
+  primaryButtonText: { color: mode === 'dark' ? '#003147' : ON_ACCENT.strong, fontSize: 15, lineHeight: 20, fontWeight: '600', fontFamily: FONT.semi, flexShrink: 1 },
   secondaryButton: {
     flexDirection: 'row',
     alignItems: 'center',

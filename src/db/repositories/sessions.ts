@@ -119,8 +119,10 @@ export const sessionsRepo = {
   },
 
   async totalUploadedSize(): Promise<number> {
+    // Partial runs uploaded real bytes too; excluding them made the
+    // "Total Ter-backup" tile read 0 for users whose runs end partial.
     const result = await getDb().execute(
-      "SELECT COALESCE(SUM(total_size), 0) AS n FROM backup_sessions WHERE status = 'success'",
+      "SELECT COALESCE(SUM(total_size), 0) AS n FROM backup_sessions WHERE status IN ('success', 'partial')",
     );
     return Number(result.rows[0]?.n ?? 0);
   },

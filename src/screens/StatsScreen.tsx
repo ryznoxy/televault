@@ -97,7 +97,7 @@ const FILTER_DEFS: { key: SessionFilter; label: string; dot?: 'success' | 'faile
 export default function StatsScreen({ navigation }: Props) {
   const { mode } = useTheme();
   const TG = tgTheme(mode);
-  const styles = createStyles(TG);
+  const styles = createStyles(TG, mode);
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const gutter = width >= 768 ? 24 : 16;
@@ -754,7 +754,7 @@ function MenuItem({
   );
 }
 
-const createStyles = (TG: TGPalette) => StyleSheet.create({
+const createStyles = (TG: TGPalette, mode: 'light' | 'dark' = 'light') => StyleSheet.create({
   root: { flex: 1, backgroundColor: TG.bg },
   scroll: { flex: 1 },
   column: { width: '100%', maxWidth: 640, alignSelf: 'center', gap: 16 },
@@ -797,11 +797,11 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     borderRadius: RADIUS.md,
     flexShrink: 0,
   },
-  pillActive: { backgroundColor: TG.ink },
+  pillActive: mode === 'dark' ? { backgroundColor: '#FFFFFF' } : { backgroundColor: TG.ink },
   pillIdle: { backgroundColor: TG.card, ...CARD_SHADOW },
   pillDot: { width: 6, height: 6, borderRadius: '50%' },
   pillText: { fontSize: 12, lineHeight: 16, fontWeight: '500', fontFamily: FONT.medium, flexShrink: 1 },
-  pillTextActive: { color: ON_ACCENT.strong, fontWeight: '600', fontFamily: FONT.semi },
+  pillTextActive: { color: mode === 'dark' ? '#003147' : ON_ACCENT.strong, fontWeight: '600', fontFamily: FONT.semi },
   pillTextIdle: { color: TG.ink },
 
   card: {

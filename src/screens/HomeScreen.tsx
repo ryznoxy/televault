@@ -4,7 +4,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Switch,
   Text,
   useWindowDimensions,
   View,
@@ -19,6 +18,7 @@ import {
   ProgressRing,
   PulsingDot,
   TgIcon,
+  Toggle,
   useToast,
   type TgIconName,
 } from '../components/ui';
@@ -647,14 +647,7 @@ function PreferenceRow({
           {subtitle}
         </Text>
       </View>
-      <Switch
-        value={value}
-        onValueChange={onValueChange}
-        accessibilityLabel={title}
-        trackColor={{ false: TG.outline, true: TG.primaryContainer }}
-        thumbColor={value ? TG.onPrimaryContainer : TG.highest}
-        ios_backgroundColor={TG.outline}
-      />
+      <Toggle value={value} onValueChange={onValueChange} accessibilityLabel={title} />
     </View>
   );
 }
