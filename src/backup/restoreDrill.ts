@@ -4,6 +4,7 @@ import { sessionsRepo } from '../db/repositories/sessions';
 import { secureStore } from '../state/secureStore';
 import { restoreFromTelegram } from './restoreRunner';
 import { trackTempDir, untrackTempDir } from './tempDirs';
+import { logError } from '../state/errorLog';
 
 export type DrillResult = {
   ok: boolean;
@@ -44,12 +45,18 @@ export async function runRestoreDrill(
       passphrase: credentials.encryptionPassword || undefined,
     });
     const ok = result.status === 'success' && result.failed === 0;
+    const reasons = result.files
+      .filter(file => file.status === 'failed' && file.error)
+      .map(file => `${file.name}: ${file.error}`);
+    if (!ok) {
+      logError('drill', reasons.join(' | ') || `status ${result.status}`);
+    }
     return {
       ok,
       files: result.succeeded,
       message: ok
         ? `Backup ${target.archive_name ?? target.id} terverifikasi: ${result.succeeded} berkas, hash cocok.`
-        : `Drill GAGAL: ${result.succeeded} berhasil, ${result.failed} gagal dari ${result.total}.`,
+        : `Drill GAGAL: ${result.succeeded} berhasil, ${result.failed} gagal dari ${result.total}. ${reasons[0] ?? ''}`,
     };
   } finally {
     await ReactNativeBlobUtil.fs.unlink(outDir).catch(() => undefined);
