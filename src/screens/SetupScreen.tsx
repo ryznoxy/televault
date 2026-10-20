@@ -479,19 +479,17 @@ export default function SetupScreen({ navigation }: Props) {
               <Text style={styles.label}>TARGET CHAT ID / CHANNEL ID</Text>
               <Text style={styles.helperRight}>Private Cloud Storage</Text>
             </View>
-            <View style={styles.inputSplit}>
-              <TextInput
-                value={chatId}
-                onChangeText={setChatId}
-                placeholder="-1001234567890"
-                placeholderTextColor={TG.outline}
-                autoCapitalize="none"
-                autoCorrect={false}
-                accessibilityLabel="ID chat tujuan"
-                style={styles.codeInput}
-                numberOfLines={1}
-              />
-            </View>
+            <TextInput
+              value={chatId}
+              onChangeText={setChatId}
+              placeholder="-1001234567890"
+              placeholderTextColor={TG.outline}
+              autoCapitalize="none"
+              autoCorrect={false}
+              accessibilityLabel="ID chat tujuan"
+              style={[styles.codeInput, { paddingRight: 14 }]}
+              numberOfLines={1}
+            />
             <View style={styles.actionRow}>
               <Pressable
                 onPress={onSendTest}

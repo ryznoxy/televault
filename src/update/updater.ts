@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
+import { mmkv } from '../state/mmkv';
 
 /** Repo the release workflow publishes to; the app must read it unauthenticated. */
 export const RELEASE_REPO = 'ryznoxy/televault';
@@ -51,17 +52,35 @@ type ReleaseResponse = {
   assets?: { name?: unknown; browser_download_url?: unknown; size?: unknown }[];
 };
 
+// Unauthenticated GitHub API allows ~60 req/h per IP, shared by anything on
+// the same network. One check per cold start can still burn it across
+// restarts, so throttle to one successful check per interval. `force` is for
+// an explicit pull-to-refresh style re-check.
+const CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
+const LAST_CHECK_KEY = 'update_last_check_at';
+
+function lastCheckAt(): number {
+  const stored = mmkv.getString(LAST_CHECK_KEY);
+  return stored ? Number(stored) || 0 : 0;
+}
+
 /** Returns the pending update, or null when the install is current. */
 export async function checkForUpdate(
   fetchFn: typeof fetch = fetch,
   current: string = appVersion(),
+  force = false,
+  now = Date.now(),
 ): Promise<AvailableUpdate | null> {
+  if (!force && now - lastCheckAt() < CHECK_INTERVAL_MS) return null;
   const response = await fetchFn(`https://api.github.com/repos/${RELEASE_REPO}/releases/latest`, {
     headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'televault-app' },
   });
   if (!response.ok) throw new Error(`GitHub API ${response.status}`);
   const release = (await response.json()) as ReleaseResponse;
   if (typeof release.tag_name !== 'string') return null;
+  // Record only after a successful API round-trip so a failed check retries
+  // on the next start instead of waiting out the interval.
+  mmkv.set(LAST_CHECK_KEY, String(now));
   if (!isNewerVersion(release.tag_name, current)) return null;
 
   const assets = release.assets ?? [];
