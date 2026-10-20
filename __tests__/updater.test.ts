@@ -1,4 +1,4 @@
-import { appVersion, isNewerVersion, sha256For } from '../src/update/updater';
+import { appVersion, deviceVersionCode, isNewerVersion, sha256For, versionCodeFor } from '../src/update/updater';
 
 describe('appVersion fallback', () => {
   test.each([
@@ -51,6 +51,80 @@ describe('checkForUpdate throttle', () => {
     // a successful forced check stamps the throttle
     await fresh.checkForUpdate(fetchFn, '1.0.0', false, 2_000_000 + 1000);
     expect(fetchFn).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('version code comparison', () => {
+  test.each([
+    ['v1.2.8', 10208],
+    ['1.2.8', 10208],
+    ['v1.10.0', 11000],
+    ['notaversion', null],
+  ])('versionCodeFor(%p) → %p', (tag, expected) => {
+    expect(versionCodeFor(tag)).toBe(expected);
+  });
+
+  test.each([
+    [{ buildVersionCode: 10206 }, 10206],
+    [{}, null],
+    [undefined, null],
+  ])('deviceVersionCode(%p) → %p', (input, expected) => {
+    expect(deviceVersionCode(input as { buildVersionCode?: number } | undefined)).toBe(expected);
+  });
+
+  test('release newer than device code wins even when appVersion is unreadable', async () => {
+    jest.resetModules();
+    jest.doMock('../src/state/mmkv', () => ({ mmkv: { getString: () => '', set: () => undefined } }));
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const fresh = require('../src/update/updater');
+    const release = {
+      ok: true,
+      json: async () => ({
+        tag_name: 'v1.2.8',
+        assets: [
+          { name: 'app-release.apk', browser_download_url: 'https://x/app-release.apk' },
+          { name: 'SHA256SUMS', browser_download_url: 'https://x/SHA256SUMS' },
+        ],
+      }),
+    } as unknown as Response;
+    const fetchFn = jest.fn(async (url: RequestInfo | URL) =>
+      String(url).endsWith('SHA256SUMS')
+        ? ({ ok: true, text: async () => 'a'.repeat(64) + '  app-release.apk' } as unknown as Response)
+        : release,
+    );
+    // appVersion() falls back to '99.0.0' (unreadable), yet v1.2.8 > v1.2.6 by code
+    const update = await fresh.checkForUpdate(
+      fetchFn,
+      fresh.appVersion(undefined),
+      true,
+      Date.now(),
+      10206,
+    );
+    expect(update?.tag).toBe('v1.2.8');
+  });
+
+  test('same versionCode yields no banner', async () => {
+    jest.resetModules();
+    jest.doMock('../src/state/mmkv', () => ({ mmkv: { getString: () => '', set: () => undefined } }));
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const fresh = require('../src/update/updater');
+    const release = {
+      ok: true,
+      json: async () => ({
+        tag_name: 'v1.2.8',
+        assets: [
+          { name: 'app-release.apk', browser_download_url: 'https://x/app-release.apk' },
+          { name: 'SHA256SUMS', browser_download_url: 'https://x/SHA256SUMS' },
+        ],
+      }),
+    } as unknown as Response;
+    const fetchFn = jest.fn(async (url: RequestInfo | URL) =>
+      String(url).endsWith('SHA256SUMS')
+        ? ({ ok: true, text: async () => 'a'.repeat(64) + '  app-release.apk' } as unknown as Response)
+        : release,
+    );
+    const update = await fresh.checkForUpdate(fetchFn, '1.2.8', true, Date.now(), 10208);
+    expect(update).toBeNull();
   });
 });
 

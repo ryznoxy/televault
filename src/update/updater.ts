@@ -39,6 +39,24 @@ export function isNewerVersion(candidate: string, current: string): boolean {
   return false;
 }
 
+/** versionCode encodes semver in CI: v1.2.8 → 10208 (major*10000 + minor*100 + patch). */
+export function versionCodeFor(tag: string): number | null {
+  const match = /^v?(\d+)\.(\d+)\.(\d+)/.exec(tag);
+  if (!match) return null;
+  const [, major, minor, patch] = match.map(Number) as unknown as number[];
+  return major * 10000 + minor * 100 + patch;
+}
+
+/** Numeric build versionCode from the device; null when unreadable. */
+export function deviceVersionCode(
+  constants: { buildVersionCode?: number } | undefined = Platform.OS === 'android'
+    ? (Platform.constants as { buildVersionCode?: number })
+    : undefined,
+): number | null {
+  const code = constants?.buildVersionCode;
+  return typeof code === 'number' && Number.isFinite(code) ? code : null;
+}
+
 /** Pulls the APK's digest out of a `SHA256SUMS` file (one `<hash>  <name>` per line). */
 export function sha256For(apkName: string, sums: string): string {
   const line = sums
@@ -70,6 +88,7 @@ export async function checkForUpdate(
   current: string = appVersion(),
   force = false,
   now = Date.now(),
+  deviceCode: number | null = deviceVersionCode(),
 ): Promise<AvailableUpdate | null> {
   if (!force && now - lastCheckAt() < CHECK_INTERVAL_MS) return null;
   const response = await fetchFn(`https://api.github.com/repos/${RELEASE_REPO}/releases/latest`, {
@@ -81,7 +100,15 @@ export async function checkForUpdate(
   // Record only after a successful API round-trip so a failed check retries
   // on the next start instead of waiting out the interval.
   mmkv.set(LAST_CHECK_KEY, String(now));
-  if (!isNewerVersion(release.tag_name, current)) return null;
+  // Prefer the numeric versionCode (CI encodes the tag into it) — versionName
+  // via Platform.constants.appVersion has proven unreadable on some devices,
+  // which silently pinned those installs to "latest".
+  const releaseCode = versionCodeFor(release.tag_name);
+  const newer =
+    releaseCode !== null && deviceCode !== null
+      ? releaseCode > deviceCode
+      : isNewerVersion(release.tag_name, current);
+  if (!newer) return null;
 
   const assets = release.assets ?? [];
   const apk = assets.find(
