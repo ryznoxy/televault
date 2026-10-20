@@ -156,6 +156,8 @@ async function deleteLocalOriginals(items: ScanResult[]): Promise<void> {
 
 export async function runBackup(
   onProgress?: (progress: BackupProgress) => void,
+  /** Raw per-part byte progress of the in-flight upload, for a speed readout. */
+  onUploadBytes?: (sent: number, total: number) => void,
 ): Promise<BackupResult> {
   const credentials = await secureStore.get();
   if (!credentials.botToken.trim() || !credentials.chatId.trim()) {
@@ -332,6 +334,8 @@ export async function runBackup(
     progressOf: (chunkIndex: number, chunkCount: number) => { current: number; total: number },
     /** Fraction (0–1) of the whole archive sent so far, across every chunk. */
     onBytes?: (fraction: number) => void,
+    /** Raw per-part byte progress, for the upload-speed readout. */
+    onUploadBytes?: (sent: number, total: number) => void,
   ): Promise<{ chunks: ChunkFile[]; failed: ChunkFile[]; ivs: string[] }> => {
     const chunks = await chunkFile(
       sourcePath,
@@ -368,6 +372,7 @@ export async function runBackup(
         ? (sent: number, total: number): void => {
             const within = total > 0 ? Math.min(1, sent / total) : 0;
             onBytes((sentBefore + within) / chunks.length);
+            onUploadBytes?.(sent, total);
             // Re-emit so the screen and the notification see the in-flight byte
             // position, not only the moment a chunk finished.
             const progress = progressOf(chunk.index, chunks.length);
@@ -432,6 +437,7 @@ export async function runBackup(
     category: CategoryKey,
     progressOf: (chunkIndex: number, chunkCount: number) => { current: number; total: number },
     onBytes?: (fraction: number) => void,
+    onUploadBytes?: (sent: number, total: number) => void,
   ): Promise<{
     chunks: ChunkFile[];
     failed: ChunkFile[];
@@ -447,6 +453,7 @@ export async function runBackup(
       category,
       progressOf,
       onBytes,
+      onUploadBytes,
     );
     return { chunks, failed, ivs, hash, size };
   };
@@ -570,6 +577,7 @@ export async function runBackup(
           category,
           (index, count) => ({ current: index, total: count }),
           fraction => setOverall(categoryBase + pending.length * fraction),
+          onUploadBytes,
         );
         // ponytail: an incomplete archive is left out of the manifest entirely.
         // The manifest format is fixed and every entry it holds is assumed
@@ -627,6 +635,7 @@ export async function runBackup(
             category,
             () => ({ current: index + 1, total: pending.length }),
             fraction => setOverall(fileBase + fraction),
+            onUploadBytes,
           );
 
           // Same rule as the compressed path: a file whose upload lost a part is

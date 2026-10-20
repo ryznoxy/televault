@@ -30,6 +30,7 @@ let inFlight: Promise<BackupResult> | null = null;
 
 export async function runBackupInForeground(
   onProgress?: (progress: BackupProgress) => void,
+  onUploadBytes?: (sent: number, total: number) => void,
 ): Promise<BackupResult> {
   if (inFlight) {
     return inFlight;
@@ -49,18 +50,21 @@ export async function runBackupInForeground(
       // a notification update when the text actually changes.
       let lastDesc = '';
       try {
-        result = await runBackup(progress => {
-          onProgress?.(progress);
-          const pct =
-            progress.overall.total > 0
-              ? Math.round((progress.overall.current / progress.overall.total) * 100)
-              : 0;
-          const desc = `${progress.phase} ${pct}%`;
-          if (desc !== lastDesc) {
-            lastDesc = desc;
-            BackgroundService.updateNotification({ taskDesc: desc }).catch(() => undefined);
-          }
-        });
+        result = await runBackup(
+          progress => {
+            onProgress?.(progress);
+            const pct =
+              progress.overall.total > 0
+                ? Math.round((progress.overall.current / progress.overall.total) * 100)
+                : 0;
+            const desc = `${progress.phase} ${pct}%`;
+            if (desc !== lastDesc) {
+              lastDesc = desc;
+              BackgroundService.updateNotification({ taskDesc: desc }).catch(() => undefined);
+            }
+          },
+          onUploadBytes,
+        );
       } catch (error) {
         // The task must never reject: the plugin only calls `stop()` from
         // `task(parameters).then(...)`, so a rejection leaves `_isRunning` true
