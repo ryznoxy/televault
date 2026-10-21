@@ -1,5 +1,6 @@
 import BackgroundFetch, { type HeadlessEvent } from 'react-native-background-fetch';
 import { runScheduledBackup } from './scheduler';
+import { refreshStatusNotification } from './androidStatus';
 
 export async function headlessTask(event: HeadlessEvent): Promise<void> {
   if (event.timeout) {
@@ -10,5 +11,6 @@ export async function headlessTask(event: HeadlessEvent): Promise<void> {
     await runScheduledBackup();
   } finally {
     BackgroundFetch.finish(event.taskId);
+    refreshStatusNotification();
   }
 }

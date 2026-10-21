@@ -5,6 +5,7 @@ import {
 } from '../background/foregroundService';
 import type { BackupProgress, BackupResult } from '../backup/backupRunner';
 import { logError } from './errorLog';
+import { nextSpeed } from '../components/number';
 
 export type ProgressLabel = {
   current: number;
@@ -83,8 +84,7 @@ export const useBackupUiStore = create<BackupUiState>()(set => ({
         const dSent = sent >= last.sent ? sent - last.sent : sent;
         const dMs = now - last.at;
         if (dMs > 200) {
-          const instant = (dSent * 1000) / dMs;
-          speedBps = speedBps == null ? instant : speedBps * 0.6 + instant * 0.4;
+          speedBps = nextSpeed(speedBps, (dSent * 1000) / dMs);
         }
       }
       last = { sent, total, at: now };
