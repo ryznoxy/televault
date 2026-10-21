@@ -2,12 +2,12 @@ import { appVersion, deviceVersionCode, isNewerVersion, sha256For, versionCodeFo
 
 describe('appVersion fallback', () => {
   test.each([
-    [{ appVersion: '1.2.4' }, '1.2.4'],
-    [{ appVersion: 'unknown' }, '99.0.0'],
+    [{ versionName: '1.2.4' }, '1.2.4'],
+    [{ versionName: 'unknown' }, '99.0.0'],
     [{}, '99.0.0'],
     [undefined, '99.0.0'],
   ])('(%p) → %p', (input, expected) => {
-    expect(appVersion(input as { appVersion?: string } | undefined)).toBe(expected);
+    expect(appVersion(input as { versionName?: string } | undefined)).toBe(expected);
   });
 });
 
@@ -51,6 +51,11 @@ describe('checkForUpdate throttle', () => {
     // a successful forced check stamps the throttle
     await fresh.checkForUpdate(fetchFn, '1.0.0', false, 2_000_000 + 1000);
     expect(fetchFn).toHaveBeenCalledTimes(2);
+    // the window is one hour, to the millisecond
+    await fresh.checkForUpdate(fetchFn, '1.0.0', false, 2_000_000 + 3_599_999);
+    expect(fetchFn).toHaveBeenCalledTimes(2);
+    await fresh.checkForUpdate(fetchFn, '1.0.0', false, 2_000_000 + 3_600_001);
+    expect(fetchFn).toHaveBeenCalledTimes(4);
   });
 });
 
@@ -65,11 +70,13 @@ describe('version code comparison', () => {
   });
 
   test.each([
-    [{ buildVersionCode: 10206 }, 10206],
+    [{ versionCode: 10206 }, 10206],
+    [{ versionCode: 10206.4 }, 10206],
+    [{ versionCode: 0 }, null],
     [{}, null],
     [undefined, null],
   ])('deviceVersionCode(%p) → %p', (input, expected) => {
-    expect(deviceVersionCode(input as { buildVersionCode?: number } | undefined)).toBe(expected);
+    expect(deviceVersionCode(input as { versionCode?: number } | undefined)).toBe(expected);
   });
 
   test('release newer than device code wins even when appVersion is unreadable', async () => {
