@@ -1,6 +1,7 @@
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import { TelegramBotApi } from '../net/telegramApi';
-import { sessionsRepo } from '../db/repositories/sessions';
+import { sessionsRepo, type SessionRecord } from '../db/repositories/sessions';
+import { chunksRepo } from '../db/repositories/chunks';
 import { secureStore } from '../state/secureStore';
 import { restoreFromTelegram } from './restoreRunner';
 import { trackTempDir, untrackTempDir } from './tempDirs';
@@ -27,9 +28,14 @@ export async function runRestoreDrill(
   if (sessions.length === 0) {
     return { ok: false, files: 0, message: 'Belum ada backup yang bisa dipulihkan.' };
   }
-  const target = sessions.reduce((smallest, session) =>
-    session.total_size < smallest.total_size ? session : smallest,
-  );
+  const target = await smallestDownloadable(sessions);
+  if (!target) {
+    return {
+      ok: false,
+      files: 0,
+      message: 'Tidak ada sesi yang potongannya tersimpan di perangkat ini. Pulihkan lewat unduh dari chat Telegram.',
+    };
+  }
   const credentials = await secureStore.get();
   if (!credentials.botToken.trim() || !credentials.chatId.trim()) {
     return { ok: false, files: 0, message: 'Kredensial bot belum diisi.' };
@@ -62,4 +68,21 @@ export async function runRestoreDrill(
     await ReactNativeBlobUtil.fs.unlink(outDir).catch(() => undefined);
     untrackTempDir(outDir);
   }
+}
+
+/**
+ * Smallest session that still has downloadable parts. Picking purely by size
+ * can land on a session whose Telegram file ids were pruned from the local DB,
+ * which fails the drill with "Potongan hilang" even though a healthy backup
+ * exists.
+ */
+async function smallestDownloadable(sessions: SessionRecord[]): Promise<SessionRecord | null> {
+  const bySize = [...sessions].sort((a, b) => a.total_size - b.total_size);
+  for (const session of bySize) {
+    const parts = await chunksRepo.listDownloadableParts(session.id);
+    if (parts.length > 0) {
+      return session;
+    }
+  }
+  return null;
 }
