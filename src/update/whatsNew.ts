@@ -9,6 +9,17 @@ export type WhatsNew = {
 };
 
 export const WHATS_NEW: Record<string, WhatsNew> = {
+  '1.3.2': {
+    title: 'Apa baru di v1.3.2',
+    items: [
+      'Deteksi versi kini membaca data asli Android — banner pembaruan akhirnya berfungsi',
+      'Versi terpasang tampil di Pengaturan > Aplikasi',
+      'Tur persiapan latar belakang: bebas optimasi baterai + autostart',
+      'Notifikasi status permanen saat backup otomatis aktif',
+      'Cek pembaruan otomatis paling sering 1 jam sekali',
+      'Uji Pemulihan memilih arsip yang potongannya benar-benar tersedia',
+    ],
+  },
   '1.3.0': {
     title: 'Apa baru di v1.3.0',
     items: [

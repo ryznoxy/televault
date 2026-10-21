@@ -1,4 +1,4 @@
-import { Platform } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import { mmkv } from '../state/mmkv';
 
@@ -13,13 +13,26 @@ export type AvailableUpdate = {
   size: number;
 };
 
-export function appVersion(constants: { appVersion?: string } | undefined = Platform.OS === 'android' ? (Platform.constants as { appVersion?: string }) : undefined): string {
-  // `Platform.constants.appVersion` mirrors versionName from build.gradle
-  // (injected from the release tag by CI). Absent in tests/other platforms.
+type NativeVersionInfo = { versionName?: string; versionCode?: number };
+
+/**
+ * The installed version, read from the `VaultStatus` native module, which pulls
+ * it out of PackageManager — the same number the installer uses to reject a
+ * downgrade. React Native's Platform.constants carries neither field on
+ * Android; without this the updater believed every install was current.
+ */
+function nativeVersionInfo(): NativeVersionInfo | undefined {
+  if (Platform.OS !== 'android') {
+    return undefined;
+  }
+  return (NativeModules as { VaultStatus?: NativeVersionInfo }).VaultStatus;
+}
+
+export function appVersion(info: NativeVersionInfo | undefined = nativeVersionInfo()): string {
   // Missing constants must read as "latest" — an unknown version would make
   // every release look newer and the banner would never go away.
-  const version = constants?.appVersion;
-  return version && version !== 'unknown' && /^\d/.test(version) ? version : '99.0.0';
+  const version = info?.versionName;
+  return version && /^\d/.test(version) ? version : '99.0.0';
 }
 
 /** Numeric-dot comparison; `1.10.0` > `1.9.0`. Non-numeric tails ignored. */
@@ -49,12 +62,12 @@ export function versionCodeFor(tag: string): number | null {
 
 /** Numeric build versionCode from the device; null when unreadable. */
 export function deviceVersionCode(
-  constants: { buildVersionCode?: number } | undefined = Platform.OS === 'android'
-    ? (Platform.constants as { buildVersionCode?: number })
-    : undefined,
+  info: NativeVersionInfo | undefined = nativeVersionInfo(),
 ): number | null {
-  const code = constants?.buildVersionCode;
-  return typeof code === 'number' && Number.isFinite(code) ? code : null;
+  const code = info?.versionCode;
+  return typeof code === 'number' && Number.isFinite(code) && code > 0
+    ? Math.round(code)
+    : null;
 }
 
 /** Pulls the APK's digest out of a `SHA256SUMS` file (one `<hash>  <name>` per line). */
@@ -74,7 +87,7 @@ type ReleaseResponse = {
 // the same network. One check per cold start can still burn it across
 // restarts, so throttle to one successful check per interval. `force` is for
 // an explicit pull-to-refresh style re-check.
-const CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
+const CHECK_INTERVAL_MS = 60 * 60 * 1000;
 const LAST_CHECK_KEY = 'update_last_check_at';
 
 function lastCheckAt(): number {

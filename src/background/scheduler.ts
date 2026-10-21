@@ -3,6 +3,7 @@ import { getConfig } from '../state/settingsStore';
 import { ScheduleMode } from '../types/models';
 import { sessionsRepo } from '../db/repositories/sessions';
 import { runBackupInForeground } from './foregroundService';
+import { refreshStatusNotification } from './androidStatus';
 import { shouldRunNow } from './shouldRun';
 
 export async function runScheduledBackup(): Promise<void> {
@@ -42,6 +43,9 @@ export async function configureScheduler(): Promise<void> {
         await runScheduledBackup();
       } finally {
         BackgroundFetch.finish(taskId);
+        // Re-post (or clear) the ongoing status notification after every
+        // wake-up; it is gone after a reboot and only the app can rebuild it.
+        refreshStatusNotification();
       }
     },
     taskId => {

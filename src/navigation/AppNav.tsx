@@ -7,7 +7,9 @@ import {
 } from '@react-navigation/native-stack';
 import { BottomNav, UpdateBanner, type TabKey } from '../components/ui';
 import { WhatsNewModal } from '../components/WhatsNewModal';
+import { BackgroundTour } from '../components/BackgroundTour';
 import { useUpdateStore } from '../state/updateStore';
+import { refreshStatusNotification } from '../background/androidStatus';
 import { useTheme } from '../theme/ThemeProvider';
 import { RootStackParamList, Routes } from './Routes';
 import { useSettingsStore } from '../state/settingsStore';
@@ -61,9 +63,17 @@ export default function AppNav() {
   useEffect(() => {
     check();
   }, [check]);
+  // Post the ongoing status notification once the app is up (it is gone after
+  // a reboot until either the app or the headless task first runs), and keep
+  // it honest when the user pauses automation or changes the schedule.
+  useEffect(() => {
+    refreshStatusNotification();
+    return useSettingsStore.subscribe(() => refreshStatusNotification());
+  }, [setupDone]);
   return (
     <>
       <WhatsNewModal />
+      <BackgroundTour />
       <NavigationContainer>
       <Stack.Navigator
         initialRouteName={setupDone ? Routes.Home : Routes.Setup}

@@ -15,6 +15,9 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- The onboarding tour asks for the battery-optimization exemption with the
+         system dialog instead of sending the user to a long settings list. -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <!-- Declared by libraries but never used here, and each one shows up in the
          store listing as a permission the app asks for: the keychain is read

@@ -1,5 +1,7 @@
 import BackgroundService from 'react-native-background-actions';
 import { runBackup, type BackupProgress, type BackupResult } from '../backup/backupRunner';
+import { hideStatusNotification, refreshStatusNotification } from './androidStatus';
+import { formatBytes, nextSpeed } from '../components/number';
 
 const OPTIONS = {
   taskName: 'TeleVault',
@@ -40,6 +42,9 @@ export async function runBackupInForeground(
   }
 
   const run = (async (): Promise<BackupResult> => {
+    // The foreground service posts its own progress notification; two ongoing
+    // notifications for one backup is noise.
+    hideStatusNotification();
     let resolveDone: (result: BackupResult) => void = () => undefined;
     const done = new Promise<BackupResult>(resolve => {
       resolveDone = resolve;
@@ -47,23 +52,51 @@ export async function runBackupInForeground(
     await BackgroundService.start(async () => {
       let result: BackupResult = { ...IDLE_RESULT };
       // Byte-level progress arrives several times a second per chunk, so only push
-      // a notification update when the text actually changes.
+      // a notification update when the text actually changes and at most ~once a
+      // second: posting more often burns battery for no readable benefit.
       let lastDesc = '';
+      let lastNotifyAt = 0;
+      let speedBps: number | null = null;
+      let lastTick: { sent: number; at: number } | null = null;
+      const notify = (progress: BackupProgress): void => {
+        const pct =
+          progress.overall.total > 0
+            ? Math.round((progress.overall.current / progress.overall.total) * 100)
+            : 0;
+        if (progress.phase !== 'uploading' && progress.phase !== 'manifest') {
+          speedBps = null;
+          lastTick = null;
+        }
+        const speedText = speedBps ? ` \u00b7 ${formatBytes(Math.round(speedBps))}/s` : '';
+        const desc = `${progress.phase} ${pct}%${speedText}`;
+        const now = Date.now();
+        if (desc !== lastDesc && now - lastNotifyAt >= 1200) {
+          lastDesc = desc;
+          lastNotifyAt = now;
+          BackgroundService.updateNotification({ taskDesc: desc }).catch(() => undefined);
+        }
+      };
+      const onBytes = (sent: number, total: number): void => {
+        const now = Date.now();
+        if (lastTick) {
+          // The per-part counter restarts at 0 on every new part, so a tick
+          // whose `sent` dropped means a part boundary — fold it in.
+          const dSent = sent >= lastTick.sent ? sent - lastTick.sent : sent;
+          const dMs = now - lastTick.at;
+          if (dMs > 200) {
+            speedBps = nextSpeed(speedBps, (dSent * 1000) / dMs);
+          }
+        }
+        lastTick = { sent, at: now };
+        onUploadBytes?.(sent, total);
+      };
       try {
         result = await runBackup(
           progress => {
             onProgress?.(progress);
-            const pct =
-              progress.overall.total > 0
-                ? Math.round((progress.overall.current / progress.overall.total) * 100)
-                : 0;
-            const desc = `${progress.phase} ${pct}%`;
-            if (desc !== lastDesc) {
-              lastDesc = desc;
-              BackgroundService.updateNotification({ taskDesc: desc }).catch(() => undefined);
-            }
+            notify(progress);
           },
-          onUploadBytes,
+          onBytes,
         );
       } catch (error) {
         // The task must never reject: the plugin only calls `stop()` from
@@ -75,6 +108,8 @@ export async function runBackupInForeground(
         };
       } finally {
         resolveDone(result);
+        // Restore the ongoing status notification with the fresh "last backup".
+        refreshStatusNotification();
       }
     }, OPTIONS);
     return done;

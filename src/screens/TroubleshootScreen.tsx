@@ -21,6 +21,10 @@ import { runRestoreDrill } from '../backup/restoreDrill';
 import { secureStore } from '../state/secureStore';
 import { useSettingsStore } from '../state/settingsStore';
 import { clearErrorLog, getErrorLog, logError, type ErrorLogEntry } from '../state/errorLog';
+import { OEM_GUIDE } from '../background/oemGuide';
+import { nativeStatus } from '../background/androidStatus';
+import { relativeTime } from '../background/statusText';
+import { useTourStore } from '../state/tourStore';
 import type { RootStackParamList } from '../navigation/Routes';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Troubleshoot'>;
@@ -32,30 +36,6 @@ const CARD_SHADOW = {
   elevation: 2,
   shadowColor: TG_LIGHT.ink,
 };
-
-const OEM_GUIDE: { oem: string; path: string }[] = [
-  { oem: 'Xiaomi', path: 'Setelan > Aplikasi > Kelola > Autostart AKTIF' },
-  { oem: 'Oppo / Realme', path: 'Setelan > Baterai > Manajemen baterai > Izinkan latar belakang' },
-  { oem: 'Samsung', path: 'Setelan > Aplikasi > Baterai > Tanpa batas' },
-  { oem: 'Huawei', path: 'Setelan > Aplikasi > Peluncuran aplikasi > Manual > aktifkan semua' },
-  { oem: 'OnePlus', path: 'Setelan > Baterai > Optimasi baterai > Jangan optimalkan' },
-];
-
-function relativeTime(timestamp: number): string {
-  const diff = Date.now() - timestamp;
-  if (diff < 60_000) {
-    return 'baru saja';
-  }
-  const minutes = Math.floor(diff / 60_000);
-  if (minutes < 60) {
-    return `${minutes} menit lalu`;
-  }
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) {
-    return `${hours} jam lalu`;
-  }
-  return `${Math.floor(hours / 24)} hari lalu`;
-}
 
 type Diagnostics = {
   configured: boolean;
@@ -253,6 +233,16 @@ export default function TroubleshootScreen({ navigation }: Props) {
                   Buka Pengaturan Aplikasi
                 </Text>
               </Pressable>
+              <Pressable
+                onPress={() => useTourStore.getState().show()}
+                accessibilityRole="button"
+                accessibilityLabel="Ulangi persiapan latar belakang"
+                style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}>
+                <TgIcon name="batteryCharging" color={TG.primary} size={18} />
+                <Text style={styles.secondaryButtonText} numberOfLines={1}>
+                  Ulangi Persiapan Latar Belakang
+                </Text>
+              </Pressable>
             </View>
           </View>
 
@@ -274,6 +264,16 @@ export default function TroubleshootScreen({ navigation }: Props) {
                   </View>
                 </View>
               ))}
+              <Pressable
+                onPress={() => nativeStatus()?.openAutostartSettings()}
+                accessibilityRole="button"
+                accessibilityLabel="Buka setelan autostart"
+                style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}>
+                <TgIcon name="cached" color={TG.primary} size={18} />
+                <Text style={styles.secondaryButtonText} numberOfLines={1}>
+                  Buka Setelan Autostart
+                </Text>
+              </Pressable>
             </View>
           </View>
 
