@@ -7,7 +7,7 @@ import com.facebook.react.uimanager.ViewManager
 
 class SafFolderPackage : ReactPackage {
   override fun createNativeModules(reactContext: ReactApplicationContext): List<NativeModule> =
-    listOf(SafFolderModule(reactContext))
+    listOf(SafFolderModule(reactContext), VaultStatusModule(reactContext))
 
   override fun createViewManagers(reactContext: ReactApplicationContext): List<ViewManager<*, *>> =
     emptyList()
