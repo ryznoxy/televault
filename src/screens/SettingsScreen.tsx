@@ -33,7 +33,7 @@ import { sessionsRepo } from '../db/repositories/sessions';
 import { secureStore } from '../state/secureStore';
 import { passphraseStrength } from '../state/passphrase';
 import { useSettingsStore } from '../state/settingsStore';
-import { checkForUpdate } from '../update/updater';
+import { appVersion, checkForUpdate, deviceVersionCode } from '../update/updater';
 import { logError } from '../state/errorLog';
 import { useUpdateStore } from '../state/updateStore';
 import {
@@ -927,6 +927,7 @@ export default function SettingsScreen({ navigation }: Props) {
                 subtitle={checkingUpdate ? 'Memeriksa\u2026' : 'Periksa rilis baru dari GitHub sekarang'}
                 onPress={onCheckUpdate}
               />
+              <VersionRow />
             </View>
           </View>
 
@@ -982,6 +983,28 @@ function LinkRow({
       </View>
       <TgIcon name="chevron" color={TG.secondary} size={16} />
     </Pressable>
+  );
+}
+
+function VersionRow() {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const styles = createStyles(TG);
+  const code = deviceVersionCode();
+  return (
+    <View style={styles.toggleRow}>
+      <View style={styles.toggleIcon}>
+        <TgIcon name="info" color={TG.primary} size={18} />
+      </View>
+      <View style={styles.toggleText}>
+        <Text style={styles.toggleTitle} numberOfLines={1}>
+          Versi Terpasang
+        </Text>
+        <Text style={styles.toggleSubtitle} numberOfLines={1}>
+          {code == null ? appVersion() : `${appVersion()} (${code})`}
+        </Text>
+      </View>
+    </View>
   );
 }
 
