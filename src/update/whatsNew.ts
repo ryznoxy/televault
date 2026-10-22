@@ -9,6 +9,15 @@ export type WhatsNew = {
 };
 
 export const WHATS_NEW: Record<string, WhatsNew> = {
+  '1.5.4': {
+    title: 'Apa baru di v1.5.4',
+    items: [
+      'App bisa dibuka lagi: v1.5.3 berhenti saat start sebelum jendela sempat muncul',
+      'Alert pembaruan tampil di atas semua layar, dengan tombol Perbarui dan Nanti',
+      'Rilis yang ditemukan tetap ditampilkan walau app di-restart',
+      'Ikon notifikasi backup kembali rapi di status bar',
+    ],
+  },
   '1.5.3': {
     title: 'Apa baru di v1.5.3',
     items: [
