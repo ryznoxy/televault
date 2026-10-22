@@ -46,7 +46,12 @@ jest.mock('react-native-blob-util', () => ({
       copyToInternal: jest.fn(async () => ''),
     },
     fs: {
-      dirs: { CacheDir: '/cache', DocumentDir: '/doc', DownloadDir: '/download' },
+      dirs: {
+        CacheDir: '/cache',
+        DocumentDir: '/doc',
+        DownloadDir: '/download',
+        LegacyDownloadDir: '/storage/emulated/0/Download',
+      },
       hash: jest.fn(async () => 'deadbeef'),
       stat: jest.fn(async () => ({ size: 0, lastModified: 0, type: 'file' })),
       ls: jest.fn(async () => []),

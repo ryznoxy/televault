@@ -6,6 +6,7 @@ import {
   sessionDateLabel,
   sessionsToCsv,
   sortSessions,
+  successRatio,
   telegramMessageUrl,
 } from '../src/state/history';
 
@@ -29,6 +30,24 @@ function makeSession(overrides: Partial<SessionRecord> = {}): SessionRecord {
     ...overrides,
   };
 }
+
+describe('successRatio', () => {
+  test('null until something has finished', () => {
+    expect(successRatio([])).toBeNull();
+    expect(successRatio([{ status: 'running' }])).toBeNull();
+  });
+
+  test('counts a partial run as a success, and a failed run as a failure', () => {
+    expect(successRatio([{ status: 'partial' }])).toBe(1);
+    expect(
+      successRatio([{ status: 'success' }, { status: 'partial' }, { status: 'failed' }]),
+    ).toBeCloseTo(2 / 3);
+  });
+
+  test('a run still in flight does not drag the ratio down', () => {
+    expect(successRatio([{ status: 'success' }, { status: 'running' }])).toBe(1);
+  });
+});
 
 describe('formatDuration', () => {
   it('renders seconds, minutes and hours', () => {

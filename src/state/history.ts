@@ -184,6 +184,21 @@ export function filterSessions(
   });
 }
 
+/**
+ * Share of finished runs that ended with something to show for it. A partial run
+ * uploaded real files (it is counted in "Total Ter-backup" too), and a run still
+ * in flight is not an outcome yet, so neither counts as a failure. Null when
+ * nothing has finished in the window.
+ */
+export function successRatio(rows: { status: string }[]): number | null {
+  const finished = rows.filter(row => row.status !== 'running');
+  if (finished.length === 0) {
+    return null;
+  }
+  const ok = finished.filter(row => row.status === 'success' || row.status === 'partial').length;
+  return ok / finished.length;
+}
+
 export function sortSessions(
   rows: SessionRecord[],
   order: 'newest' | 'oldest',

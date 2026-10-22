@@ -75,7 +75,7 @@ export default function TroubleshootScreen({ navigation }: Props) {
     setErrorLog(getErrorLog());
     const [configured, last, recent] = await Promise.all([
       secureStore.isConfigured(),
-      sessionsRepo.lastSuccess(),
+      sessionsRepo.lastFinished(),
       sessionsRepo.recent(20),
     ]);
     const failed = recent.find(

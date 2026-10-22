@@ -9,6 +9,7 @@ import {
   newSaltB64,
 } from './crypto';
 import { scanCategory, scanCustomFolders, ensureLocalPath, type ScanResult } from './fileScanner';
+import { shareBudget } from './fileBudget';
 import { sha256File } from './hasher';
 import { needsBackup } from './incremental';
 import {
@@ -464,6 +465,8 @@ export async function runBackup(
   type QueuedFile = { item: ScanResult; uploadName: string };
   type Queued = { category: CategoryKey; pending: QueuedFile[] };
   const queue: Queued[] = [];
+  /** Scanned work, before the run budget is divided among the categories. */
+  const workByCategory: Queued[] = [];
   // One read of the tracking table instead of two queries per scanned file: a
   // large library spent minutes in SQLite round-trips before any upload (P1-9).
   const trackedRows = await filesRepo.listAll();
@@ -482,7 +485,7 @@ export async function runBackup(
       const scanned =
         category === Category.CUSTOM && customUris.length > 0
           ? await scanCustomFolders(customUris)
-          : await scanCategory(category, config.customFolderUri);
+          : await scanCategory(category, config.customFolderUri, config.docFolderUri);
 
       // A category that reads nothing is not an error, but it must not look
       // like a successful backup either. Only speak up when it matters: DOC on
@@ -492,7 +495,11 @@ export async function runBackup(
       if (scanned.length === 0) {
         const trackedHere = trackedPerCategory.get(category) ?? 0;
         if (category === Category.DOC) {
-          notes.push('Dokumen: 0 berkas terbaca. Android 11+ membatasi akses folder Download.');
+          notes.push(
+            config.docFolderUri
+              ? 'Dokumen: 0 berkas terbaca di folder yang dipilih.'
+              : 'Dokumen: 0 berkas terbaca. Pilih folder Dokumen di Pengaturan; Android 11+ hanya memberi akses lewat pemilih folder.',
+          );
         } else if (trackedHere > 0) {
           notes.push(`${CATEGORY_NAMES_ID[category]}: 0 berkas terbaca, padahal sebelumnya ada.`);
         }
@@ -517,19 +524,30 @@ export async function runBackup(
       if (pending.length === 0) {
         continue;
       }
-      // Feature B: cap this category's share of the run, keeping scan order.
-      // The excess stays `pending` in the DB (needsBackup returns true while
-      // last_backup is NULL) and the next run picks it up.
-      const cap = Math.max(1, Math.floor(config.maxFilesPerRun));
-      const capped = pending.slice(0, cap);
-      deferred += pending.length - capped.length;
-      queue.push({ category, pending: capped });
-      overallTotal += capped.length;
+      workByCategory.push({ category, pending });
     } catch (error) {
       failure = true;
       errors.push(`${category}: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
+
+  // Feature B: `maxFilesPerRun` bounds the run itself, so the budget is split
+  // across the categories that have files (see shareBudget). The excess stays
+  // `pending` in the DB (needsBackup returns true while last_backup is NULL) and
+  // the next run picks it up.
+  const quotas = shareBudget(
+    workByCategory.map(entry => entry.pending.length),
+    config.maxFilesPerRun,
+  );
+  workByCategory.forEach((entry, index) => {
+    const capped = entry.pending.slice(0, quotas[index]);
+    deferred += entry.pending.length - capped.length;
+    if (capped.length === 0) {
+      return;
+    }
+    queue.push({ category: entry.category, pending: capped });
+    overallTotal += capped.length;
+  });
 
   // Pass 2 — process the queue. Every file counted in `overallTotal` is handled
   // here, so the overall counter reaches the total on the final event.

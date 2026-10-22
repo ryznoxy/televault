@@ -9,6 +9,14 @@ export type WhatsNew = {
 };
 
 export const WHATS_NEW: Record<string, WhatsNew> = {
+  '1.4.0': {
+    title: 'Apa baru di v1.4.0',
+    items: [
+      'Batas berkas per backup kini benar-benar per backup, bukan per kategori',
+      'Kategori Dokumen bisa diarahkan ke folder pilihan lewat Pengaturan, jadi berkasnya benar-benar terbaca',
+      'Rasio Keberhasilan dan "backup terakhir" menghitung run partial, bukan hanya yang sukses penuh',
+    ],
+  },
   '1.3.3': {
     title: 'Apa baru di v1.3.3',
     items: [
