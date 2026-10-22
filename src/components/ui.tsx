@@ -21,7 +21,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeProvider';
 import { FONT,  ELEVATION, RADIUS, SPACE, TG_DARK, TG_LIGHT, tgTheme, TYPE } from '../theme/theme';
-import { parseClampedInt } from './number';
+import { parseClampedInt, formatBytes } from './number';
 import { useUpdateStore } from '../state/updateStore';
 
 /* ------------------------------------------------------------------ */
@@ -823,53 +823,77 @@ const navColors = (mode: 'light' | 'dark') => ({
 });
 
 /**
- * Update banner shown above the bottom nav on every tab, so a download keeps
- * running (and visible) while the user navigates.
+ * Update alert. It floats above every screen rather than living inside a tab, so
+ * a release stays visible wherever the user is and a download that has started
+ * keeps its progress in sight. It offers the two choices a user actually has:
+ * install now, or be reminded later.
  */
-export function UpdateBanner() {
+export function UpdateAlert() {
+  const insets = useSafeAreaInsets();
   const { mode } = useTheme();
   const TG = tgTheme(mode);
   const { update, phase, progress, startDownload, cancelDownload, dismiss } = useUpdateStore();
+  const [problem, setProblem] = useState<string | null>(null);
   if (!update) return null;
   const busy = phase === 'downloading' || phase === 'opening';
+  const title =
+    phase === 'downloading'
+      ? `Mengunduh ${update.tag}… ${Math.round(progress * 100)}%`
+      : phase === 'opening'
+        ? `Membuka penginstal ${update.tag}…`
+        : `Pembaruan ${update.tag} tersedia`;
+  const detail =
+    problem ??
+    (phase === 'idle'
+      ? update.size > 0
+        ? `Ukuran ${formatBytes(update.size)}. Perbarui sekarang atau nanti.`
+        : 'Perbarui sekarang atau nanti.'
+      : 'Biarkan app terbuka sampai penginstal muncul.');
   return (
-    <View
-      style={[styles.updateCard, { backgroundColor: TG.primaryFixed }]}
-      accessibilityLiveRegion="polite">
-      <Pressable
-        onPress={() => startDownload(() => undefined)}
-        disabled={busy}
-        accessibilityRole="button"
-        accessibilityLabel={`Perbarui aplikasi ke ${update.tag}`}
-        style={({ pressed }) => [styles.updateBody, pressed && !busy && styles.pressed]}>
-        {phase === 'downloading' ? (
-          <ActivityIndicator color={TG.onPrimaryContainer} size="small" />
-        ) : (
-          <TgIcon name="download" color={TG.onPrimaryContainer} size={20} />
-        )}
-        <View style={styles.updateText}>
-          <Text style={[styles.updateTitle, { color: TG.onPrimaryContainer }]}>
-            {phase === 'downloading'
-              ? `Mengunduh ${update.tag}… ${Math.round(progress * 100)}%`
-              : phase === 'opening'
-                ? `Membuka penginstal ${update.tag}…`
-                : `Pembaruan ${update.tag} tersedia`}
-          </Text>
-          {phase === 'idle' ? (
-            <Text style={[styles.updateSub, { color: TG.onPrimaryContainer }]}>
-              Tap untuk unduh & pasang
+    <View pointerEvents="box-none" style={[styles.alertWrap, { top: insets.top + SPACE.xs }]}>
+      <View
+        accessibilityLiveRegion="polite"
+        style={[
+          styles.alertCard,
+          ELEVATION.float,
+          { backgroundColor: TG.primaryFixed, shadowColor: '#0B1C30' },
+        ]}>
+        <View style={styles.alertHead}>
+          {phase === 'downloading' ? (
+            <ActivityIndicator color={TG.onPrimaryContainer} size="small" />
+          ) : (
+            <TgIcon name="download" color={TG.onPrimaryContainer} size={20} />
+          )}
+          <View style={styles.alertText}>
+            <Text style={[styles.alertTitle, { color: TG.onPrimaryContainer }]} numberOfLines={1}>
+              {title}
             </Text>
-          ) : null}
+            <Text
+              style={[styles.alertSub, { color: TG.onPrimaryContainer }]}
+              numberOfLines={2}>
+              {detail}
+            </Text>
+          </View>
         </View>
-      </Pressable>
-      <Pressable
-        onPress={() => (busy ? cancelDownload() : dismiss())}
-        accessibilityRole="button"
-        accessibilityLabel={busy ? 'Batalkan unduhan' : 'Tutup banner pembaruan'}
-        hitSlop={8}
-        style={({ pressed }) => [styles.updateClose, pressed && styles.pressed]}>
-        <TgIcon name="close" color={TG.onPrimaryContainer} size={16} />
-      </Pressable>
+        {phase === 'downloading' ? <ProgressBar progress={progress} /> : null}
+        <View style={styles.alertActions}>
+          <Button
+            title={busy ? 'Batal' : 'Nanti'}
+            variant="secondary"
+            onPress={() => (busy ? cancelDownload() : dismiss())}
+            style={styles.alertAction}
+          />
+          <Button
+            title={phase === 'opening' ? 'Membuka…' : 'Perbarui'}
+            disabled={busy}
+            onPress={() => {
+              setProblem(null);
+              startDownload(setProblem);
+            }}
+            style={styles.alertAction}
+          />
+        </View>
+      </View>
     </View>
   );
 }
@@ -2348,26 +2372,31 @@ const styles = StyleSheet.create({
   content: { gap: SPACE.base },
   column: { width: '100%', maxWidth: 640, alignSelf: 'center', gap: SPACE.base },
 
-  updateCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: RADIUS.md,
+  alertWrap: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    paddingHorizontal: SPACE.base,
+    zIndex: 20,
+  },
+  alertCard: {
+    borderRadius: RADIUS.lg,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    gap: 10,
-    marginBottom: SPACE.sm,
+    gap: SPACE.sm,
   },
-  updateBody: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  updateText: { flex: 1, minWidth: 0 },
-  updateTitle: { fontSize: 13, lineHeight: 18, fontWeight: '600', fontFamily: FONT.semi },
-  updateSub: { fontSize: 12, lineHeight: 16, marginTop: 2 },
-  updateClose: {
-    width: 32,
-    height: 32,
-    borderRadius: RADIUS.md,
-    alignItems: 'center',
-    justifyContent: 'center',
+  alertHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  alertText: { flex: 1, minWidth: 0 },
+  alertTitle: { fontSize: 13, lineHeight: 18, fontWeight: '600', fontFamily: FONT.semi },
+  alertSub: {
+    fontSize: 12,
+    lineHeight: 16,
+    marginTop: 2,
+    fontWeight: '400',
+    fontFamily: FONT.regular,
   },
+  alertActions: { flexDirection: 'row', gap: SPACE.sm },
+  alertAction: { flex: 1 },
 
   header: { gap: SPACE.md, paddingTop: SPACE.sm, paddingBottom: SPACE.xs },
   headerTop: { flexDirection: 'row', alignItems: 'center', gap: SPACE.md },

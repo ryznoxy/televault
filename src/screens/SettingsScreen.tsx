@@ -33,8 +33,7 @@ import { sessionsRepo } from '../db/repositories/sessions';
 import { secureStore } from '../state/secureStore';
 import { passphraseStrength } from '../state/passphrase';
 import { useSettingsStore } from '../state/settingsStore';
-import { appVersion, checkForUpdate, deviceVersionCode } from '../update/updater';
-import { logError } from '../state/errorLog';
+import { appVersion, deviceVersionCode } from '../update/updater';
 import { useUpdateStore } from '../state/updateStore';
 import {
   ALL_CATEGORIES,
@@ -226,6 +225,7 @@ export default function SettingsScreen({ navigation }: Props) {
 
   const [showHourPicker, setShowHourPicker] = useState(false);
   const [checkingUpdate, setCheckingUpdate] = useState(false);
+  const checkUpdate = useUpdateStore(state => state.check);
   const [cacheSize, setCacheSize] = useState(0);
   const [clearing, setClearing] = useState(false);
   const [passphrase, setPassphrase] = useState('');
@@ -387,20 +387,18 @@ export default function SettingsScreen({ navigation }: Props) {
     setEditingPassphrase(true);
   };
 
-  // Force-check bypasses the 6h throttle: the user asked explicitly.
+  // Force-check bypasses the interval throttle: the user asked explicitly.
   const onCheckUpdate = async () => {
     if (checkingUpdate) return;
     setCheckingUpdate(true);
     try {
-      const available = await checkForUpdate(undefined, undefined, true);
+      const available = await checkUpdate(true);
       if (available) {
-        useUpdateStore.getState().setUpdate(available);
-        showToast('Pembaruan tersedia', `${available.tag} siap diunduh — lihat banner di beranda.`, 'success');
+        showToast('Pembaruan tersedia', `${available.tag} — pakai tombol Perbarui di atas.`, 'success');
       } else {
         showToast('Sudah terbaru', 'Tidak ada rilis lebih baru dari versi ini.', 'success');
       }
-    } catch (error) {
-      logError('update-check', error);
+    } catch {
       showToast('Gagal memeriksa', 'Tidak bisa menghubungi GitHub. Coba lagi nanti.', 'error');
     } finally {
       setCheckingUpdate(false);

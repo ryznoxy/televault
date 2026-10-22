@@ -8,7 +8,9 @@ const OPTIONS = {
   taskName: 'TeleVault',
   taskTitle: 'Backup running',
   taskDesc: 'Preparing\u2026',
-  taskIcon: { name: 'ic_launcher', type: 'mipmap' },
+  // Monochrome status-bar icon. The launcher icon is a coloured square, which
+  // Android renders as a solid blob in the notification shade.
+  taskIcon: { name: 'ic_stat_vault', type: 'drawable' },
   color: '#2AABEE',
   foregroundServiceType: ['dataSync'] as ('dataSync')[],
 };

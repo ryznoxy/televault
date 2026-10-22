@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, AppState } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import {
   createNativeStackNavigator,
   type NativeStackNavigationProp,
 } from '@react-navigation/native-stack';
-import { BottomNav, UpdateBanner, type TabKey } from '../components/ui';
+import { BottomNav, UpdateAlert, type TabKey } from '../components/ui';
 import { WhatsNewModal } from '../components/WhatsNewModal';
 import { BackgroundTour } from '../components/BackgroundTour';
 import { useUpdateStore } from '../state/updateStore';
@@ -41,7 +41,6 @@ function TabShell({
   return (
     <View style={styles.shell}>
       {children}
-      <UpdateBanner />
       <BottomNav
         active={tab}
         onChange={next => {
@@ -58,10 +57,15 @@ export default function AppNav() {
   const { theme } = useTheme();
   const setupDone = useSettingsStore(state => state.setupDone);
   const check = useUpdateStore(state => state.check);
-  // One lightweight release check per cold start; the banner lives above the
-  // bottom nav so a started download survives tab switches.
+  // One lightweight release check per cold start and whenever the app comes back
+  // to the foreground: the alert floats above every screen, so a release
+  // published while the app was open is still noticed without a restart.
   useEffect(() => {
     check();
+    const subscription = AppState.addEventListener('change', state => {
+      if (state === 'active') check();
+    });
+    return () => subscription.remove();
   }, [check]);
   // Post the ongoing status notification once the app is up (it is gone after
   // a reboot until either the app or the headless task first runs), and keep
@@ -71,7 +75,7 @@ export default function AppNav() {
     return useSettingsStore.subscribe(() => refreshStatusNotification());
   }, [setupDone]);
   return (
-    <>
+    <View style={styles.root}>
       <WhatsNewModal />
       <BackgroundTour />
       <NavigationContainer>
@@ -114,10 +118,14 @@ export default function AppNav() {
         <Stack.Screen name={Routes.Restore} component={RestoreScreen} />
       </Stack.Navigator>
       </NavigationContainer>
-    </>
+      {/* Last child on purpose: it floats above the navigator, and therefore
+          above every screen, not just the four tabs. */}
+      <UpdateAlert />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: { flex: 1 },
   shell: { flex: 1 },
 });
