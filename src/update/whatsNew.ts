@@ -9,6 +9,14 @@ export type WhatsNew = {
 };
 
 export const WHATS_NEW: Record<string, WhatsNew> = {
+  '1.5.0': {
+    title: 'Apa baru di v1.5.0',
+    items: [
+      'Tombol Hentikan: berhentikan backup yang sedang jalan dari layar Utama atau dari notifikasi',
+      'Progres backup otomatis tetap terlihat di layar Utama walau app baru dibuka',
+      'Jeda kirim adaptif supaya Bot API tidak kena rate limit, dan potongan tidak dilewati saat 429',
+    ],
+  },
   '1.4.0': {
     title: 'Apa baru di v1.4.0',
     items: [

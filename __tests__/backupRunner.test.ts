@@ -466,6 +466,32 @@ test('the budget is shared by every category that has files, not repeated for ea
   expect(result.deferred).toBe(4);
 });
 
+test('a stop request ends the run as partial and leaves the rest pending', async () => {
+  useSettingsStore.getState().setMaxFilesPerRun(250);
+  const items: ScanResult[] = [1, 2, 3].map(n => ({
+    ...PHOTO_ITEM,
+    path: `/photo/${n}.jpg`,
+    displayName: `${n}.jpg`,
+    category: 'photo',
+  }));
+  scanMock.mockImplementation(async (category: string) => (category === 'photo' ? items : []));
+  const exists = ReactNativeBlobUtil.fs.exists as unknown as jest.Mock;
+  exists.mockResolvedValue(true);
+  try {
+    const result = await runBackup();
+
+    // A user stop is not a failure: it is an unfinished run that continues next time.
+    expect(result.status).toBe('partial');
+    expect(result.error).toBe('Dihentikan');
+    expect(result.notes?.join(' ')).toContain('Dihentikan');
+    // Nothing was uploaded, so nothing may be recorded as backed up.
+    expect(result.files).toBe(0);
+    expect(filesMock.markBackup).not.toHaveBeenCalled();
+  } finally {
+    exists.mockResolvedValue(false);
+  }
+});
+
 test('a zero maxFilesPerRun still processes at least one file', async () => {
   useSettingsStore.getState().setMaxFilesPerRun(0);
   const items: ScanResult[] = [1, 2].map(n => ({

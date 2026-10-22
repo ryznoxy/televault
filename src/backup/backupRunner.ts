@@ -10,7 +10,9 @@ import {
 } from './crypto';
 import { scanCategory, scanCustomFolders, ensureLocalPath, type ScanResult } from './fileScanner';
 import { shareBudget } from './fileBudget';
+import { clearRunStop, runStopRequested } from './runControl';
 import { sha256File } from './hasher';
+import { sendGapMs } from '../net/throttle';
 import { needsBackup } from './incremental';
 import {
   createManifest,
@@ -71,8 +73,10 @@ const PBKDF2_ITERATIONS = 210000;
  */
 const ALLOW_LOCAL_DELETE: boolean = false;
 
-/** PRD §14: 1 req/sec throttle between successful chunk uploads. */
-const CHUNK_THROTTLE_MS = 1000;
+/**
+ * PRD §14: 1 req/sec floor between chunk uploads, raised when the API pushes
+ * back (see `net/throttle`). Manifest sends are paced by the same gap.
+ */
 
 /**
  * PRD §14 / §21 gap #7: `CacheDir` holds the localized `content://` copies, the
@@ -222,6 +226,8 @@ export async function runBackup(
   );
 
   await sessionsRepo.failStaleRunning(PROCESS_START);
+  // A request left over from a finished run must not abort this one.
+  await clearRunStop();
   const sessionId = await sessionsRepo.insert({
     startedAt: Date.now(),
     category: categories.join(','),
@@ -250,8 +256,21 @@ export async function runBackup(
   let totalFiles = 0;
   let deferred = 0;
   let failure = false;
+  let stopped = false;
   const errors: string[] = [];
   const notes: string[] = [];
+  /**
+   * A stop request is honoured between chunks and between files, never during a
+   * transfer, so a part is either fully sent or not sent at all. Everything the
+   * stop leaves unsent keeps the unfinished-archive rules: it stays out of the
+   * manifest and its source files stay pending for the next run.
+   */
+  const stopWanted = async (): Promise<boolean> => {
+    if (!stopped) {
+      stopped = await runStopRequested();
+    }
+    return stopped;
+  };
   // Upload names must be unique across the run: two photos called IMG_0001.jpg
   // in different folders produced two manifest entries with the same name and
   // identical part names, so the restore matched one part set for both, dropped
@@ -361,6 +380,16 @@ export async function runBackup(
     const failed: ChunkFile[] = [];
     const ivs: string[] = [];
     for (const chunk of chunks) {
+      if (await stopWanted()) {
+        // Everything from here on is unsent: report it the way a lost part is
+        // reported, so the archive is left out of the manifest rather than
+        // listed as whole.
+        for (const rest of chunks.slice(chunk.index - 1)) {
+          failed.push(rest);
+        }
+        skippedChunks += chunks.length - chunk.index + 1;
+        break;
+      }
       const caption =
         chunks.length === 1 ? entryName : `${entryName} part ${chunk.index}/${chunks.length}`;
       // The manifest stores `entryName` plus the part count, and the
@@ -420,9 +449,9 @@ export async function runBackup(
       await sessionsRepo.updateChunksSent(sessionId, totalSent);
       const progress = progressOf(chunk.index, chunks.length);
       emit('uploading', category, progress.current, progress.total);
-      // ponytail: fixed 1s throttle keeps under Bot API ~30 msg/s; a 429 now
-      // backs off per Retry-After inside sendDocumentWithRetry.
-      await sleep(CHUNK_THROTTLE_MS);
+      // Paced by the shared throttle: it keeps the floor gap (1s) while the API
+      // is happy and stretches it the moment a 429 asks for room.
+      await sleep(sendGapMs());
     }
     return { chunks, failed, ivs };
   };
@@ -552,6 +581,9 @@ export async function runBackup(
   // Pass 2 — process the queue. Every file counted in `overallTotal` is handled
   // here, so the overall counter reaches the total on the final event.
   for (const { category, pending } of queue) {
+    if (await stopWanted()) {
+      break;
+    }
     const localized: string[] = [];
     // Files already finished before this category; byte progress is reported as an
     // offset from here so a category archive moves the bar by its own file count.
@@ -639,6 +671,9 @@ export async function runBackup(
         setOverall(categoryBase + pending.length);
       } else {
         for (let index = 0; index < pending.length; index += 1) {
+          if (await stopWanted()) {
+            break;
+          }
           const { item, uploadName } = pending[index];
           const fileBase = overallCurrent;
           const local = await ensureLocalPath(item.path);
@@ -730,22 +765,22 @@ export async function runBackup(
         await ReactNativeBlobUtil.fs.writeFile(batPath, scripts.bat, 'utf8');
         await ReactNativeBlobUtil.fs.writeFile(manifestPath, manifestToJson(manifest), 'utf8');
 
-        await api.sendDocument(
+        await sendDocumentWithRetry(
+          api,
           { path: shPath, name: baseName(shPath), mime: 'text/x-shellscript' },
           undefined,
-          undefined,
           silent,
         );
-        await api.sendDocument(
+        await sendDocumentWithRetry(
+          api,
           { path: batPath, name: baseName(batPath), mime: 'application/x-bat' },
           undefined,
-          undefined,
           silent,
         );
-        const manifestResult = await api.sendDocument(
+        const manifestResult = await sendDocumentWithRetry(
+          api,
           { path: manifestPath, name: manifestName, mime: 'application/json' },
           `Manifest for ${group.base}`,
-          undefined,
           silent,
         );
         sentIds.push(String(manifestResult.messageId));
@@ -796,6 +831,12 @@ export async function runBackup(
       : skippedChunks > 0
         ? 'partial'
         : 'success';
+  // A run cut short by the user did not finish its work, whatever it managed to
+  // upload before that, so it is never recorded as a clean success.
+  const finalStatus: BackupResult['status'] = stopped ? 'partial' : status;
+  if (stopped) {
+    notes.push('Dihentikan oleh pengguna; sisanya lanjut di backup berikutnya.');
+  }
   // Multi-category runs join their real artifact names; single-category runs
   // record the one real name. No name is fabricated.
   const archiveName = archiveNames.length > 0 ? archiveNames.join(', ') : null;
@@ -806,25 +847,25 @@ export async function runBackup(
     totalSize,
     totalChunks,
     totalSent,
-    status,
+    finalStatus,
     manifestId,
     manifestFileIds,
     archiveName,
     wantEncryption ? 1 : 0,
-    summarizeErrors(errors),
+    stopped ? summarizeErrors([...errors, 'Dihentikan']) : summarizeErrors(errors),
     config.archiveFormat,
   );
 
   await ReactNativeBlobUtil.fs.unlink(stagingDir).catch(() => undefined);
   untrackTempDir(stagingDir);
 
-  const suppressFailure = status === 'failed' && !config.alertOnFailure;
+  const suppressFailure = finalStatus === 'failed' && !config.alertOnFailure;
   if (config.notifyBotSummary && !suppressFailure) {
     try {
       const skippedNote = skippedChunks > 0 ? ` ${skippedChunks} potongan terlewat.` : '';
       const notesNote = notes.length > 0 ? ` ${notes.join(' ')}` : '';
       await api.sendMessage(
-        `Backup ${status}. ${totalSent} chunks uploaded, ${totalFiles} files, ${Math.round(
+        `Backup ${finalStatus}. ${totalSent} chunks uploaded, ${totalFiles} files, ${Math.round(
           totalSize / 1024,
         )} KB total.${skippedNote}${notesNote}`,
         silent,
@@ -837,12 +878,16 @@ export async function runBackup(
   overallCurrent = overallTotal;
   emit('done', undefined, totalSent, totalSent);
   return {
-    status,
+    status: finalStatus,
     chunksSent: totalSent,
     files: totalFiles,
     totalSize,
     deferred,
-    error: errors.length > 0 ? errors.join('; ') : undefined,
+    error: stopped
+      ? 'Dihentikan'
+      : errors.length > 0
+        ? errors.join('; ')
+        : undefined,
     ...(notes.length > 0 ? { notes } : {}),
   };
 }
