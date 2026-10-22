@@ -7,9 +7,9 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.graphics.BitmapFactory
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.graphics.drawable.IconCompat
 
 /**
  * The one place that builds the low-priority TeleVault notifications: the
@@ -44,7 +44,7 @@ internal object StatusNotification {
   fun build(context: Context, title: String, text: String, withStop: Boolean = false): Notification {
     val builder = NotificationCompat.Builder(context, CHANNEL_ID)
       .setSmallIcon(R.drawable.ic_stat_vault)
-      .setLargeIcon(IconCompat.createWithResource(context, R.drawable.ic_notif_large))
+      .setLargeIcon(BitmapFactory.decodeResource(context.resources, R.drawable.ic_notif_large))
       .setColor(0xFF2AABEE.toInt())
       .setContentTitle(title)
       .setContentText(text)
