@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -43,6 +43,23 @@ import { successRatio } from '../state/history';
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 const MONTH_MS = 30 * 24 * 60 * 60 * 1000;
+
+/**
+ * A session row left `running` by a process the OS killed is swept at the next
+ * run's start, which can be a day away. Anything older than the longest a
+ * foreground service may live (Android 15 caps `dataSync` at about six hours) is
+ * therefore treated as dead, so the home ring cannot spin forever by itself.
+ */
+const RUN_STALE_MS = 6 * 60 * 60 * 1000;
+
+/** The newest session that is genuinely still in flight, if any. */
+async function liveRun(): Promise<SessionRecord | null> {
+  const running = await sessionsRepo.running();
+  if (!running || Date.now() - running.started_at >= RUN_STALE_MS) {
+    return null;
+  }
+  return running;
+}
 
 function formatBytes(bytes: number): string {
   if (bytes <= 0) {
@@ -152,6 +169,13 @@ export default function HomeScreen({ navigation }: Props) {
   const [totalSize, setTotalSize] = useState(0);
   const [fileCount, setFileCount] = useState(0);
   const [ratio, setRatio] = useState<number | null>(null);
+  /**
+   * A run started outside this JS runtime (the exact alarm's service, or the
+   * background fetch while the app was closed) writes its session row to the DB
+   * but not to this store, so the home ring would sit at 0% while it works. The
+   * row is the honest source: it is what the notification reports too.
+   */
+  const [backgroundRun, setBackgroundRun] = useState<SessionRecord | null>(null);
 
   const refresh = useCallback(async () => {
     const ok = await secureStore.isConfigured();
@@ -165,6 +189,7 @@ export default function HomeScreen({ navigation }: Props) {
     const sessions = await sessionsRepo.recent(200);
     const since = Date.now() - MONTH_MS;
     setRatio(successRatio(sessions.filter(session => session.started_at >= since)));
+    setBackgroundRun(await liveRun());
 
     if (ok && credentials.botToken.trim()) {
       const started = Date.now();
@@ -186,6 +211,27 @@ export default function HomeScreen({ navigation }: Props) {
     const unsubscribe = navigation.addListener('focus', refresh);
     refresh();
     return unsubscribe;
+  }, [navigation, refresh]);
+
+  // Poll while a run is in flight, so a run this runtime did not start still
+  // moves the ring, and pull the results in the moment it ends.
+  const runWasLive = useRef(false);
+  useEffect(() => {
+    const tick = async () => {
+      const live = await liveRun().catch(() => null);
+      const wasLive = runWasLive.current;
+      runWasLive.current = live !== null;
+      setBackgroundRun(live);
+      if (!live && wasLive) {
+        await refresh();
+      }
+    };
+    const timer = setInterval(tick, 3000);
+    const unsubscribe = navigation.addListener('focus', tick);
+    return () => {
+      clearInterval(timer);
+      unsubscribe();
+    };
   }, [navigation, refresh]);
 
 
@@ -220,15 +266,29 @@ export default function HomeScreen({ navigation }: Props) {
     ? botUsername ?? (chatId ? `Chat ${chatId}` : 'Bot')
     : 'Belum terhubung';
   const channelLabel = chatId ? `Channel: ${chatId}` : 'Channel: belum diatur';
-  const ringProgress = busy ? progress : lastSession ? 1 : 0;
+  const backgroundFraction = backgroundRun
+    ? backgroundRun.chunks_total > 0
+      ? Math.min(1, backgroundRun.chunks_sent / backgroundRun.chunks_total)
+      : 0
+    : null;
+  const ringProgress = busy
+    ? progress
+    : backgroundFraction !== null
+      ? backgroundFraction
+      : lastSession
+        ? 1
+        : 0;
   const progressCategory =
     progressLabel?.category !== undefined
       ? CATEGORY_LABELS[progressLabel.category as CategoryKey] ?? progressLabel.category
       : null;
   const lastRunLabel = lastSession ? relativeTime(lastSession.finished_at ?? lastSession.started_at) : 'Belum ada backup';
-  const sizeLabel = lastSession
-    ? `${formatBytes(lastSession.total_size)} berhasil diunggah ke channel`
-    : 'Belum ada data terunggah';
+  const insetTitle = backgroundRun ? 'Backup otomatis berjalan' : lastRunLabel;
+  const sizeLabel = backgroundRun
+    ? `${backgroundRun.chunks_sent}/${backgroundRun.chunks_total} potongan terkirim`
+    : lastSession
+      ? `${formatBytes(lastSession.total_size)} berhasil diunggah ke channel`
+      : 'Belum ada data terunggah';
   const shaValid = !!lastSession?.manifest_id;
 
   const contentContainer = {
@@ -310,7 +370,7 @@ export default function HomeScreen({ navigation }: Props) {
                   {configured ? 'STATUS SINKRONISASI' : 'BELUM TERKONFIGURASI'}
                 </Text>
                 <Text style={styles.heroTitle} numberOfLines={1}>
-                  {busy ? 'Mencadangkan\u2026' : 'Siap Mencadangkan'}
+                  {busy ? 'Mencadangkan\u2026' : backgroundRun ? 'Backup otomatis\u2026' : 'Siap Mencadangkan'}
                 </Text>
               </View>
               <View style={styles.heroIconTile}>
@@ -329,7 +389,7 @@ export default function HomeScreen({ navigation }: Props) {
               </ProgressRing>
               <View style={styles.insetText}>
                 <Text style={styles.insetTitle} numberOfLines={1} ellipsizeMode="tail">
-                  {lastRunLabel}
+                  {insetTitle}
                 </Text>
                 <Text style={styles.insetMeta} numberOfLines={2}>
                   {sizeLabel}
@@ -358,14 +418,28 @@ export default function HomeScreen({ navigation }: Props) {
               </View>
             ) : null}
 
+            {!busy && backgroundRun ? (
+              <View style={styles.progressBlock}>
+                <View style={styles.progressHeader}>
+                  <Text style={styles.progressText} numberOfLines={1}>
+                    {`Backup otomatis \u00b7 ${backgroundRun.chunks_sent}/${backgroundRun.chunks_total} potongan`}
+                  </Text>
+                  <Text style={styles.progressPct}>
+                    {Math.round((backgroundFraction ?? 0) * 100)}%
+                  </Text>
+                </View>
+                <ProgressBar progress={backgroundFraction ?? 0} />
+              </View>
+            ) : null}
+
             <Pressable
               onPress={onBackupNow}
-              disabled={!configured || busy}
+              disabled={!configured || busy || backgroundRun !== null}
               accessibilityRole="button"
-              accessibilityState={{ disabled: !configured || busy }}
+              accessibilityState={{ disabled: !configured || busy || backgroundRun !== null }}
               style={({ pressed }) => [
                 styles.heroCta,
-                (!configured || busy) && styles.disabled,
+                (!configured || busy || backgroundRun !== null) && styles.disabled,
                 pressed && styles.pressed,
               ]}>
               {busy ? (
@@ -374,7 +448,11 @@ export default function HomeScreen({ navigation }: Props) {
                 <TgIcon name="backup" color="#003147" size={20} />
               )}
               <Text style={styles.heroCtaText} numberOfLines={1}>
-                {busy ? status ?? 'Mencadangkan\u2026' : 'Mulai Backup Sekarang'}
+                {busy
+                  ? status ?? 'Mencadangkan\u2026'
+                  : backgroundRun
+                    ? 'Backup otomatis sedang berjalan'
+                    : 'Mulai Backup Sekarang'}
               </Text>
             </Pressable>
 
