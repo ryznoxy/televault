@@ -9,6 +9,15 @@ export type WhatsNew = {
 };
 
 export const WHATS_NEW: Record<string, WhatsNew> = {
+  '1.3.3': {
+    title: 'Apa baru di v1.3.3',
+    items: [
+      'Perbaikan: backup otomatis di Android 12 ke atas dulu diam-diam gagal saat aplikasi di latar belakang',
+      'Jadwal jam tertentu kini memakai alarm eksak, jadi benar-benar jalan di jam yang dipilih',
+      'Kegagalan penjadwalan tercatat di log Troubleshooting, tidak hilang tanpa jejak',
+      'Troubleshooting menampilkan kapan sistem terakhir membangunkan aplikasi',
+    ],
+  },
   '1.3.2': {
     title: 'Apa baru di v1.3.2',
     items: [
