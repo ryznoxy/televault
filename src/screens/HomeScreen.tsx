@@ -750,18 +750,6 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
   scroll: { flex: 1 },
   column: { width: '100%', maxWidth: 640, alignSelf: 'center', gap: SPACE.base + SPACE.xs },
 
-  updateCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACE.sm,
-    borderRadius: RADIUS.lg,
-    padding: SPACE.md,
-    ...ELEVATION.card,
-  },
-  updateText: { flex: 1 },
-  updateTitle: { ...TYPE.label, fontWeight: '600' },
-  updateSub: { ...TYPE.footnote, marginTop: 2 },
-
   card: {
     backgroundColor: TG.card,
     borderRadius: RADIUS.lg,
