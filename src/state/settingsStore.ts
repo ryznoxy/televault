@@ -22,12 +22,13 @@ type SettingsState = {
   setEncryptionEnabled: (value: boolean) => void;
   setEncryptionSalt: (value: string) => void;
   setCustomFolderUri: (uri: string | null) => void;
-  setDocFolderUri: (uri: string | null) => void;
   addWatchedFolder: (folder: WatchedFolder) => void;
   removeWatchedFolder: (id: string) => void;
   updateWatchedFolder: (id: string, patch: Partial<WatchedFolder>) => void;
   setAutomationPaused: (value: boolean) => void;
   setCompressZip: (value: boolean) => void;
+  setDirectMedia: (value: boolean) => void;
+  setDirectMediaMaxMb: (value: number) => void;
   setArchiveFormat: (value: ArchiveFormat) => void;
   setDeleteLocalAfterBackup: (value: boolean) => void;
   setNotifyBotSummary: (value: boolean) => void;
@@ -51,7 +52,6 @@ export const useSettingsStore = create<SettingsState>()(
       setEncryptionEnabled: encryptionEnabled => set(s => ({ config: { ...s.config, encryptionEnabled } })),
       setEncryptionSalt: encryptionSalt => set(s => ({ config: { ...s.config, encryptionSalt } })),
       setCustomFolderUri: customFolderUri => set(s => ({ config: { ...s.config, customFolderUri } })),
-      setDocFolderUri: docFolderUri => set(s => ({ config: { ...s.config, docFolderUri } })),
       addWatchedFolder: folder =>
         set(s => ({
           config: { ...s.config, watchedFolders: [...s.config.watchedFolders, folder] },
@@ -75,6 +75,13 @@ export const useSettingsStore = create<SettingsState>()(
       setAutomationPaused: automationPaused =>
         set(s => ({ config: { ...s.config, automationPaused } })),
       setCompressZip: compressZip => set(s => ({ config: { ...s.config, compressZip } })),
+      setDirectMedia: directMedia => set(s => ({ config: { ...s.config, directMedia } })),
+      setDirectMediaMaxMb: value =>
+        set(s => ({
+          // Clamped: 0 would send every photo through the zip and anything past
+          // the Bot API cap cannot be a single upload.
+          config: { ...s.config, directMediaMaxMb: Math.min(2000, Math.max(1, Math.round(value))) },
+        })),
       setArchiveFormat: archiveFormat => set(s => ({ config: { ...s.config, archiveFormat } })),
       setDeleteLocalAfterBackup: deleteLocalAfterBackup =>
         set(s => ({ config: { ...s.config, deleteLocalAfterBackup } })),
