@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="docs/logo.png" width="180" alt="TeleVault" />
+
 # TeleVault
 
 **Backup terenkripsi dari HP Android langsung ke Telegram**, tanpa server, tanpa langganan cloud.
@@ -10,7 +12,7 @@ Dari chat itu semuanya bisa dipulihkan lagi lewat aplikasi.
 [![CI](https://github.com/ryznoxy/televault/actions/workflows/ci.yml/badge.svg)](https://github.com/ryznoxy/televault/actions/workflows/ci.yml)
 [![Release](https://github.com/ryznoxy/televault/actions/workflows/release.yml/badge.svg)](https://github.com/ryznoxy/televault/actions/workflows/release.yml)
 ![React Native](https://img.shields.io/badge/React%20Native-0.87-61DAFB)
-![Platform](https://img.shields.io/badge/platform-Android%20%7C%20iOS-lightgrey)
+![Platform](https://img.shields.io/badge/platform-Android-lightgrey)
 
 </div>
 
@@ -65,7 +67,6 @@ Update berikutnya tidak perlu download manual lagi: buka app, kalau ada versi ba
 
 - Node.js >= 22.11, JDK 17, Android SDK (mengikuti [set up environment](https://reactnative.dev/docs/set-up-your-environment)).
 - Bot Telegram: buat lewat [@BotFather](https://t.me/BotFather). Chat ID tidak perlu dicari manual, kirim pesan ke bot lalu di layar Setup tekan **Deteksi Otomatis**.
-- Untuk iOS: Xcode plus CocoaPods (`bundle install && bundle exec pod install`).
 
 > [!IMPORTANT]
 > Token bot, chat ID, dan passphrase enkripsi disimpan di keychain atau keystore perangkat lewat `react-native-keychain`, bukan di source atau `.env`. Ketiganya hanya dibaca saat backup atau restore berjalan dan tidak pernah dikirim ke Telegram. Menghapus aplikasi menghapus keychain-nya, jadi simpan passphrase di tempat lain juga.
@@ -76,7 +77,6 @@ Update berikutnya tidak perlu download manual lagi: buka app, kalau ada versi ba
 npm install
 npm start          # Metro
 npm run android    # terminal lain
-npm run ios
 ```
 
 Di aplikasi: layar Setup, tempel token bot, kirim pesan ke bot, Deteksi Otomatis chat ID, kirim pesan tes, pilih kategori dan jadwal serta passphrase, lalu backup pertama. Selesai setup, tour persiapan latar belakang muncul otomatis.
@@ -149,10 +149,6 @@ git tag v1.3.2 && git push origin v1.3.2
 
 `versionName` dan `versionCode` di-stamp otomatis dari tag (versionCode = semver encoded: `v1.2.3` → `10203`), tidak perlu edit `build.gradle` per rilis.
 
-### iOS
-
-Bundle id `com.televault.app`, `MARKETING_VERSION` di `ios/TelebotBackupRN.xcodeproj`. Jalankan `bundle install && bundle exec pod install`, set team dan signing di Xcode, lalu archive. iOS belum diuji di device (lihat Batasan).
-
 ## Batasan yang diketahui
 
 - **7z belum didukung**: writer 7z tidak tersedia di Hermes; opsi format ditampilkan tapi dinonaktifkan (`src/backup/zipper.ts`).
@@ -167,8 +163,7 @@ Bundle id `com.televault.app`, `MARKETING_VERSION` di `ios/TelebotBackupRN.xcode
 - **Restore one-tap butuh DB lokal**: `file_id` potongan disimpan di SQLite app. Hapus app berarti hilang; restore HP baru tetap bisa lewat jalur manual (download dari Telegram).
 - **Autostart tidak bisa diaktifkan secara programatik**: tidak ada API Android untuk itu; app hanya bisa membuka layar setelan merek yang tepat, sisanya keputusan pengguna.
 - **APK debug butuh Metro; pakai build release**: hanya `assembleRelease` yang membundel JS. APK di Releases sudah release build.
-- **iOS belum diuji di device.**
-- **Package Kotlin masih `com.telebotbackuprn`** (nama modul Xcode `TelebotBackupRN`), tapi id yang dipasang dan dipublikasikan adalah `com.televault.app` di kedua platform; id ini permanen setelah rilis pertama.
+- **Package Kotlin masih `com.telebotbackuprn`**, tapi id yang dipasang dan dipublikasikan adalah `com.televault.app`; id ini permanen setelah rilis pertama.
 
 Checklist rilis lengkap ada di [`docs/release-checklist.md`](docs/release-checklist.md).
 
