@@ -1,7 +1,5 @@
 package com.telebotbackuprn
 
-import android.app.AlarmManager
-import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Intent
 import android.net.Uri
@@ -12,7 +10,6 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
-import java.util.Calendar
 
 /**
  * App-level status the JS side cannot read on its own:
@@ -25,8 +22,9 @@ import java.util.Calendar
  *   notification survives the process, costs no battery, and cannot be swiped
  *   away. A permanent dataSync foreground service is not an option on target
  *   SDK 36 (Android 15 caps those at 6 hours a day).
- * - the exact alarm that wakes the scheduled run. Android 12+ refuses a
- *   foreground service started from the background, but an exact alarm is one
+ * - the exact alarm that wakes the scheduled run, in its alarm-clock form so
+ *   Doze and OEM battery managers treat it as user-visible. Android 12+ refuses
+ *   a foreground service started from the background, but an exact alarm is one
  *   of the exemptions, so the alarm is what makes a 2 AM run possible at all.
  * - the battery-optimization exemption state and the intents that reach it,
  *   plus the per-OEM autostart settings screens no JS API exposes.
@@ -86,42 +84,13 @@ class VaultStatusModule(reactContext: ReactApplicationContext) :
   /** Points the next wake-up at the given hour, today if it has not passed yet. */
   @ReactMethod
   fun scheduleExactAlarm(hour: Int) {
-    val manager = reactApplicationContext.getSystemService(AlarmManager::class.java) ?: return
-    val at = nextOccurrence(hour)
-    val pending = alarmIntent()
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !manager.canScheduleExactAlarms()) {
-      // Exact alarms need "Alarms & reminders". Degrade to a wake that still
-      // escapes Doze rather than never running at all.
-      manager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pending)
-      return
-    }
-    manager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pending)
+    ExactAlarm.schedule(reactApplicationContext, hour)
   }
 
   @ReactMethod
   fun cancelExactAlarm() {
-    reactApplicationContext.getSystemService(AlarmManager::class.java)?.cancel(alarmIntent())
+    ExactAlarm.cancel(reactApplicationContext)
   }
-
-  private fun nextOccurrence(hour: Int): Long {
-    val next = Calendar.getInstance().apply {
-      set(Calendar.HOUR_OF_DAY, hour)
-      set(Calendar.MINUTE, 0)
-      set(Calendar.SECOND, 0)
-      set(Calendar.MILLISECOND, 0)
-    }
-    if (next.timeInMillis <= System.currentTimeMillis()) {
-      next.add(Calendar.DAY_OF_YEAR, 1)
-    }
-    return next.timeInMillis
-  }
-
-  private fun alarmIntent(): PendingIntent = PendingIntent.getBroadcast(
-    reactApplicationContext,
-    ALARM_REQUEST,
-    Intent(reactApplicationContext, AlarmReceiver::class.java),
-    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-  )
 
   @ReactMethod
   fun isIgnoringBatteryOptimizations(promise: Promise) {
@@ -174,8 +143,6 @@ class VaultStatusModule(reactContext: ReactApplicationContext) :
   }
 
   private companion object {
-    const val ALARM_REQUEST = 4103
-
     /**
      * Autostart screens per OEM. Android gives apps no API to enable autostart;
      * the best we can do is land the user on the exact screen instead of making

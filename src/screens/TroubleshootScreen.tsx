@@ -23,7 +23,7 @@ import { useSettingsStore } from '../state/settingsStore';
 import { clearErrorLog, getErrorLog, logError, type ErrorLogEntry } from '../state/errorLog';
 import { OEM_GUIDE } from '../background/oemGuide';
 import { nativeStatus } from '../background/androidStatus';
-import { lastWakeAt } from '../background/wake';
+import { lastWake, type WakeSource } from '../background/wake';
 import { relativeTime } from '../background/statusText';
 import { useTourStore } from '../state/tourStore';
 import type { RootStackParamList } from '../navigation/Routes';
@@ -58,6 +58,22 @@ const EMPTY_DIAGNOSTICS: Diagnostics = {
   lastWake: 'Belum pernah',
 };
 
+/**
+ * Which path fired: the exact alarm's service, or the inexact JobScheduler. A
+ * "JobScheduler" line next to a schedule set to a fixed hour is the signature of
+ * an alarm the device held back; an "alarm eksak" line means the alarm itself
+ * arrived and woke us at the right time.
+ */
+function wakeLabel(source: WakeSource | null): string {
+  if (source === 'alarm') {
+    return 'alarm eksak';
+  }
+  if (source === 'job') {
+    return 'JobScheduler';
+  }
+  return 'sumber tidak diketahui';
+}
+
 export default function TroubleshootScreen({ navigation }: Props) {
   const { mode } = useTheme();
   const TG = tgTheme(mode);
@@ -82,7 +98,7 @@ export default function TroubleshootScreen({ navigation }: Props) {
       session => session.status === 'failed' || session.status === 'partial',
     );
     const current = useSettingsStore.getState().config;
-    const wake = lastWakeAt();
+    const wake = lastWake();
     setDiag({
       configured,
       lastBackup: last ? relativeTime(last.finished_at ?? last.started_at) : 'Belum ada',
@@ -94,7 +110,7 @@ export default function TroubleshootScreen({ navigation }: Props) {
         : current.scheduleMode === 'manual'
           ? 'Manual'
           : 'Aktif',
-      lastWake: wake == null ? 'Belum pernah' : relativeTime(wake),
+      lastWake: wake == null ? 'Belum pernah' : `${relativeTime(wake.at)} (${wakeLabel(wake.source)})`,
     });
   }, []);
 

@@ -1,25 +1,35 @@
 import { mmkv } from '../state/mmkv';
 
 /**
- * Last time a background wake-up actually reached the JS side. Without it a
- * missed schedule is ambiguous: the OS may never have woken us, or we may have
- * woken and refused to run. Troubleshooting shows the timestamp.
+ * Last time a background wake-up actually reached the JS side, and what woke
+ * us. Without it a missed schedule is ambiguous: the OS may never have woken
+ * us, we may have woken and refused to run, or the inexact JobScheduler may have
+ * been the one that fired while the exact alarm was held back. Troubleshooting
+ * shows both the timestamp and the source.
  */
 const KEY = 'scheduler_last_wake';
 
-export function recordWake(at: number = Date.now()): void {
+/** The exact alarm's own service, or the inexact JobScheduler. */
+export type WakeSource = 'alarm' | 'job';
+
+export function recordWake(source: WakeSource = 'job'): void {
   try {
-    mmkv.set(KEY, String(at));
+    mmkv.set(KEY, `${Date.now()}|${source}`);
   } catch {
     // Recording a wake must never break the wake.
   }
 }
 
-export function lastWakeAt(): number | null {
+export function lastWake(): { at: number; source: WakeSource | null } | null {
   const raw = mmkv.getString(KEY);
   if (!raw) {
     return null;
   }
-  const at = parseInt(raw, 10);
-  return Number.isNaN(at) ? null : at;
+  // Older installs stored a bare timestamp, which has no source to report.
+  const [atRaw, source] = raw.split('|');
+  const at = parseInt(atRaw, 10);
+  if (Number.isNaN(at)) {
+    return null;
+  }
+  return { at, source: source === 'alarm' || source === 'job' ? source : null };
 }
