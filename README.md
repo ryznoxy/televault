@@ -41,6 +41,9 @@ Dari chat itu semuanya bisa dipulihkan lagi lewat aplikasi.
 - **Penjadwalan**: manual, interval (jam), jam tertentu tiap hari, atau hanya saat charging. Jadwal jam tertentu memakai alarm eksak, bukan job periodik yang bisa digeser Doze, dan alarm itu yang menjalankan backup di latar belakang.
 - **Jalan di background**: `react-native-background-fetch` plus foreground service, termasuk headless task saat aplikasi tertutup. Backup jam tertentu berjalan di foreground service milik alarm eksaknya sendiri, karena Android 12 ke atas menolak service yang dimulai dari job latar belakang.
 - **Upload tahan putus**: retry dengan backoff (`Retry-After` 429 dihormati, dibatasi 60 detik); progres, kecepatan upload, dan estimasi sisa waktu tampil di layar Utama; riwayat sesi dan statistik tersimpan lokal (SQLite) dan bisa diekspor CSV.
+- **Hentikan di tengah jalan**: tombol Hentikan di kartu progres layar Utama dan di notifikasi backup berjalan. Permintaan dicek antar potongan dan antar berkas, jadi tidak ada potongan setengah terkirim; berkas yang sudah naik tetap tercatat, sisanya lanjut di backup berikutnya, dan sesi ditutup sebagai `partial`.
+- **Progres lintas proses**: layar Utama membaca sesi yang sedang berjalan dari DB (kolom `chunks_sent`/`chunks_total`), bukan hanya state layar, jadi backup otomatis yang dijalankan alarm tetap terlihat progresnya meski app dibuka belakangan.
+- **Jeda kirim adaptif**: gap antar kiriman mulai dari 1 detik dan naik ke jendela `retry_after` saat Bot API menolak (429), lalu turun perlahan lagi kalau kiriman lancar. Percobaan 429 lebih banyak daripada error biasa supaya potongan tidak dilewati dan arsip tidak jadi tidak lengkap.
 - **Troubleshoot**: layar diagnostik untuk izin, koneksi bot, panduan baterai per OEM, kapan sistem terakhir membangunkan app, plus log error ringan (ring buffer 20 entri) supaya kegagalan yang tertelan tetap kelihatan.
 - **Wifi-only** dan passphrase strength check.
 - **Tema terang dan gelap**: toggle dark mode di Settings, semua layar ter-tokenisasi mengikuti.
@@ -160,6 +163,7 @@ Bundle id `com.televault.app`, `MARKETING_VERSION` di `ios/TelebotBackupRN.xcode
 - **Jadwal global, bukan per folder**: satu jadwal untuk semua kategori terpilih.
 - **Jam tertentu butuh izin alarm eksak**: Android 12 ke atas membatasi alarm eksak, jadi app memakai izin alarm (di Android 13+, `USE_EXACT_ALARM` diberikan tanpa dialog). Kalau izin itu dicabut, penjadwalan turun ke alarm tidak eksak dan bisa bergeser beberapa menit.
 - **Job periodik tetap tidak eksak**: mode interval dan charging masih lewat JobScheduler `react-native-background-fetch`; Doze dan pembatasan merek (mis. MIUI autostart) bisa menundanya.
+- **Alarm eksak masih bisa ditahan sebagian merek**: `setExactAndAllowWhileIdle` lolos Doze di Android stok, tapi MIUI dan sejenisnya bisa menahan alarm sampai HP dipakai. Kalau jam 2 pagi tidak jalan sementara Troubleshooting menampilkan waktu bangun yang lebih siang, itu penyebabnya; autostart dan bebas optimasi baterai mengurangi, bukan menghilangkan.
 - **Restore one-tap butuh DB lokal**: `file_id` potongan disimpan di SQLite app. Hapus app berarti hilang; restore HP baru tetap bisa lewat jalur manual (download dari Telegram).
 - **Autostart tidak bisa diaktifkan secara programatik**: tidak ada API Android untuk itu; app hanya bisa membuka layar setelan merek yang tepat, sisanya keputusan pengguna.
 - **APK debug butuh Metro; pakai build release**: hanya `assembleRelease` yang membundel JS. APK di Releases sudah release build.
