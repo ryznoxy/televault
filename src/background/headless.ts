@@ -9,7 +9,7 @@ export async function headlessTask(event: HeadlessEvent): Promise<void> {
     BackgroundFetch.finish(event.taskId);
     return;
   }
-  recordWake();
+  recordWake('job');
   try {
     await runScheduledBackup();
   } catch (error) {

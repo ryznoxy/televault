@@ -11,7 +11,7 @@ import { logError } from '../state/errorLog';
  * from the background.
  */
 export async function scheduledRunTask(): Promise<void> {
-  recordWake();
+  recordWake('alarm');
   try {
     await runScheduledBackup(runBackupInNativeService);
   } catch (error) {

@@ -49,7 +49,7 @@ export async function configureScheduler(): Promise<void> {
       requiresStorageNotLow: true,
     },
     async taskId => {
-      recordWake();
+      recordWake('job');
       try {
         await runScheduledBackup();
       } catch (error) {
