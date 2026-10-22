@@ -19,12 +19,32 @@ jest.mock('react-native-mmkv', () => {
     createMMKV: ({ id = 'mmkv.default' } = {}) => {
       if (!stores[id]) {
         const data = new Map();
+        // Nitro rejects a key that is not a string ("Value is undefined,
+        // expected a String"), which is how a value read before its own
+        // declaration shows up once the bundle lowers `const` to `var`.
+        const assertKey = k => {
+          if (typeof k !== 'string') {
+            throw new Error('Value is undefined, expected a String');
+          }
+        };
         stores[id] = {
           id,
-          set: (k, v) => data.set(k, v),
-          getString: k => (data.has(k) ? data.get(k) : undefined),
-          getBoolean: k => data.get(k),
-          getNumber: k => data.get(k),
+          set: (k, v) => {
+            assertKey(k);
+            data.set(k, v);
+          },
+          getString: k => {
+            assertKey(k);
+            return data.has(k) ? data.get(k) : undefined;
+          },
+          getBoolean: k => {
+            assertKey(k);
+            return data.get(k);
+          },
+          getNumber: k => {
+            assertKey(k);
+            return data.get(k);
+          },
           contains: k => data.has(k),
           remove: k => data.delete(k),
           getAllKeys: () => [...data.keys()],
