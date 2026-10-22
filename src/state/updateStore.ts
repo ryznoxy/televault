@@ -29,6 +29,48 @@ type UpdateUiState = {
   cancelDownload: () => void;
 };
 
+export const UPDATE_DISMISS_KEY = 'update_dismissed_tag';
+/** Remembered release, so a restart inside the check interval still shows it. */
+const PENDING_KEY = 'update_pending_release';
+
+/**
+ * The release found earlier, still newer than what is installed. The local
+ * versionCode decides: an update that has since been installed is dropped here
+ * instead of being offered again.
+ */
+export function pendingFromStorage(): AvailableUpdate | null {
+  const raw = mmkv.getString(PENDING_KEY);
+  if (!raw) {
+    return null;
+  }
+  try {
+    const stored = JSON.parse(raw) as AvailableUpdate;
+    if (!stored?.tag || !stored.apkUrl) {
+      return null;
+    }
+    const releaseCode = versionCodeFor(stored.tag);
+    const device = deviceVersionCode();
+    if (releaseCode !== null && device !== null && releaseCode <= device) {
+      return null;
+    }
+    return stored;
+  } catch {
+    // A value from a broken write must not keep the app from starting.
+    return null;
+  }
+}
+
+export function isUpdateDismissed(tag: string): boolean {
+  return mmkv.getString(UPDATE_DISMISS_KEY) === tag;
+}
+export function dismissUpdateTag(tag: string): void {
+  mmkv.set(UPDATE_DISMISS_KEY, tag);
+}
+
+// All of the above is read while this module is created, so it has to be
+// declared before the store: the bundle lowers `const` to `var`, which makes a
+// later declaration read as `undefined` instead of throwing - and the native
+// MMKV rejects a key that is not a string.
 export const useUpdateStore = create<UpdateUiState>()((set, get) => ({
   // A release found in an earlier session is shown straight away: the automatic
   // check is throttled, so without this a restart in the quiet hour would hide
@@ -95,40 +137,3 @@ export const useUpdateStore = create<UpdateUiState>()((set, get) => ({
     else set({ update: null, phase: 'idle', progress: 0 });
   },
 }));
-
-export const UPDATE_DISMISS_KEY = 'update_dismissed_tag';
-const PENDING_KEY = 'update_pending_release';
-
-/**
- * The release found earlier, still newer than what is installed. The local
- * versionCode decides: an update that has since been installed is dropped here
- * instead of being offered again.
- */
-export function pendingFromStorage(): AvailableUpdate | null {
-  const raw = mmkv.getString(PENDING_KEY);
-  if (!raw) {
-    return null;
-  }
-  try {
-    const stored = JSON.parse(raw) as AvailableUpdate;
-    if (!stored?.tag || !stored.apkUrl) {
-      return null;
-    }
-    const releaseCode = versionCodeFor(stored.tag);
-    const device = deviceVersionCode();
-    if (releaseCode !== null && device !== null && releaseCode <= device) {
-      return null;
-    }
-    return stored;
-  } catch {
-    // A value from a broken write must not keep the app from starting.
-    return null;
-  }
-}
-
-export function isUpdateDismissed(tag: string): boolean {
-  return mmkv.getString(UPDATE_DISMISS_KEY) === tag;
-}
-export function dismissUpdateTag(tag: string): void {
-  mmkv.set(UPDATE_DISMISS_KEY, tag);
-}
