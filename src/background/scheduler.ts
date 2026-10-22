@@ -2,22 +2,32 @@ import BackgroundFetch from 'react-native-background-fetch';
 import { getConfig } from '../state/settingsStore';
 import { ScheduleMode } from '../types/models';
 import { sessionsRepo } from '../db/repositories/sessions';
+import type { BackupResult } from '../backup/backupRunner';
 import { runBackupInForeground } from './foregroundService';
-import { refreshStatusNotification } from './androidStatus';
+import { refreshStatusNotification, syncExactAlarm } from './androidStatus';
+import { recordWake } from './wake';
 import { shouldRunNow } from './shouldRun';
+import { logError } from '../state/errorLog';
 
-export async function runScheduledBackup(): Promise<void> {
+/**
+ * `run` decides where the backup executes: the foreground service for a
+ * JobScheduler wake-up, or the alarm's own service for an exact scheduled run.
+ */
+export async function runScheduledBackup(
+  run: () => Promise<BackupResult> = runBackupInForeground,
+): Promise<void> {
   const config = getConfig();
   const last = await sessionsRepo.lastSuccess();
   const lastAt = last ? (last.finished_at ?? last.started_at) : null;
   if (!shouldRunNow(config, lastAt, Date.now())) {
     return;
   }
-  await runBackupInForeground();
+  await run();
 }
 
 export async function configureScheduler(): Promise<void> {
   const config = getConfig();
+  syncExactAlarm(config);
   if (config.automationPaused || config.scheduleMode === ScheduleMode.MANUAL) {
     await BackgroundFetch.stop();
     return;
@@ -39,8 +49,11 @@ export async function configureScheduler(): Promise<void> {
       requiresStorageNotLow: true,
     },
     async taskId => {
+      recordWake();
       try {
         await runScheduledBackup();
+      } catch (error) {
+        logError('scheduler', error);
       } finally {
         BackgroundFetch.finish(taskId);
         // Re-post (or clear) the ongoing status notification after every

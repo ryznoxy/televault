@@ -1,6 +1,7 @@
 import { NativeModules, Platform } from 'react-native';
 import { sessionsRepo } from '../db/repositories/sessions';
 import { getConfig } from '../state/settingsStore';
+import { ScheduleMode, type BackupConfig } from '../types/models';
 import { statusBody, statusVisible } from './statusText';
 
 type VaultStatusNative = {
@@ -9,6 +10,10 @@ type VaultStatusNative = {
   manufacturer?: string;
   showStatus: (title: string, body: string) => void;
   hideStatus: () => void;
+  showRunProgress?: (text: string) => void;
+  hideRunProgress?: () => void;
+  scheduleExactAlarm?: (hour: number) => void;
+  cancelExactAlarm?: () => void;
   isIgnoringBatteryOptimizations: () => Promise<boolean>;
   requestIgnoreBatteryOptimizations: () => void;
   openAutostartSettings: () => void;
@@ -25,6 +30,24 @@ export function nativeStatus(): VaultStatusNative | undefined {
 /** Drops the ongoing status notification so the run's own notification stands alone. */
 export function hideStatusNotification(): void {
   nativeStatus()?.hideStatus();
+}
+
+/**
+ * Keeps the exact alarm pointed at the next scheduled run, or clears it when
+ * automation is off. JobScheduler's periodic job is inexact and Android 12+
+ * refuses a foreground service started from the background, so the exact alarm
+ * is what makes the chosen hour hold and lets the run start its service at all.
+ */
+export function syncExactAlarm(config: BackupConfig = getConfig()): void {
+  const native = nativeStatus();
+  if (!native?.scheduleExactAlarm) {
+    return;
+  }
+  if (config.scheduleMode === ScheduleMode.TIME && !config.automationPaused) {
+    native.scheduleExactAlarm(config.scheduledTimeHour);
+  } else {
+    native.cancelExactAlarm?.();
+  }
 }
 
 /**

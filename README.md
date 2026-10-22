@@ -38,10 +38,10 @@ Dari chat itu semuanya bisa dipulihkan lagi lewat aplikasi.
 - **Notifikasi status permanen**: satu notifikasi ongoing low-priority menampilkan kapan backup terakhir berjalan, bukti app tetap hidup di latar belakang. Saat backup berjalan, notifikasi foreground service memuat progres persen dan kecepatan upload. Disembunyikan otomatis saat otomasi dijeda atau mode manual.
 - **Tour persiapan latar belakang**: sehabis setup pertama, tour 3 langkah memandu izin tanpa optimasi baterai (dialog sistem langsung) dan autostart per merek HP. Bisa diulang dari Troubleshooting.
 - **Setup tanpa browser**: Chat ID dideteksi otomatis: kirim pesan ke bot, tekan Deteksi Otomatis, kolom terisi sendiri (wajib ID angka; bot tidak bisa mengirim ke @username untuk chat pribadi atau grup privat).
-- **Penjadwalan**: manual, interval (jam), jam tertentu tiap hari, atau hanya saat charging.
-- **Jalan di background**: `react-native-background-fetch` plus foreground service, termasuk headless task saat aplikasi tertutup.
+- **Penjadwalan**: manual, interval (jam), jam tertentu tiap hari, atau hanya saat charging. Jadwal jam tertentu memakai alarm eksak, bukan job periodik yang bisa digeser Doze, dan alarm itu yang menjalankan backup di latar belakang.
+- **Jalan di background**: `react-native-background-fetch` plus foreground service, termasuk headless task saat aplikasi tertutup. Backup jam tertentu berjalan di foreground service milik alarm eksaknya sendiri, karena Android 12 ke atas menolak service yang dimulai dari job latar belakang.
 - **Upload tahan putus**: retry dengan backoff (`Retry-After` 429 dihormati, dibatasi 60 detik); progres, kecepatan upload, dan estimasi sisa waktu tampil di layar Utama; riwayat sesi dan statistik tersimpan lokal (SQLite) dan bisa diekspor CSV.
-- **Troubleshoot**: layar diagnostik untuk izin, koneksi bot, panduan baterai per OEM, plus log error ringan (ring buffer 20 entri) supaya kegagalan yang tertelan tetap kelihatan.
+- **Troubleshoot**: layar diagnostik untuk izin, koneksi bot, panduan baterai per OEM, kapan sistem terakhir membangunkan app, plus log error ringan (ring buffer 20 entri) supaya kegagalan yang tertelan tetap kelihatan.
 - **Wifi-only** dan passphrase strength check.
 - **Tema terang dan gelap**: toggle dark mode di Settings, semua layar ter-tokenisasi mengikuti.
 
@@ -158,6 +158,8 @@ Bundle id `com.televault.app`, `MARKETING_VERSION` di `ios/TelebotBackupRN.xcode
 - **Documents di Android 11+ bisa kosong**: scoped storage membatasi folder `Download` dan `Documents`. Kategori yang terbaca 0 berkas akan memberitahukannya di ringkasan backup.
 - **Android 15+ membatasi foreground service `dataSync` kurang lebih 6 jam per hari**: backup yang lebih lama dari itu bisa dihentikan sistem; jalankan ulang atau kecilkan jumlah berkas per run (`maxFilesPerRun`).
 - **Jadwal global, bukan per folder**: satu jadwal untuk semua kategori terpilih.
+- **Jam tertentu butuh izin alarm eksak**: Android 12 ke atas membatasi alarm eksak, jadi app memakai izin alarm (di Android 13+, `USE_EXACT_ALARM` diberikan tanpa dialog). Kalau izin itu dicabut, penjadwalan turun ke alarm tidak eksak dan bisa bergeser beberapa menit.
+- **Job periodik tetap tidak eksak**: mode interval dan charging masih lewat JobScheduler `react-native-background-fetch`; Doze dan pembatasan merek (mis. MIUI autostart) bisa menundanya.
 - **Restore one-tap butuh DB lokal**: `file_id` potongan disimpan di SQLite app. Hapus app berarti hilang; restore HP baru tetap bisa lewat jalur manual (download dari Telegram).
 - **Autostart tidak bisa diaktifkan secara programatik**: tidak ada API Android untuk itu; app hanya bisa membuka layar setelan merek yang tepat, sisanya keputusan pengguna.
 - **APK debug butuh Metro; pakai build release**: hanya `assembleRelease` yang membundel JS. APK di Releases sudah release build.

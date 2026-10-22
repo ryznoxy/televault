@@ -23,6 +23,7 @@ import { useSettingsStore } from '../state/settingsStore';
 import { clearErrorLog, getErrorLog, logError, type ErrorLogEntry } from '../state/errorLog';
 import { OEM_GUIDE } from '../background/oemGuide';
 import { nativeStatus } from '../background/androidStatus';
+import { lastWakeAt } from '../background/wake';
 import { relativeTime } from '../background/statusText';
 import { useTourStore } from '../state/tourStore';
 import type { RootStackParamList } from '../navigation/Routes';
@@ -44,6 +45,7 @@ type Diagnostics = {
   watchedFolders: number;
   encryption: string;
   background: string;
+  lastWake: string;
 };
 
 const EMPTY_DIAGNOSTICS: Diagnostics = {
@@ -53,6 +55,7 @@ const EMPTY_DIAGNOSTICS: Diagnostics = {
   watchedFolders: 0,
   encryption: 'Nonaktif',
   background: 'Menunggu',
+  lastWake: 'Belum pernah',
 };
 
 export default function TroubleshootScreen({ navigation }: Props) {
@@ -79,6 +82,7 @@ export default function TroubleshootScreen({ navigation }: Props) {
       session => session.status === 'failed' || session.status === 'partial',
     );
     const current = useSettingsStore.getState().config;
+    const wake = lastWakeAt();
     setDiag({
       configured,
       lastBackup: last ? relativeTime(last.finished_at ?? last.started_at) : 'Belum ada',
@@ -90,6 +94,7 @@ export default function TroubleshootScreen({ navigation }: Props) {
         : current.scheduleMode === 'manual'
           ? 'Manual'
           : 'Aktif',
+      lastWake: wake == null ? 'Belum pernah' : relativeTime(wake),
     });
   }, []);
 
@@ -195,6 +200,12 @@ export default function TroubleshootScreen({ navigation }: Props) {
                 label="Otomasi latar belakang"
                 value={diag.background}
                 tone={diag.background === 'Dijeda' ? 'warn' : 'plain'}
+              />
+              <InfoRow
+                icon="schedule"
+                label="Jadwal terakhir bangun"
+                value={diag.lastWake}
+                tone={diag.lastWake === 'Belum pernah' ? 'warn' : 'plain'}
               />
             </View>
           </View>
