@@ -9,6 +9,14 @@ export type WhatsNew = {
 };
 
 export const WHATS_NEW: Record<string, WhatsNew> = {
+  '1.5.1': {
+    title: 'Apa baru di v1.5.1',
+    items: [
+      'Alarm jadwal memakai bentuk alarm jam, jadi tidak ditahan Doze atau penghemat baterai merek',
+      'Alarm dipasang ulang sendiri setelah HP restart atau jam berubah',
+      'Troubleshooting kini menyebut sumber bangun: alarm eksak atau JobScheduler',
+    ],
+  },
   '1.5.0': {
     title: 'Apa baru di v1.5.0',
     items: [
