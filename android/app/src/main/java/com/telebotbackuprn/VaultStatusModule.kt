@@ -1,21 +1,18 @@
 package com.telebotbackuprn
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
+import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Intent
-import android.content.pm.PackageInfo
 import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
+import java.util.Calendar
 
 /**
  * App-level status the JS side cannot read on its own:
@@ -28,6 +25,9 @@ import com.facebook.react.bridge.ReactMethod
  *   notification survives the process, costs no battery, and cannot be swiped
  *   away. A permanent dataSync foreground service is not an option on target
  *   SDK 36 (Android 15 caps those at 6 hours a day).
+ * - the exact alarm that wakes the scheduled run. Android 12+ refuses a
+ *   foreground service started from the background, but an exact alarm is one
+ *   of the exemptions, so the alarm is what makes a 2 AM run possible at all.
  * - the battery-optimization exemption state and the intents that reach it,
  *   plus the per-OEM autostart settings screens no JS API exposes.
  */
@@ -37,8 +37,8 @@ class VaultStatusModule(reactContext: ReactApplicationContext) :
   override fun getName() = "VaultStatus"
 
   override fun getConstants(): Map<String, Any> {
-    val info: PackageInfo =
-      reactApplicationContext.packageManager.getPackageInfo(reactApplicationContext.packageName, 0)
+    val info = reactApplicationContext.packageManager
+      .getPackageInfo(reactApplicationContext.packageName, 0)
     return mapOf(
       "versionName" to (info.versionName ?: ""),
       // Double, not Long: the bridge converts numbers as doubles and a Long
@@ -48,7 +48,7 @@ class VaultStatusModule(reactContext: ReactApplicationContext) :
     )
   }
 
-  private fun versionCodeOf(info: PackageInfo): Double =
+  private fun versionCodeOf(info: android.content.pm.PackageInfo): Double =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
       info.longVersionCode.toDouble()
     } else {
@@ -58,43 +58,69 @@ class VaultStatusModule(reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun showStatus(title: String, body: String) {
-    ensureChannel()
-    val launch = reactApplicationContext.packageManager
-      .getLaunchIntentForPackage(reactApplicationContext.packageName)
-    val pending = launch?.let {
-      PendingIntent.getActivity(
-        reactApplicationContext,
-        0,
-        it,
-        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-      )
-    }
-    val notification = NotificationCompat.Builder(reactApplicationContext, CHANNEL_ID)
-      .setSmallIcon(R.drawable.ic_stat_vault)
-      .setContentTitle(title)
-      .setContentText(body)
-      .setStyle(NotificationCompat.BigTextStyle().bigText(body))
-      .setOngoing(true)
-      .setOnlyAlertOnce(true)
-      .setShowWhen(false)
-      .setPriority(NotificationCompat.PRIORITY_LOW)
-      .setContentIntent(pending)
-      .build()
-    try {
-      NotificationManagerCompat.from(reactApplicationContext).notify(NOTIFICATION_ID, notification)
-    } catch (_: SecurityException) {
-      // POST_NOTIFICATIONS denied: background work still runs, just silently.
-    }
+    StatusNotification.show(reactApplicationContext, StatusNotification.STATUS_ID, title, body)
   }
 
   @ReactMethod
   fun hideStatus() {
-    try {
-      NotificationManagerCompat.from(reactApplicationContext).cancel(NOTIFICATION_ID)
-    } catch (_: SecurityException) {
-      // Same as above: nothing to do when notifications are blocked.
-    }
+    StatusNotification.cancel(reactApplicationContext, StatusNotification.STATUS_ID)
   }
+
+  /** Progress line of a scheduled run, whose service this app starts itself. */
+  @ReactMethod
+  fun showRunProgress(text: String) {
+    StatusNotification.show(
+      reactApplicationContext,
+      StatusNotification.RUN_ID,
+      "Backup berjalan",
+      text,
+    )
+  }
+
+  @ReactMethod
+  fun hideRunProgress() {
+    StatusNotification.cancel(reactApplicationContext, StatusNotification.RUN_ID)
+  }
+
+  /** Points the next wake-up at the given hour, today if it has not passed yet. */
+  @ReactMethod
+  fun scheduleExactAlarm(hour: Int) {
+    val manager = reactApplicationContext.getSystemService(AlarmManager::class.java) ?: return
+    val at = nextOccurrence(hour)
+    val pending = alarmIntent()
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !manager.canScheduleExactAlarms()) {
+      // Exact alarms need "Alarms & reminders". Degrade to a wake that still
+      // escapes Doze rather than never running at all.
+      manager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pending)
+      return
+    }
+    manager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pending)
+  }
+
+  @ReactMethod
+  fun cancelExactAlarm() {
+    reactApplicationContext.getSystemService(AlarmManager::class.java)?.cancel(alarmIntent())
+  }
+
+  private fun nextOccurrence(hour: Int): Long {
+    val next = Calendar.getInstance().apply {
+      set(Calendar.HOUR_OF_DAY, hour)
+      set(Calendar.MINUTE, 0)
+      set(Calendar.SECOND, 0)
+      set(Calendar.MILLISECOND, 0)
+    }
+    if (next.timeInMillis <= System.currentTimeMillis()) {
+      next.add(Calendar.DAY_OF_YEAR, 1)
+    }
+    return next.timeInMillis
+  }
+
+  private fun alarmIntent(): PendingIntent = PendingIntent.getBroadcast(
+    reactApplicationContext,
+    ALARM_REQUEST,
+    Intent(reactApplicationContext, AlarmReceiver::class.java),
+    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+  )
 
   @ReactMethod
   fun isIgnoringBatteryOptimizations(promise: Promise) {
@@ -146,28 +172,8 @@ class VaultStatusModule(reactContext: ReactApplicationContext) :
     }
   }
 
-  private fun ensureChannel() {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-      return
-    }
-    val manager = reactApplicationContext.getSystemService(NotificationManager::class.java) ?: return
-    if (manager.getNotificationChannel(CHANNEL_ID) != null) {
-      return
-    }
-    val channel = NotificationChannel(
-      CHANNEL_ID,
-      "Status TeleVault",
-      NotificationManager.IMPORTANCE_LOW,
-    ).apply {
-      description = "Menampilkan bahwa backup otomatis TeleVault aktif"
-      setShowBadge(false)
-    }
-    manager.createNotificationChannel(channel)
-  }
-
   private companion object {
-    const val CHANNEL_ID = "televault_status"
-    const val NOTIFICATION_ID = 4101
+    const val ALARM_REQUEST = 4103
 
     /**
      * Autostart screens per OEM. Android gives apps no API to enable autostart;
