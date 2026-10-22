@@ -35,7 +35,7 @@ Dari chat itu semuanya bisa dipulihkan lagi lewat aplikasi.
 - **Manifest dan skrip reassembly**: setiap arsip mengirim `<nama>.manifest.json` (ukuran, jumlah chunk, SHA-256, daftar IV, info enkripsi) plus skrip `.sh`/`.bat` untuk menyatukan potongan tanpa aplikasi.
 - **Restore one-tap dari bot**: pilih sesi di layar Pulihkan, manifest dan semua potongan diunduh otomatis dari chat bot, lalu gabung, verifikasi SHA-256, dekripsi per potongan, ekstrak zip. Tersedia untuk backup yang dibuat sejak v1.1.0 (app menyimpan `file_id` Telegram tiap potongan; DB lokal yang menyimpannya hilang kalau app dihapus). Backup lama tetap bisa dipulihkan manual: download potongan dan manifest dari Telegram, lalu "Pilih berkas backup". Iterasi PBKDF2 restore mengikuti yang tercatat di manifest (minimum 210.000), jadi backup lama tetap bisa dibuka.
 - **Uji Pemulihan (drill)**: satu tombol di Troubleshooting yang mengunduh arsip terkecil dari Telegram, mendekripsi, lalu mencocokkan hash-nya di folder sementara. Membuktikan backup benar-benar bisa dipulihkan, bukan sekadar berharap.
-- **Self-update**: app membaca versi terpasang langsung dari `PackageManager`, lalu membandingkan dengan rilis terbaru di [Releases](https://github.com/ryznoxy/televault/releases) (maksimal 1 cek sukses per jam). Kalau ada versi baru muncul banner di semua layar tab, dengan progres unduh dan tombol batal; APK diverifikasi SHA-256 sebelum installer terbuka, dan dibuang kalau tidak cocok. Ada juga tombol **Cek Pembaruan** manual di Pengaturan yang mem-bypass throttle.
+- **Self-update**: app membaca versi terpasang langsung dari `PackageManager`, lalu membandingkan dengan rilis terbaru di [Releases](https://github.com/ryznoxy/televault/releases) (maksimal 1 cek sukses per jam, plus cek saat app dibuka kembali). Kalau ada versi baru, alert muncul melayang di atas layar mana pun - bukan cuma di tab - dengan tombol **Perbarui** dan **Nanti**, progres unduh, dan tombol batal. Rilis yang ditemukan disimpan, jadi restart app dalam jam tenang tetap menampilkannya. APK diverifikasi SHA-256 sebelum installer terbuka, dan dibuang kalau tidak cocok. Tombol **Cek Pembaruan** di Pengaturan melewati throttle dan memunculkan alert lagi walau sudah pernah ditutup.
 - **Modal "Apa baru"**: sekali sehabis update, ringkasan perubahan versi tampil di app (per versi, dari `src/update/whatsNew.ts`).
 - **Notifikasi status permanen**: satu notifikasi ongoing low-priority menampilkan kapan backup terakhir berjalan, bukti app tetap hidup di latar belakang. Saat backup berjalan, notifikasi foreground service memuat progres persen dan kecepatan upload. Disembunyikan otomatis saat otomasi dijeda atau mode manual.
 - **Tour persiapan latar belakang**: sehabis setup pertama, tour 3 langkah memandu izin tanpa optimasi baterai (dialog sistem langsung) dan autostart per merek HP. Bisa diulang dari Troubleshooting.
@@ -61,7 +61,7 @@ scan kategori → saring file berubah → (opsional) zip → potong 49 MB → en
 
 APK siap install ada di halaman [**Releases**](https://github.com/ryznoxy/televault/releases). Ambil `app-release.apk` dari rilis terbaru, buka, dan install (Android akan minta konfirmasi "Install anyway" dari Play Protect, normal untuk APK di luar Play Store).
 
-Update berikutnya tidak perlu download manual lagi: buka app, kalau ada versi baru akan muncul banner di layar Utama.
+Update berikutnya tidak perlu download manual lagi: buka app, kalau ada versi baru alert akan muncul di atas layar dengan tombol Perbarui.
 
 ## Prasyarat (untuk build dari source)
 
@@ -97,7 +97,7 @@ Struktur:
 src/
   backup/      scan, chunker, crypto, hasher, manifest, zip, upload retry, runner backup, restore, drill
   background/  scheduler, foreground service, headless task, status notifikasi, panduan OEM, aturan kapan backup jalan
-  components/  komponen UI, banner update, modal "Apa baru", tour latar belakang
+  components/  komponen UI, alert update, modal "Apa baru", tour latar belakang
   db/          op-sqlite: schema dan repository sessions/files/chunks
   net/         klien Bot API (token selalu di-redact dari error)
   navigation/  root navigator
@@ -110,7 +110,7 @@ __tests__/     unit test per modul
 
 ## Rilis
 
-Rilis otomatis lewat GitHub Actions: **push tag `vX.Y.Z` → workflow [`release.yml`](.github/workflows/release.yml) build APK signed plus `SHA256SUMS`, lalu tempel keduanya ke GitHub Release**. App yang sudah ter-install mendeteksinya lewat banner self-update.
+Rilis otomatis lewat GitHub Actions: **push tag `vX.Y.Z` → workflow [`release.yml`](.github/workflows/release.yml) build APK signed plus `SHA256SUMS`, lalu tempel keduanya ke GitHub Release**. App yang sudah ter-install mendeteksinya lewat alert self-update.
 
 Persiapan sekali saja (mesin rilis atau repo):
 
