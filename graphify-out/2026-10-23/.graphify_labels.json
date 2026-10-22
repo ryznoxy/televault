@@ -1,0 +1,20 @@
+{
+  "6": "Telegram Upload API",
+  "8": "Package Manifest References",
+  "9": "Runtime Dependencies",
+  "10": "iOS App Delegate",
+  "11": "Dev Dependencies",
+  "12": "Android Launcher Icons",
+  "13": "Project README",
+  "15": "Android MainActivity",
+  "16": "NPM Scripts",
+  "17": "Metro Bundler Config",
+  "18": "TypeScript Config",
+  "19": "Gradle Wrapper",
+  "21": "Android App Gradle Build",
+  "22": "Android Root Gradle Build",
+  "24": "Babel Config",
+  "25": "ESLint Config",
+  "26": "Jest Config",
+  "27": "Prettier Config"
+}
