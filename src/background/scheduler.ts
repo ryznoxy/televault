@@ -4,7 +4,9 @@ import { ScheduleMode } from '../types/models';
 import { sessionsRepo } from '../db/repositories/sessions';
 import { runBackupInForeground } from './foregroundService';
 import { refreshStatusNotification } from './androidStatus';
+import { recordWake } from './wake';
 import { shouldRunNow } from './shouldRun';
+import { logError } from '../state/errorLog';
 
 export async function runScheduledBackup(): Promise<void> {
   const config = getConfig();
@@ -39,8 +41,11 @@ export async function configureScheduler(): Promise<void> {
       requiresStorageNotLow: true,
     },
     async taskId => {
+      recordWake();
       try {
         await runScheduledBackup();
+      } catch (error) {
+        logError('scheduler', error);
       } finally {
         BackgroundFetch.finish(taskId);
         // Re-post (or clear) the ongoing status notification after every

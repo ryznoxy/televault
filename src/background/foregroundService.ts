@@ -2,6 +2,7 @@ import BackgroundService from 'react-native-background-actions';
 import { runBackup, type BackupProgress, type BackupResult } from '../backup/backupRunner';
 import { hideStatusNotification, refreshStatusNotification } from './androidStatus';
 import { formatBytes, nextSpeed } from '../components/number';
+import { logError } from '../state/errorLog';
 
 const OPTIONS = {
   taskName: 'TeleVault',
@@ -19,6 +20,25 @@ const IDLE_RESULT: BackupResult = { status: 'failed', chunksSent: 0, files: 0, t
  * so a caller can tell a refusal apart from a real backup failure.
  */
 export const BACKUP_IN_FLIGHT_ERROR = 'Backup lain sedang berjalan';
+
+/**
+ * Set when the system refused to start the foreground service. A start is
+ * normally instant; waiting longer than this means the task will never run.
+ */
+export const SERVICE_REFUSED_ERROR = 'Sistem menolak menjalankan layanan latar belakang';
+
+export const SERVICE_START_TIMEOUT_MS = 15_000;
+
+/** True once `started` settles; false when `ms` passes first. */
+function settledWithin(started: Promise<void>, ms: number): Promise<boolean> {
+  return new Promise(resolve => {
+    const timer = setTimeout(() => resolve(false), ms);
+    started.then(() => {
+      clearTimeout(timer);
+      resolve(true);
+    });
+  });
+}
 
 /**
  * `BackgroundService.start` resolves when the native service has started, not
@@ -49,7 +69,12 @@ export async function runBackupInForeground(
     const done = new Promise<BackupResult>(resolve => {
       resolveDone = resolve;
     });
+    let markStarted: () => void = () => undefined;
+    const started = new Promise<void>(resolve => {
+      markStarted = resolve;
+    });
     await BackgroundService.start(async () => {
+      markStarted();
       let result: BackupResult = { ...IDLE_RESULT };
       // Byte-level progress arrives several times a second per chunk, so only push
       // a notification update when the text actually changes and at most ~once a
@@ -112,6 +137,15 @@ export async function runBackupInForeground(
         refreshStatusNotification();
       }
     }, OPTIONS);
+
+    // Android 12+ refuses a foreground service started from the background, and
+    // the plugin swallows the refusal: `start` resolves, the task never runs, so
+    // `done` would never settle and the run would hang forever with no log.
+    if (!(await settledWithin(started, SERVICE_START_TIMEOUT_MS))) {
+      await BackgroundService.stop().catch(() => undefined);
+      logError('scheduler', SERVICE_REFUSED_ERROR);
+      resolveDone({ ...IDLE_RESULT, error: SERVICE_REFUSED_ERROR });
+    }
     return done;
   })();
 

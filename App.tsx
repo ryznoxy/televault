@@ -12,6 +12,7 @@ import AppNav from './src/navigation/AppNav';
 import { configureScheduler } from './src/background/scheduler';
 import { PROCESS_START } from './src/backup/backupRunner';
 import { sessionsRepo } from './src/db/repositories/sessions';
+import { logError } from './src/state/errorLog';
 import { useSettingsStore } from './src/state/settingsStore';
 import { ThemeProvider, useTheme } from './src/theme/ThemeProvider';
 
@@ -27,7 +28,9 @@ function App() {
   const automationPaused = useSettingsStore(state => state.config.automationPaused);
 
   useEffect(() => {
-    configureScheduler().catch(() => undefined);
+    // A failed configure means no schedule at all; swallowing it left the app
+    // silently unscheduled.
+    configureScheduler().catch(error => logError('scheduler', error));
   }, [scheduleMode, intervalHours, scheduledTimeHour, automationPaused]);
 
   // A session still marked `running` that started before this process booted
