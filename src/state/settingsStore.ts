@@ -22,6 +22,7 @@ type SettingsState = {
   setEncryptionEnabled: (value: boolean) => void;
   setEncryptionSalt: (value: string) => void;
   setCustomFolderUri: (uri: string | null) => void;
+  setDocFolderUri: (uri: string | null) => void;
   addWatchedFolder: (folder: WatchedFolder) => void;
   removeWatchedFolder: (id: string) => void;
   updateWatchedFolder: (id: string, patch: Partial<WatchedFolder>) => void;
@@ -50,6 +51,7 @@ export const useSettingsStore = create<SettingsState>()(
       setEncryptionEnabled: encryptionEnabled => set(s => ({ config: { ...s.config, encryptionEnabled } })),
       setEncryptionSalt: encryptionSalt => set(s => ({ config: { ...s.config, encryptionSalt } })),
       setCustomFolderUri: customFolderUri => set(s => ({ config: { ...s.config, customFolderUri } })),
+      setDocFolderUri: docFolderUri => set(s => ({ config: { ...s.config, docFolderUri } })),
       addWatchedFolder: folder =>
         set(s => ({
           config: { ...s.config, watchedFolders: [...s.config.watchedFolders, folder] },

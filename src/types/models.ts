@@ -77,6 +77,12 @@ export type BackupConfig = {
   encryptionEnabled: boolean;
   encryptionSalt: string;
   customFolderUri: string | null;
+  /**
+   * SAF tree the Documents category reads from. Android 11+ only lets an app
+   * reach user documents through the system folder picker, so without this the
+   * category can only read its own app-private dirs (that is, nothing).
+   */
+  docFolderUri: string | null;
   watchedFolders: WatchedFolder[];
   automationPaused: boolean;
   compressZip: boolean;
@@ -98,6 +104,7 @@ export const DEFAULT_CONFIG: BackupConfig = {
   encryptionEnabled: false,
   encryptionSalt: '',
   customFolderUri: null,
+  docFolderUri: null,
   watchedFolders: [],
   automationPaused: false,
   compressZip: true,

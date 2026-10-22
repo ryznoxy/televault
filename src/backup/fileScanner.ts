@@ -82,12 +82,12 @@ async function scanCameraRoll(category: CategoryKey): Promise<ScanResult[]> {
 }
 
 async function walk(dir: string, category: CategoryKey, out: ScanResult[]): Promise<void> {
-  // ponytail: a failed `ls` is swallowed rather than raised. On API 30+ scoped
-  // storage hides the public Download dir, but `ls` may either throw or return
-  // `[]` there depending on the OEM, so raising cannot be relied on to surface
-  // it and would fail the Docs category on every run for every user. Docs needs
-  // MediaStore (PRD §5.2) before the failure can be reported truthfully; until
-  // then the Settings row says so instead. See the P1-7 note in the PRD review.
+  // ponytail: a failed `ls` is swallowed rather than raised. The public dirs are
+  // hidden from us on API 30+, where `ls` may either throw or return `[]`
+  // depending on the OEM, so raising cannot be relied on to surface it and would
+  // fail the category on every run. Android 11+ reads user documents through the
+  // SAF folder in `docFolderUri` instead; the Backup summary says so when the
+  // Documents category comes back empty.
   let entries: string[];
   try {
     entries = await ReactNativeBlobUtil.fs.ls(dir);
@@ -110,10 +110,13 @@ async function walk(dir: string, category: CategoryKey, out: ScanResult[]): Prom
 }
 
 async function scanDocuments(): Promise<ScanResult[]> {
-  const roots = [
-    ReactNativeBlobUtil.fs.dirs.DownloadDir,
-    ReactNativeBlobUtil.fs.dirs.DocumentDir,
-  ];
+  // The public Download dir is `LegacyDownloadDir`; `DownloadDir` and
+  // `DocumentDir` are this app's own sandbox (`getExternalFilesDir` and
+  // `getFilesDir`), which never hold the user's files, so scanning them
+  // guaranteed an empty result on every Android version. The public dir is
+  // only readable up to Android 10; Android 11+ reaches user documents through
+  // the SAF folder in `docFolderUri`.
+  const roots = [ReactNativeBlobUtil.fs.dirs.LegacyDownloadDir];
   const results: ScanResult[] = [];
   for (const root of roots) {
     await walk(root, Category.DOC, results);
@@ -121,7 +124,10 @@ async function scanDocuments(): Promise<ScanResult[]> {
   return results;
 }
 
-async function scanCustomFolder(folderUri: string): Promise<ScanResult[]> {
+async function scanCustomFolder(
+  folderUri: string,
+  category: CategoryKey = Category.CUSTOM,
+): Promise<ScanResult[]> {
   const results: ScanResult[] = [];
   if (!isFileUri(folderUri)) {
     // Android's folder picker returns a `content://` SAF tree; the native
@@ -130,11 +136,11 @@ async function scanCustomFolder(folderUri: string): Promise<ScanResult[]> {
     // `ensureLocalPath` localizes before upload).
     const entries = await listSafFolder(folderUri);
     for (const entry of entries) {
-      results.push({ ...entry, category: Category.CUSTOM });
+      results.push({ ...entry, category });
     }
     return results;
   }
-  await walk(folderUri.replace('file://', ''), Category.CUSTOM, results);
+  await walk(folderUri.replace('file://', ''), category, results);
   return results;
 }
 
@@ -150,13 +156,14 @@ export async function scanCustomFolders(uris: string[]): Promise<ScanResult[]> {
 export async function scanCategory(
   category: CategoryKey,
   customFolderUri: string | null,
+  docFolderUri: string | null = null,
 ): Promise<ScanResult[]> {
   switch (category) {
     case Category.PHOTO:
     case Category.VIDEO:
       return scanCameraRoll(category);
     case Category.DOC:
-      return scanDocuments();
+      return docFolderUri ? scanCustomFolder(docFolderUri, Category.DOC) : scanDocuments();
     case Category.CUSTOM:
       return customFolderUri ? scanCustomFolder(customFolderUri) : [];
     default:

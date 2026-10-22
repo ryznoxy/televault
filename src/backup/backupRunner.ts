@@ -485,7 +485,7 @@ export async function runBackup(
       const scanned =
         category === Category.CUSTOM && customUris.length > 0
           ? await scanCustomFolders(customUris)
-          : await scanCategory(category, config.customFolderUri);
+          : await scanCategory(category, config.customFolderUri, config.docFolderUri);
 
       // A category that reads nothing is not an error, but it must not look
       // like a successful backup either. Only speak up when it matters: DOC on
@@ -495,7 +495,11 @@ export async function runBackup(
       if (scanned.length === 0) {
         const trackedHere = trackedPerCategory.get(category) ?? 0;
         if (category === Category.DOC) {
-          notes.push('Dokumen: 0 berkas terbaca. Android 11+ membatasi akses folder Download.');
+          notes.push(
+            config.docFolderUri
+              ? 'Dokumen: 0 berkas terbaca di folder yang dipilih.'
+              : 'Dokumen: 0 berkas terbaca. Pilih folder Dokumen di Pengaturan; Android 11+ hanya memberi akses lewat pemilih folder.',
+          );
         } else if (trackedHere > 0) {
           notes.push(`${CATEGORY_NAMES_ID[category]}: 0 berkas terbaca, padahal sebelumnya ada.`);
         }
