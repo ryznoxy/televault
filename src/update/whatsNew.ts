@@ -9,6 +9,13 @@ export type WhatsNew = {
 };
 
 export const WHATS_NEW: Record<string, WhatsNew> = {
+  '1.6.1': {
+    title: 'Apa baru di v1.6.1',
+    items: [
+      'Batas kirim langsung dibatasi 45 MB, karena di atas itu berkas dipecah jadi beberapa potongan',
+      'Saat enkripsi aktif, kirim langsung dinonaktifkan: berkas .enc tidak bisa dibuka di Telegram',
+    ],
+  },
   '1.6.0': {
     title: 'Apa baru di v1.6.0',
     items: [

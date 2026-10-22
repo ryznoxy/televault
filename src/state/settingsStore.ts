@@ -78,9 +78,9 @@ export const useSettingsStore = create<SettingsState>()(
       setDirectMedia: directMedia => set(s => ({ config: { ...s.config, directMedia } })),
       setDirectMediaMaxMb: value =>
         set(s => ({
-          // Clamped: 0 would send every photo through the zip and anything past
-          // the Bot API cap cannot be a single upload.
-          config: { ...s.config, directMediaMaxMb: Math.min(2000, Math.max(1, Math.round(value))) },
+          // Clamped to the unencrypted part size: past it the file is split into
+          // `.001`, `.002`, so "sent as itself" would stop being true.
+          config: { ...s.config, directMediaMaxMb: Math.min(45, Math.max(1, Math.round(value))) },
         })),
       setArchiveFormat: archiveFormat => set(s => ({ config: { ...s.config, archiveFormat } })),
       setDeleteLocalAfterBackup: deleteLocalAfterBackup =>
@@ -102,6 +102,9 @@ export const useSettingsStore = create<SettingsState>()(
       merge: (persisted, current) => {
         const stored = (persisted ?? {}) as Partial<SettingsState>;
         const config: BackupConfig = { ...DEFAULT_CONFIG, ...(stored.config ?? {}) };
+        // v1.6.0 allowed up to 2000 MB, past the 49 MB part size, so a stored
+        // value could promise a single upload it cannot deliver.
+        config.directMediaMaxMb = Math.min(45, Math.max(1, Math.round(config.directMediaMaxMb)));
         if (config.watchedFolders.length === 0 && config.customFolderUri) {
           config.watchedFolders = [makeWatchedFolder(config.customFolderUri)];
         }

@@ -595,6 +595,10 @@ export async function runBackup(
     // lands in Telegram as a file you can open; anything bigger, and every
     // other category, goes into the category zip. Both paths split into parts
     // the same way. With `compressZip` off everything is direct, as before.
+    //
+    // Encryption defeats the point: an entry is uploaded as `name.enc`, which
+    // Telegram will not preview, and the 16 MB encrypted part cap would split a
+    // mid-size photo anyway. So a direct send needs encryption off.
     const directLimit = config.directMediaMaxMb * 1024 * 1024;
     const mediaCategory = category === Category.PHOTO || category === Category.VIDEO;
     const toZip: QueuedFile[] = [];
@@ -602,7 +606,10 @@ export async function runBackup(
     for (const entry of pending) {
       const direct =
         !config.compressZip ||
-        (config.directMedia && mediaCategory && entry.item.size <= directLimit);
+        (config.directMedia &&
+          !wantEncryption &&
+          mediaCategory &&
+          entry.item.size <= directLimit);
       (direct ? toDirect : toZip).push(entry);
     }
     try {
