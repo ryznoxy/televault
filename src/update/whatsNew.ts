@@ -9,6 +9,15 @@ export type WhatsNew = {
 };
 
 export const WHATS_NEW: Record<string, WhatsNew> = {
+  '1.6.0': {
+    title: 'Apa baru di v1.6.0',
+    items: [
+      'Foto & video kecil dikirim langsung ke Telegram, sisanya di-zip; batas ukurannya bisa diatur di Pengaturan',
+      'Ikon notifikasi memakai logo baru',
+      'Troubleshooting: ketuk "Kegagalan terakhir" untuk lihat alasan lengkap',
+      'Pengaturan folder Dokumen dihapus; folder dokumen publik tidak bisa dibaca di Android 11+',
+    ],
+  },
   '1.5.4': {
     title: 'Apa baru di v1.5.4',
     items: [

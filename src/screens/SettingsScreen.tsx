@@ -71,7 +71,7 @@ const FREQ_OPTIONS: { key: FreqKey; label: string }[] = [
 const CATEGORY_HINTS: Record<CategoryKey, string> = {
   photo: 'Foto dari kamera perangkat ini',
   video: 'Video hasil rekaman & unduhan',
-  doc: 'Folder dokumen — Android 11+ batasi akses unduhan',
+  doc: 'Folder Download publik — Android 11+ menutupnya',
   contact: 'Kontak telepon',
   sms: 'Pesan teks',
   custom: 'Folder yang Anda pilih sendiri',
@@ -217,9 +217,10 @@ export default function SettingsScreen({ navigation }: Props) {
   const setSilentNotifications = useSettingsStore(state => state.setSilentNotifications);
   const setAlertOnFailure = useSettingsStore(state => state.setAlertOnFailure);
   const setMaxFilesPerRun = useSettingsStore(state => state.setMaxFilesPerRun);
+  const setDirectMedia = useSettingsStore(state => state.setDirectMedia);
+  const setDirectMediaMaxMb = useSettingsStore(state => state.setDirectMediaMaxMb);
   const addWatchedFolder = useSettingsStore(state => state.addWatchedFolder);
   const removeWatchedFolder = useSettingsStore(state => state.removeWatchedFolder);
-  const setDocFolderUri = useSettingsStore(state => state.setDocFolderUri);
 
   const { toast, showToast } = useToast('bottom');
 
@@ -304,15 +305,6 @@ export default function SettingsScreen({ navigation }: Props) {
     try {
       const result = await pickDirectory();
       addWatchedFolder(makeWatchedFolder(result.uri));
-    } catch {
-      // user cancelled
-    }
-  };
-
-  const onPickDocFolder = async () => {
-    try {
-      const result = await pickDirectory();
-      setDocFolderUri(result.uri);
     } catch {
       // user cancelled
     }
@@ -663,38 +655,6 @@ export default function SettingsScreen({ navigation }: Props) {
                 </Text>
               </Pressable>
             </View>
-
-            <View style={styles.card}>
-              <View style={styles.cardHeaderRow}>
-                <Text style={styles.cardHeaderText} numberOfLines={1}>
-                  FOLDER DOKUMEN
-                </Text>
-              </View>
-              <Text style={styles.emptyText} numberOfLines={3}>
-                {config.docFolderUri
-                  ? config.docFolderUri
-                  : 'Kategori Dokumen belum punya folder. Android 11+ hanya memberi akses dokumen lewat pemilih folder, jadi pilih folder Documents atau Download di sini.'}
-              </Text>
-              <Pressable
-                onPress={onPickDocFolder}
-                accessibilityRole="button"
-                accessibilityLabel="Pilih folder Dokumen"
-                style={({ pressed }) => [styles.addFolderButton, pressed && styles.pressed]}>
-                <TgIcon name="folder" color="#FFFFFF" size={18} />
-                <Text style={styles.addFolderText} numberOfLines={1}>
-                  {config.docFolderUri ? 'Ganti Folder Dokumen' : 'Pilih Folder Dokumen'}
-                </Text>
-              </Pressable>
-              {config.docFolderUri ? (
-                <Pressable
-                  onPress={() => setDocFolderUri(null)}
-                  accessibilityRole="button"
-                  accessibilityLabel="Hapus folder Dokumen"
-                  style={({ pressed }) => [styles.removeButton, pressed && styles.pressed]}>
-                  <TgIcon name="deleteSweep" color={TG.error} size={16} />
-                </Pressable>
-              ) : null}
-            </View>
           </View>
 
           {/* SECTION 2 */}
@@ -941,6 +901,37 @@ export default function SettingsScreen({ navigation }: Props) {
                 value={config.compressZip}
                 onValueChange={setCompressZip}
               />
+              <IconToggleRow
+                icon="image"
+                title="Kirim Foto & Video Langsung"
+                subtitle="Foto & video kecil dikirim apa adanya, sisanya di-zip"
+                value={config.directMedia}
+                onValueChange={setDirectMedia}
+              />
+              {config.directMedia ? (
+                <View style={styles.toggleRow}>
+                  <View style={styles.toggleIcon}>
+                    <TgIcon name="swapVert" color={TG.primary} size={18} />
+                  </View>
+                  <View style={styles.toggleText}>
+                    <Text style={styles.toggleTitle} numberOfLines={2}>
+                      Batas ukuran kirim langsung
+                    </Text>
+                    <Text style={styles.toggleSubtitle} numberOfLines={2} ellipsizeMode="tail">
+                      Foto/video di atas batas ini masuk ke ZIP.
+                    </Text>
+                  </View>
+                  <NumberField
+                    value={config.directMediaMaxMb}
+                    min={1}
+                    max={2000}
+                    fallback={45}
+                    format={v => `${v} MB`}
+                    onCommit={setDirectMediaMaxMb}
+                    accessibilityLabel="Batas ukuran kirim langsung"
+                  />
+                </View>
+              ) : null}
             </View>
           </View>
 

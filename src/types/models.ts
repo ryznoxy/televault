@@ -77,15 +77,18 @@ export type BackupConfig = {
   encryptionEnabled: boolean;
   encryptionSalt: string;
   customFolderUri: string | null;
-  /**
-   * SAF tree the Documents category reads from. Android 11+ only lets an app
-   * reach user documents through the system folder picker, so without this the
-   * category can only read its own app-private dirs (that is, nothing).
-   */
-  docFolderUri: string | null;
   watchedFolders: WatchedFolder[];
   automationPaused: boolean;
   compressZip: boolean;
+  /**
+   * Photos and videos under `directMediaMaxMb` are uploaded as themselves
+   * instead of joining the category zip, so they land in Telegram as ordinary
+   * files. Larger media still goes into the zip. Only meaningful while
+   * `compressZip` is on; with it off every file is already sent on its own.
+   */
+  directMedia: boolean;
+  /** Size ceiling in MB for a photo/video to be sent on its own. */
+  directMediaMaxMb: number;
   archiveFormat: ArchiveFormat;
   deleteLocalAfterBackup: boolean;
   notifyBotSummary: boolean;
@@ -104,10 +107,13 @@ export const DEFAULT_CONFIG: BackupConfig = {
   encryptionEnabled: false,
   encryptionSalt: '',
   customFolderUri: null,
-  docFolderUri: null,
   watchedFolders: [],
   automationPaused: false,
   compressZip: true,
+  directMedia: true,
+  // 45 MB: comfortably under the 49 MB part cap and above almost every phone
+  // photo, so photos travel whole while long videos go into the zip.
+  directMediaMaxMb: 45,
   archiveFormat: 'zip',
   deleteLocalAfterBackup: false,
   notifyBotSummary: true,

@@ -1,5 +1,5 @@
 import ReactNativeBlobUtil from 'react-native-blob-util';
-import { ensureLocalPath, scanCategory } from '../src/backup/fileScanner';
+import { ensureLocalPath, scanCategory, scanCustomFolders } from '../src/backup/fileScanner';
 import { Category } from '../src/types/models';
 
 jest.mock('../src/backup/safFolder', () => ({ listSafFolder: jest.fn(async () => []) }));
@@ -23,11 +23,11 @@ test('the Documents category falls back to the public Download dir without a SAF
   });
 });
 
-test('the Documents category reads the SAF folder when one is set', async () => {
+test('a watched folder is read through the SAF module', async () => {
   listSafFolder.mockResolvedValueOnce([
     { path: 'content://docs/a.pdf', displayName: 'a.pdf', size: 10, modifiedAt: 1 },
   ]);
-  const items = await scanCategory(Category.DOC, 'file:///tmp/folder', 'content://tree/docs');
+  const items = await scanCustomFolders(['content://tree/docs']);
   expect(listSafFolder).toHaveBeenCalledWith('content://tree/docs');
   expect(items).toEqual([
     {
@@ -35,7 +35,7 @@ test('the Documents category reads the SAF folder when one is set', async () => 
       displayName: 'a.pdf',
       size: 10,
       modifiedAt: 1,
-      category: Category.DOC,
+      category: Category.CUSTOM,
     },
   ]);
 });

@@ -296,6 +296,11 @@ export async function runBackup(
   // One manifest per archive in zip mode, named after that archive, so a
   // downloaded manifest and its scripts say which zip they belong to.
   const archiveGroups: { base: string; files: ManifestFile[] }[] = [];
+  // Files sent on their own (direct mode, or media under the size ceiling) go
+  // into one session manifest, so a run can hand back both a zip and loose
+  // files. Restore reads every manifest a session names, so a mixed run
+  // reassembles like any other.
+  const directEntries: ManifestFile[] = [];
   // Real uploaded artifact names; joined for the session's archive_name.
   const archiveNames: string[] = [];
   // P0-2: a file is recorded as backed up only after the manifest that names its
@@ -514,7 +519,7 @@ export async function runBackup(
       const scanned =
         category === Category.CUSTOM && customUris.length > 0
           ? await scanCustomFolders(customUris)
-          : await scanCategory(category, config.customFolderUri, config.docFolderUri);
+          : await scanCategory(category, config.customFolderUri);
 
       // A category that reads nothing is not an error, but it must not look
       // like a successful backup either. Only speak up when it matters: DOC on
@@ -525,9 +530,7 @@ export async function runBackup(
         const trackedHere = trackedPerCategory.get(category) ?? 0;
         if (category === Category.DOC) {
           notes.push(
-            config.docFolderUri
-              ? 'Dokumen: 0 berkas terbaca di folder yang dipilih.'
-              : 'Dokumen: 0 berkas terbaca. Pilih folder Dokumen di Pengaturan; Android 11+ hanya memberi akses lewat pemilih folder.',
+            'Dokumen: 0 berkas terbaca. Android 11+ menutup folder Download publik dari aplikasi biasa.',
           );
         } else if (trackedHere > 0) {
           notes.push(`${CATEGORY_NAMES_ID[category]}: 0 berkas terbaca, padahal sebelumnya ada.`);
@@ -588,6 +591,20 @@ export async function runBackup(
     // Files already finished before this category; byte progress is reported as an
     // offset from here so a category archive moves the bar by its own file count.
     const categoryBase = overallCurrent;
+    // A photo or video up to `directMediaMaxMb` is uploaded as itself, so it
+    // lands in Telegram as a file you can open; anything bigger, and every
+    // other category, goes into the category zip. Both paths split into parts
+    // the same way. With `compressZip` off everything is direct, as before.
+    const directLimit = config.directMediaMaxMb * 1024 * 1024;
+    const mediaCategory = category === Category.PHOTO || category === Category.VIDEO;
+    const toZip: QueuedFile[] = [];
+    const toDirect: QueuedFile[] = [];
+    for (const entry of pending) {
+      const direct =
+        !config.compressZip ||
+        (config.directMedia && mediaCategory && entry.item.size <= directLimit);
+      (direct ? toDirect : toZip).push(entry);
+    }
     try {
       // P2-i: fail the category before staging rather than filling the disk.
       const stagedBytes = pending.reduce((sum, entry) => sum + entry.item.size, 0);
@@ -597,7 +614,7 @@ export async function runBackup(
           'Ruang penyimpanan tidak cukup untuk menyiapkan arsip. Kosongkan sebagian ruang lalu coba lagi.',
         );
       }
-      if (config.compressZip) {
+      if (toZip.length > 0) {
         // UTC, second precision, no colon: `backup-2026-10-20-09-31-00.zip`.
         // `uniqueName` adds ` (2)` when two categories archive in the same second.
         const stamp = new Date(Date.now())
@@ -606,10 +623,10 @@ export async function runBackup(
           .replace(/[:T]/g, '-');
         const zipName = uniqueName(`backup-${stamp}.zip`);
         const zipPath = `${stagingDir}/${zipName}`;
-        emit('zipping', category, 0, pending.length);
+        emit('zipping', category, 0, toZip.length);
         const zipSources: string[] = [];
         const sourceHashes = new Map<string, string>();
-        for (const { item } of pending) {
+        for (const { item } of toZip) {
           const local = await ensureLocalPath(item.path);
           if (local !== item.path) {
             localized.push(local);
@@ -626,7 +643,7 @@ export async function runBackup(
           entryName,
           category,
           (index, count) => ({ current: index, total: count }),
-          fraction => setOverall(categoryBase + pending.length * fraction),
+          fraction => setOverall(categoryBase + toZip.length * fraction),
           onUploadBytes,
         );
         // ponytail: an incomplete archive is left out of the manifest entirely.
@@ -650,10 +667,10 @@ export async function runBackup(
           archiveNames.push(entry.name);
           archiveGroups.push({ base: entry.name, files: [entry] });
           totalSize += size;
-          totalFiles += pending.length;
+          totalFiles += toZip.length;
 
           const backupTime = Date.now();
-          for (const { item } of pending) {
+          for (const { item } of toZip) {
             pendingMarks.push({
               path: item.path,
               hash: sourceHashes.get(item.path) ?? '',
@@ -663,18 +680,20 @@ export async function runBackup(
           }
 
           if (ALLOW_LOCAL_DELETE && config.deleteLocalAfterBackup && category === Category.CUSTOM) {
-            pendingDeletes.push(...pending.map(entry => entry.item));
+            pendingDeletes.push(...toZip.map(entry => entry.item));
           }
         }
 
         await cleanupChunks(chunks, zipPath);
-        setOverall(categoryBase + pending.length);
-      } else {
-        for (let index = 0; index < pending.length; index += 1) {
+        setOverall(categoryBase + toZip.length);
+      }
+
+      if (toDirect.length > 0) {
+        for (let index = 0; index < toDirect.length; index += 1) {
           if (await stopWanted()) {
             break;
           }
-          const { item, uploadName } = pending[index];
+          const { item, uploadName } = toDirect[index];
           const fileBase = overallCurrent;
           const local = await ensureLocalPath(item.path);
           if (local !== item.path) {
@@ -686,7 +705,7 @@ export async function runBackup(
             local,
             entryName,
             category,
-            () => ({ current: index + 1, total: pending.length }),
+            () => ({ current: index + 1, total: toDirect.length }),
             fraction => setOverall(fileBase + fraction),
             onUploadBytes,
           );
@@ -706,6 +725,7 @@ export async function runBackup(
               entry.ivs = ivs;
             }
             manifestFiles.push(entry);
+            directEntries.push(entry);
             archiveNames.push(entry.name);
             totalSize += size;
             totalFiles += 1;
@@ -736,11 +756,13 @@ export async function runBackup(
   let manifestId: string | null = null;
   let manifestFileIds: string | null = null;
   if (manifestFiles.length > 0) {
-    // Zip mode: one manifest + scripts per archive, named after the archive.
-    // Uncompressed mode: one manifest for the run, named after its session.
-    const groups: { base: string; files: ManifestFile[] }[] = config.compressZip
-      ? archiveGroups
-      : [{ base: `session_${sessionId}`, files: manifestFiles }];
+    // Zip archives get one manifest each, named after the archive; files sent on
+    // their own collect into a single session manifest. Restore reads every
+    // manifest a session names, so a mixed run reassembles either way.
+    const groups: { base: string; files: ManifestFile[] }[] = [
+      ...archiveGroups,
+      ...(directEntries.length > 0 ? [{ base: `session_${sessionId}`, files: directEntries }] : []),
+    ];
     try {
       const metaDir = `${ReactNativeBlobUtil.fs.dirs.CacheDir}/meta_${sessionId}`;
       await ReactNativeBlobUtil.fs.mkdir(metaDir).catch(() => undefined);

@@ -85,9 +85,9 @@ async function walk(dir: string, category: CategoryKey, out: ScanResult[]): Prom
   // ponytail: a failed `ls` is swallowed rather than raised. The public dirs are
   // hidden from us on API 30+, where `ls` may either throw or return `[]`
   // depending on the OEM, so raising cannot be relied on to surface it and would
-  // fail the category on every run. Android 11+ reads user documents through the
-  // SAF folder in `docFolderUri` instead; the Backup summary says so when the
-  // Documents category comes back empty.
+  // fail the category on every run. The public Download dir is the only place
+  // the Documents category can read, and Android 11+ hides it, so the category
+  // legitimately reads nothing on a modern device.
   let entries: string[];
   try {
     entries = await ReactNativeBlobUtil.fs.ls(dir);
@@ -114,8 +114,7 @@ async function scanDocuments(): Promise<ScanResult[]> {
   // `DocumentDir` are this app's own sandbox (`getExternalFilesDir` and
   // `getFilesDir`), which never hold the user's files, so scanning them
   // guaranteed an empty result on every Android version. The public dir is
-  // only readable up to Android 10; Android 11+ reaches user documents through
-  // the SAF folder in `docFolderUri`.
+  // only readable up to Android 10.
   const roots = [ReactNativeBlobUtil.fs.dirs.LegacyDownloadDir];
   const results: ScanResult[] = [];
   for (const root of roots) {
@@ -156,14 +155,13 @@ export async function scanCustomFolders(uris: string[]): Promise<ScanResult[]> {
 export async function scanCategory(
   category: CategoryKey,
   customFolderUri: string | null,
-  docFolderUri: string | null = null,
 ): Promise<ScanResult[]> {
   switch (category) {
     case Category.PHOTO:
     case Category.VIDEO:
       return scanCameraRoll(category);
     case Category.DOC:
-      return docFolderUri ? scanCustomFolder(docFolderUri, Category.DOC) : scanDocuments();
+      return scanDocuments();
     case Category.CUSTOM:
       return customFolderUri ? scanCustomFolder(customFolderUri) : [];
     default:

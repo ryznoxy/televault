@@ -179,6 +179,7 @@ beforeEach(() => {
   useSettingsStore.getState().setMaxFilesPerRun(500);
   useSettingsStore.getState().setEncryptionEnabled(false);
   useSettingsStore.getState().setCompressZip(true);
+  useSettingsStore.getState().setDirectMedia(false);
 });
 
 test('re-uploads a changed file because existing state is read before upsert', async () => {
@@ -881,6 +882,39 @@ test('P2-6: a zip run keeps every manifest message id for the history deep link'
   const finishCalls = (sessionsRepo.finishSession as unknown as jest.Mock).mock.calls;
   // Two archives → two manifests → both ids, so History can link either one.
   expect(finishCalls[0][7]).toBe('7,7');
+});
+
+test('direct media: a small photo is sent loose while a big video is zipped', async () => {
+  useSettingsStore.getState().setDirectMedia(true);
+  useSettingsStore.getState().setDirectMediaMaxMb(45);
+  useSettingsStore.getState().setCategories([Category.PHOTO, Category.VIDEO]);
+  const photo: ScanResult = { ...PHOTO_ITEM, path: '/photo/a.jpg', category: 'photo' };
+  const video: ScanResult = { ...PHOTO_ITEM, path: '/video/b.mp4', category: 'video', size: 60 * 1024 * 1024 };
+  scanMock.mockImplementation(async (category: string) => {
+    if (category === 'photo') {
+      return [photo];
+    }
+    if (category === 'video') {
+      return [video];
+    }
+    return [];
+  });
+  apiMock.mockImplementation(() => ({
+    sendDocument: jest.fn(async () => ({ messageId: 9, date: 1 })),
+    sendMessage: jest.fn(async () => ({ messageId: 8, date: 1 })),
+  }));
+
+  await runBackup();
+
+  const names = latestApi().sendDocument.mock.calls.map(call => String(call[0].name));
+  // The small photo travelled as itself (single part).
+  expect(names).toContain('a.jpg.001');
+  // The 60 MB video went into a zip archive, not a loose video part.
+  expect(names.some(name => /^backup-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}\.zip\.001$/.test(name))).toBe(true);
+  expect(names).not.toContain('b.mp4.001');
+  // Two manifests: the archive's, plus the session manifest for the loose photo.
+  const finishCalls = (sessionsRepo.finishSession as unknown as jest.Mock).mock.calls;
+  expect(finishCalls[0][7]).toBe('9,9');
 });
 
 test('P1: an empty gallery stays quiet, a category that lost its files is reported', async () => {
