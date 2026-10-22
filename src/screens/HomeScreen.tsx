@@ -39,6 +39,7 @@ import {
 } from '../types/models';
 import type { RootStackParamList } from '../navigation/Routes';
 import { successRatio } from '../state/history';
+import { requestRunStop } from '../backup/runControl';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -176,6 +177,7 @@ export default function HomeScreen({ navigation }: Props) {
    * row is the honest source: it is what the notification reports too.
    */
   const [backgroundRun, setBackgroundRun] = useState<SessionRecord | null>(null);
+  const [stopping, setStopping] = useState(false);
 
   const refresh = useCallback(async () => {
     const ok = await secureStore.isConfigured();
@@ -234,6 +236,13 @@ export default function HomeScreen({ navigation }: Props) {
     };
   }, [navigation, refresh]);
 
+  // The run that was asked to stop is gone: the button is usable again.
+  useEffect(() => {
+    if (!busy && backgroundRun === null) {
+      setStopping(false);
+    }
+  }, [busy, backgroundRun]);
+
 
 
   const onBackupNow = async () => {
@@ -260,6 +269,17 @@ export default function HomeScreen({ navigation }: Props) {
 
   const onTogglePause = () => {
     setAutomationPaused(!config.automationPaused);
+  };
+
+  const onStopRun = async () => {
+    setStopping(true);
+    try {
+      await requestRunStop();
+    } catch {
+      // Nothing to report: the flag is best effort, and the warn comes from
+      // the run itself if it never sees it.
+      setStopping(false);
+    }
   };
 
   const botLabel = configured
@@ -415,6 +435,23 @@ export default function HomeScreen({ navigation }: Props) {
                   <Text style={styles.progressPct}>{Math.round(progress * 100)}%</Text>
                 </View>
                 <ProgressBar progress={progress} />
+                <View style={styles.heroActions}>
+                  <Pressable
+                    onPress={onStopRun}
+                    disabled={stopping}
+                    accessibilityRole="button"
+                    accessibilityLabel="Hentikan backup"
+                    style={({ pressed }) => [
+                      styles.heroSecondary,
+                      stopping && styles.disabled,
+                      pressed && styles.pressed,
+                    ]}>
+                    <TgIcon name="pause" color={ON_ACCENT.strong} size={18} />
+                    <Text style={styles.heroSecondaryText} numberOfLines={1}>
+                      {stopping ? 'Menghentikan\u2026' : 'Hentikan'}
+                    </Text>
+                  </Pressable>
+                </View>
               </View>
             ) : null}
 
@@ -429,6 +466,23 @@ export default function HomeScreen({ navigation }: Props) {
                   </Text>
                 </View>
                 <ProgressBar progress={backgroundFraction ?? 0} />
+                <View style={styles.heroActions}>
+                  <Pressable
+                    onPress={onStopRun}
+                    disabled={stopping}
+                    accessibilityRole="button"
+                    accessibilityLabel="Hentikan backup otomatis"
+                    style={({ pressed }) => [
+                      styles.heroSecondary,
+                      stopping && styles.disabled,
+                      pressed && styles.pressed,
+                    ]}>
+                    <TgIcon name="pause" color={ON_ACCENT.strong} size={18} />
+                    <Text style={styles.heroSecondaryText} numberOfLines={1}>
+                      {stopping ? 'Menghentikan\u2026' : 'Hentikan'}
+                    </Text>
+                  </Pressable>
+                </View>
               </View>
             ) : null}
 

@@ -20,7 +20,7 @@ class ScheduledRunService : HeadlessJsTaskService() {
     StatusNotification.ensureChannel(this)
     startForeground(
       StatusNotification.RUN_ID,
-      StatusNotification.build(this, "Backup terjadwal", "Menyiapkan\u2026"),
+      StatusNotification.build(this, "Backup terjadwal", "Menyiapkan\u2026", withStop = true),
     )
     return super.onStartCommand(intent, flags, startId)
   }

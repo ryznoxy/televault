@@ -55,6 +55,7 @@ jest.mock('react-native-blob-util', () => ({
       hash: jest.fn(async () => 'deadbeef'),
       stat: jest.fn(async () => ({ size: 0, lastModified: 0, type: 'file' })),
       ls: jest.fn(async () => []),
+      exists: jest.fn(async () => false),
       slice: jest.fn(async () => ''),
       unlink: jest.fn(async () => undefined),
       mkdir: jest.fn(async () => undefined),

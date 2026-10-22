@@ -71,5 +71,9 @@
         android:name=".ScheduledRunService"
         android:foregroundServiceType="dataSync"
         android:exported="false" />
+      <!-- The run notification's "Hentikan" action. -->
+      <receiver
+        android:name=".RunStopReceiver"
+        android:exported="false" />
     </application>
 </manifest>

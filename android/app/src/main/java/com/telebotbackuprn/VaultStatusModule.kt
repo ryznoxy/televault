@@ -74,6 +74,7 @@ class VaultStatusModule(reactContext: ReactApplicationContext) :
       StatusNotification.RUN_ID,
       "Backup berjalan",
       text,
+      withStop = true,
     )
   }
 
