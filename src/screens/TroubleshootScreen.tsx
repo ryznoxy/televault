@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Linking,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -15,7 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeProvider';
 import { AppHeader, SectionLabel, TgIcon, useToast, type TgIconName } from '../components/ui';
 import { FONT, ON_ACCENT, TG_LIGHT,  RADIUS, tgTheme, type TGPalette } from '../theme/theme';
-import { sessionsRepo } from '../db/repositories/sessions';
+import { sessionsRepo, type SessionRecord } from '../db/repositories/sessions';
 import { isCryptoAvailable } from '../backup/crypto';
 import { runRestoreDrill } from '../backup/restoreDrill';
 import { secureStore } from '../state/secureStore';
@@ -25,6 +26,8 @@ import { OEM_GUIDE } from '../background/oemGuide';
 import { nativeStatus } from '../background/androidStatus';
 import { lastWake, type WakeSource } from '../background/wake';
 import { relativeTime } from '../background/statusText';
+import { CATEGORY_NAMES_ID } from '../types/models';
+import { formatBytes } from '../components/number';
 import { useTourStore } from '../state/tourStore';
 import type { RootStackParamList } from '../navigation/Routes';
 
@@ -86,6 +89,8 @@ export default function TroubleshootScreen({ navigation }: Props) {
   const [diag, setDiag] = useState<Diagnostics>(EMPTY_DIAGNOSTICS);
   const [drillBusy, setDrillBusy] = useState(false);
   const [errorLog, setErrorLog] = useState<ErrorLogEntry[]>([]);
+  const [failure, setFailure] = useState<SessionRecord | null>(null);
+  const [showFailure, setShowFailure] = useState(false);
 
   const load = useCallback(async () => {
     setErrorLog(getErrorLog());
@@ -97,6 +102,7 @@ export default function TroubleshootScreen({ navigation }: Props) {
     const failed = recent.find(
       session => session.status === 'failed' || session.status === 'partial',
     );
+    setFailure(failed ?? null);
     const current = useSettingsStore.getState().config;
     const wake = lastWake();
     setDiag({
@@ -203,6 +209,7 @@ export default function TroubleshootScreen({ navigation }: Props) {
                 label="Kegagalan terakhir"
                 value={diag.lastFailure}
                 tone={diag.lastFailure === 'Tidak ada' ? 'ok' : 'error'}
+                onPress={failure ? () => setShowFailure(true) : undefined}
               />
               <InfoRow
                 icon="folder"
@@ -392,6 +399,53 @@ export default function TroubleshootScreen({ navigation }: Props) {
         </View>
       </ScrollView>
 
+      <Modal
+        visible={showFailure}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowFailure(false)}>
+        <Pressable style={styles.modalBackdrop} onPress={() => setShowFailure(false)}>
+          <Pressable style={styles.modalCard} onPress={() => undefined}>
+            <Text style={styles.modalTitle} numberOfLines={1}>
+              Kegagalan Terakhir
+            </Text>
+            {failure ? (
+              <View style={styles.modalBody}>
+                <DetailLine label="Waktu" value={relativeTime(failure.started_at)} />
+                <DetailLine
+                  label="Kategori"
+                  value={CATEGORY_NAMES_ID[failure.category as keyof typeof CATEGORY_NAMES_ID] ?? failure.category}
+                />
+                <DetailLine
+                  label="Status"
+                  value={failure.status === 'partial' ? 'Sebagian berhasil' : 'Gagal'}
+                />
+                <DetailLine label="Berkas" value={`${failure.total_files} berkas`} />
+                <DetailLine label="Ukuran" value={formatBytes(failure.total_size)} />
+                <DetailLine label="Potongan terkirim" value={`${failure.chunks_sent}/${failure.chunks_total}`} />
+                <View style={styles.modalSection}>
+                  <Text style={styles.modalSectionLabel}>Penyebab</Text>
+                  <Text style={styles.modalReason} selectable>
+                    {failure.error_reason && failure.error_reason.trim() !== ''
+                      ? failure.error_reason
+                      : 'Tidak ada detail.'}
+                  </Text>
+                </View>
+              </View>
+            ) : null}
+            <Pressable
+              onPress={() => setShowFailure(false)}
+              accessibilityRole="button"
+              accessibilityLabel="Tutup"
+              style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}>
+              <Text style={styles.primaryButtonText} numberOfLines={1}>
+                Tutup
+              </Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
       {toast}
     </View>
   );
@@ -402,11 +456,13 @@ function InfoRow({
   label,
   value,
   tone,
+  onPress,
 }: {
   icon: TgIconName;
   label: string;
   value: string;
   tone: 'ok' | 'warn' | 'error' | 'plain';
+  onPress?: () => void;
 }) {
   const { mode } = useTheme();
   const TG = tgTheme(mode);
@@ -419,7 +475,7 @@ function InfoRow({
         : tone === 'error'
           ? TG.error
           : TG.ink;
-  return (
+  const inner = (
     <View style={styles.infoRow}>
       <View style={styles.infoIcon}>
         <TgIcon name={icon} color={TG.primary} size={18} />
@@ -428,6 +484,35 @@ function InfoRow({
         {label}
       </Text>
       <Text style={[styles.infoValue, { color: valueColor }]} numberOfLines={2}>
+        {value}
+      </Text>
+      {onPress ? <TgIcon name="chevron" color={TG.secondary} size={16} /> : null}
+    </View>
+  );
+  if (!onPress) {
+    return inner;
+  }
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      style={({ pressed }) => pressed && styles.rowPressed}>
+      {inner}
+    </Pressable>
+  );
+}
+
+function DetailLine({ label, value }: { label: string; value: string }) {
+  const { mode } = useTheme();
+  const TG = tgTheme(mode);
+  const styles = createStyles(TG, mode);
+  return (
+    <View style={styles.detailRow}>
+      <Text style={styles.detailLabel} numberOfLines={1}>
+        {label}
+      </Text>
+      <Text style={styles.detailValue} numberOfLines={3} selectable>
         {value}
       </Text>
     </View>
@@ -458,6 +543,7 @@ const createStyles = (TG: TGPalette, mode: 'light' | 'dark') => StyleSheet.creat
   warningText: { color: TG.error, fontSize: 13, lineHeight: 18, flex: 1, minWidth: 0 },
 
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  rowPressed: { opacity: 0.6 },
   infoIcon: {
     width: 32,
     height: 32,
@@ -519,4 +605,27 @@ const createStyles = (TG: TGPalette, mode: 'light' | 'dark') => StyleSheet.creat
   oemPath: { color: TG.secondary, fontSize: 13, lineHeight: 18 },
 
   pressed: { opacity: 0.85 },
+
+  detailRow: { gap: 2 },
+  detailLabel: { color: TG.secondary, fontSize: 12, lineHeight: 16, fontFamily: FONT.semi },
+  detailValue: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '500', fontFamily: FONT.medium },
+
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  modalCard: {
+    backgroundColor: TG.card,
+    borderRadius: RADIUS.lg,
+    padding: 20,
+    gap: 16,
+    ...CARD_SHADOW,
+  },
+  modalTitle: { color: TG.ink, fontSize: 17, lineHeight: 22, fontWeight: '700', fontFamily: FONT.bold },
+  modalBody: { gap: 10 },
+  modalSection: { gap: 4 },
+  modalSectionLabel: { color: TG.error, fontSize: 12, lineHeight: 16, fontFamily: FONT.semi },
+  modalReason: { color: TG.ink, fontSize: 13, lineHeight: 19, fontFamily: FONT.medium },
 });
