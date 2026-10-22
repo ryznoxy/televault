@@ -9,6 +9,10 @@ export type WhatsNew = {
 };
 
 export const WHATS_NEW: Record<string, WhatsNew> = {
+  '1.5.2': {
+    title: 'Apa baru di v1.5.2',
+    items: ['Ikon aplikasi baru'],
+  },
   '1.5.1': {
     title: 'Apa baru di v1.5.1',
     items: [
