@@ -11,6 +11,7 @@ import {
 import { scanCategory, scanCustomFolders, ensureLocalPath, type ScanResult } from './fileScanner';
 import { shareBudget } from './fileBudget';
 import { sha256File } from './hasher';
+import { sendGapMs } from '../net/throttle';
 import { needsBackup } from './incremental';
 import {
   createManifest,
@@ -71,8 +72,10 @@ const PBKDF2_ITERATIONS = 210000;
  */
 const ALLOW_LOCAL_DELETE: boolean = false;
 
-/** PRD §14: 1 req/sec throttle between successful chunk uploads. */
-const CHUNK_THROTTLE_MS = 1000;
+/**
+ * PRD §14: 1 req/sec floor between chunk uploads, raised when the API pushes
+ * back (see `net/throttle`). Manifest sends are paced by the same gap.
+ */
 
 /**
  * PRD §14 / §21 gap #7: `CacheDir` holds the localized `content://` copies, the
@@ -420,9 +423,9 @@ export async function runBackup(
       await sessionsRepo.updateChunksSent(sessionId, totalSent);
       const progress = progressOf(chunk.index, chunks.length);
       emit('uploading', category, progress.current, progress.total);
-      // ponytail: fixed 1s throttle keeps under Bot API ~30 msg/s; a 429 now
-      // backs off per Retry-After inside sendDocumentWithRetry.
-      await sleep(CHUNK_THROTTLE_MS);
+      // Paced by the shared throttle: it keeps the floor gap (1s) while the API
+      // is happy and stretches it the moment a 429 asks for room.
+      await sleep(sendGapMs());
     }
     return { chunks, failed, ivs };
   };
@@ -736,12 +739,14 @@ export async function runBackup(
           undefined,
           silent,
         );
+        await sleep(sendGapMs());
         await api.sendDocument(
           { path: batPath, name: baseName(batPath), mime: 'application/x-bat' },
           undefined,
           undefined,
           silent,
         );
+        await sleep(sendGapMs());
         const manifestResult = await api.sendDocument(
           { path: manifestPath, name: manifestName, mime: 'application/json' },
           `Manifest for ${group.base}`,
@@ -750,6 +755,7 @@ export async function runBackup(
         );
         sentIds.push(String(manifestResult.messageId));
         sentFileIds.push(manifestResult.fileId ?? '');
+        await sleep(sendGapMs());
       }
       emit('manifest', undefined, groups.length, groups.length);
       // A zip run sends one manifest per archive; keep every id so Stats can

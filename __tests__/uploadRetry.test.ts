@@ -1,5 +1,6 @@
 import { retryDelayMs, sendDocumentWithRetry } from '../src/backup/uploadRetry';
 import { TelegramApiError } from '../src/net/telegramApi';
+import { resetThrottle, sendGapMs } from '../src/net/throttle';
 
 const FILE = { path: '/cache/a.zip.001', name: 'a.zip.001', mime: 'application/zip' };
 
@@ -49,6 +50,35 @@ test('returns the result once a retry succeeds', async () => {
   await expect(promise).resolves.toEqual({ messageId: 9, date: 1 });
   expect(send).toHaveBeenCalledTimes(2);
   jest.useRealTimers();
+});
+
+test('429 waits out more attempts than a 500, and slows the next sends', async () => {
+  jest.useFakeTimers();
+  resetThrottle();
+  const send = jest.fn(async () => {
+    throw new TelegramApiError(429, 'too many requests', 0);
+  });
+
+  const promise = sendDocumentWithRetry(apiWith(send), FILE, 'cap', false);
+  const outcome = promise.then(
+    () => 'resolved',
+    error => error,
+  );
+  await jest.runAllTimersAsync();
+
+  await expect(outcome).resolves.toBeInstanceOf(TelegramApiError);
+  // A pace problem deserves more patience than a server hiccup.
+  expect(send).toHaveBeenCalledTimes(6);
+  expect(sendGapMs()).toBeGreaterThan(1000);
+  jest.useRealTimers();
+  resetThrottle();
+});
+
+test('a clean send eases the pace back down', async () => {
+  resetThrottle();
+  const send = jest.fn(async () => ({ messageId: 1, date: 1 }));
+  await sendDocumentWithRetry(apiWith(send), FILE, 'cap', false);
+  expect(sendGapMs()).toBe(1000);
 });
 
 test('429 honours Retry-After; other errors back off exponentially', () => {

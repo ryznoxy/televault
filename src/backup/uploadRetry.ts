@@ -1,4 +1,5 @@
 import type { FilePart, SendResult } from '../net/telegramApi';
+import { noteRateLimited, noteSendOk } from '../net/throttle';
 
 export type DocumentApi = {
   sendDocument: (
@@ -11,6 +12,12 @@ export type DocumentApi = {
 
 /** PRD §14: retry a chunk up to 3 times, then skip + log it. */
 const MAX_ATTEMPTS = 3;
+/**
+ * A 429 is a pace problem, not a bad request: the chunk is fine, we simply sent
+ * it too fast, so it is worth waiting out instead of skipping a part and leaving
+ * the archive incomplete.
+ */
+const MAX_RATE_LIMIT_ATTEMPTS = 6;
 const BACKOFF_BASE_MS = 1000;
 /**
  * A 429 `Retry-After` is honoured, but never for longer than a minute: a large
@@ -76,12 +83,20 @@ export async function sendDocumentWithRetry(
   onProgress?: (sent: number, total: number) => void,
 ): Promise<SendResult> {
   let lastError: unknown;
-  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
+  let maxAttempts = MAX_ATTEMPTS;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     try {
-      return await api.sendDocument(file, caption, onProgress, disableNotification);
+      const result = await api.sendDocument(file, caption, onProgress, disableNotification);
+      noteSendOk();
+      return result;
     } catch (error) {
       lastError = error;
-      if (attempt >= MAX_ATTEMPTS || !isRetryable(error)) {
+      if (httpCodeOf(error) === 429) {
+        // Slow every later send down too, so the next chunk does not repeat it.
+        noteRateLimited(retryAfterOf(error));
+        maxAttempts = Math.max(maxAttempts, MAX_RATE_LIMIT_ATTEMPTS);
+      }
+      if (attempt >= maxAttempts || !isRetryable(error)) {
         break;
       }
       await sleep(retryDelayMs(error, attempt));
