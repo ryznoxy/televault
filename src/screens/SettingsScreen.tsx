@@ -901,14 +901,23 @@ export default function SettingsScreen({ navigation }: Props) {
                 value={config.compressZip}
                 onValueChange={setCompressZip}
               />
-              <IconToggleRow
-                icon="image"
-                title="Kirim Foto & Video Langsung"
-                subtitle="Foto & video kecil dikirim apa adanya, sisanya di-zip"
-                value={config.directMedia}
-                onValueChange={setDirectMedia}
-              />
-              {config.directMedia ? (
+              {config.encryptionEnabled ? (
+                <DisabledToggleRow
+                  icon="image"
+                  title="Kirim Foto & Video Langsung"
+                  subtitle="Butuh enkripsi mati: berkas terenkripsi tidak bisa dibuka di Telegram."
+                  badge="Nonaktif"
+                />
+              ) : (
+                <IconToggleRow
+                  icon="image"
+                  title="Kirim Foto & Video Langsung"
+                  subtitle="Foto & video kecil dikirim apa adanya, sisanya di-zip"
+                  value={config.directMedia}
+                  onValueChange={setDirectMedia}
+                />
+              )}
+              {config.directMedia && !config.encryptionEnabled ? (
                 <View style={styles.toggleRow}>
                   <View style={styles.toggleIcon}>
                     <TgIcon name="swapVert" color={TG.primary} size={18} />
@@ -924,7 +933,7 @@ export default function SettingsScreen({ navigation }: Props) {
                   <NumberField
                     value={config.directMediaMaxMb}
                     min={1}
-                    max={2000}
+                    max={45}
                     fallback={45}
                     format={v => `${v} MB`}
                     onCommit={setDirectMediaMaxMb}

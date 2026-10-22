@@ -917,6 +917,27 @@ test('direct media: a small photo is sent loose while a big video is zipped', as
   expect(finishCalls[0][7]).toBe('9,9');
 });
 
+test('direct media: encryption off only, since a .enc file cannot be opened in Telegram', async () => {
+  useSettingsStore.getState().setDirectMedia(true);
+  useSettingsStore.getState().setDirectMediaMaxMb(45);
+  useSettingsStore.getState().setEncryptionEnabled(true);
+  (secureStore.get as unknown as jest.Mock).mockResolvedValue({
+    botToken: 'token',
+    chatId: '42',
+    encryptionPassword: 'correct horse battery staple',
+  });
+  useSettingsStore.getState().setCategories([Category.PHOTO]);
+  scanMock.mockImplementation(async (category: string) => (category === 'photo' ? [PHOTO_ITEM] : []));
+
+  const result = await runBackup();
+
+  expect(result.status).toBe('success');
+  const names = latestApi().sendDocument.mock.calls.map(call => String(call[0].name));
+  // The photo stayed in the archive even though it is far under the size limit.
+  expect(names.some(name => name.startsWith('a.jpg'))).toBe(false);
+  expect(names.some(name => /^backup-.*\.zip\.enc\.\d{3}$/.test(name))).toBe(true);
+});
+
 test('P1: an empty gallery stays quiet, a category that lost its files is reported', async () => {
   useSettingsStore.getState().setCategories([Category.PHOTO]);
   scanMock.mockResolvedValue([]);
