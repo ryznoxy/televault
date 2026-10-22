@@ -18,7 +18,7 @@
   "34": "ExactAlarm",
   "35": "HomeScreen.tsx",
   "36": "manifest.ts",
-  "37": "StatusNotification.kt",
+  "37": ".build",
   "38": "react-native-blob-util",
   "39": "chunker.ts",
   "40": "AlarmReceiver.kt",
@@ -27,5 +27,6 @@
   "43": "ScheduledRunService.kt",
   "44": "incremental.ts",
   "45": "react-native-safe-area-context",
-  "46": "DESIGN.md"
+  "46": "DESIGN.md",
+  "47": "StatusNotification.kt"
 }
