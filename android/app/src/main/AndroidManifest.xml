@@ -67,6 +67,17 @@
       <receiver
         android:name=".AlarmReceiver"
         android:exported="false" />
+      <!-- A reboot or a clock change drops the pending alarm; re-arming it needs
+           no JS, so the schedule survives without the app being opened. -->
+      <receiver
+        android:name=".BootReceiver"
+        android:exported="false">
+        <intent-filter>
+          <action android:name="android.intent.action.BOOT_COMPLETED" />
+          <action android:name="android.intent.action.TIME_SET" />
+          <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+        </intent-filter>
+      </receiver>
       <service
         android:name=".ScheduledRunService"
         android:foregroundServiceType="dataSync"
