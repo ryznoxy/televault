@@ -1,5 +1,11 @@
 import { create } from 'zustand';
-import { checkForUpdate, downloadAndInstall, type AvailableUpdate } from '../update/updater';
+import {
+  checkForUpdate,
+  downloadAndInstall,
+  deviceVersionCode,
+  versionCodeFor,
+  type AvailableUpdate,
+} from '../update/updater';
 import { mmkv } from './mmkv';
 import { logError } from './errorLog';
 
@@ -13,25 +19,48 @@ type UpdateUiState = {
   cancelRequested: boolean;
   dismiss: () => void;
   setUpdate: (update: AvailableUpdate | null) => void;
-  check: () => Promise<void>;
+  /**
+   * Returns the pending release, or null when the install is current. `force`
+   * is the explicit check in Settings: it skips the interval throttle and shows
+   * a release the user dismissed earlier.
+   */
+  check: (force?: boolean) => Promise<AvailableUpdate | null>;
   startDownload: (onError: (message: string) => void) => Promise<void>;
   cancelDownload: () => void;
 };
 
 export const useUpdateStore = create<UpdateUiState>()((set, get) => ({
-  update: null,
+  // A release found in an earlier session is shown straight away: the automatic
+  // check is throttled, so without this a restart in the quiet hour would hide
+  // an update the user was already told about.
+  update: pendingFromStorage(),
   phase: 'idle',
   progress: 0,
   cancelRequested: false,
-  dismiss: () => set({ update: null }),
+  dismiss: () => {
+    const tag = get().update?.tag;
+    if (tag) {
+      // Remembered, so the automatic check stops asking about this release. The
+      // manual check in Settings ignores it and shows the alert again.
+      dismissUpdateTag(tag);
+    }
+    mmkv.remove(PENDING_KEY);
+    set({ update: null });
+  },
   setUpdate: update => set({ update }),
-  check: async () => {
+  check: async (force = false) => {
     try {
-      const available = await checkForUpdate();
-      if (available) set({ update: available });
+      const available = await checkForUpdate(undefined, undefined, force);
+      if (available && (force || !isUpdateDismissed(available.tag))) {
+        set({ update: available });
+        mmkv.set(PENDING_KEY, JSON.stringify(available));
+      }
+      return available;
     } catch (error) {
-      // offline or rate-limited: no banner is the correct quiet fallback
+      // offline or rate-limited: no alert is the correct quiet fallback
       logError('update-check', error);
+      if (force) throw error;
+      return null;
     }
   },
   startDownload: async onError => {
@@ -68,6 +97,35 @@ export const useUpdateStore = create<UpdateUiState>()((set, get) => ({
 }));
 
 export const UPDATE_DISMISS_KEY = 'update_dismissed_tag';
+const PENDING_KEY = 'update_pending_release';
+
+/**
+ * The release found earlier, still newer than what is installed. The local
+ * versionCode decides: an update that has since been installed is dropped here
+ * instead of being offered again.
+ */
+export function pendingFromStorage(): AvailableUpdate | null {
+  const raw = mmkv.getString(PENDING_KEY);
+  if (!raw) {
+    return null;
+  }
+  try {
+    const stored = JSON.parse(raw) as AvailableUpdate;
+    if (!stored?.tag || !stored.apkUrl) {
+      return null;
+    }
+    const releaseCode = versionCodeFor(stored.tag);
+    const device = deviceVersionCode();
+    if (releaseCode !== null && device !== null && releaseCode <= device) {
+      return null;
+    }
+    return stored;
+  } catch {
+    // A value from a broken write must not keep the app from starting.
+    return null;
+  }
+}
+
 export function isUpdateDismissed(tag: string): boolean {
   return mmkv.getString(UPDATE_DISMISS_KEY) === tag;
 }
