@@ -38,6 +38,7 @@ import {
   type WatchedFolder,
 } from '../types/models';
 import type { RootStackParamList } from '../navigation/Routes';
+import { successRatio } from '../state/history';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -157,15 +158,13 @@ export default function HomeScreen({ navigation }: Props) {
     setConfigured(ok);
     const credentials = await secureStore.get();
     setChatId(credentials.chatId);
-    setLastSession(await sessionsRepo.lastSuccess());
+    setLastSession(await sessionsRepo.lastFinished());
     setTotalSize(await sessionsRepo.totalUploadedSize());
     setFileCount(await filesRepo.count());
 
     const sessions = await sessionsRepo.recent(200);
     const since = Date.now() - MONTH_MS;
-    const inWindow = sessions.filter(session => session.started_at >= since);
-    const succeeded = inWindow.filter(session => session.status === 'success').length;
-    setRatio(inWindow.length > 0 ? succeeded / inWindow.length : null);
+    setRatio(successRatio(sessions.filter(session => session.started_at >= since)));
 
     if (ok && credentials.botToken.trim()) {
       const started = Date.now();

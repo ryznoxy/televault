@@ -155,7 +155,7 @@ Bundle id `com.televault.app`, `MARKETING_VERSION` di `ios/TelebotBackupRN.xcode
 - **7z belum didukung**: writer 7z tidak tersedia di Hermes; opsi format ditampilkan tapi dinonaktifkan (`src/backup/zipper.ts`).
 - **49 MB per chunk**: batas Bot API publik (16 MB saat enkripsi aktif, demi RAM). Server Bot API lokal bisa menaikkan ini, tapi belum jadi target build.
 - **Contacts dan SMS belum ada**: barisnya tampil nonaktif ("Segera hadir"); belum ada reader-nya.
-- **Documents di Android 11+ bisa kosong**: scoped storage membatasi folder `Download` dan `Documents`. Kategori yang terbaca 0 berkas akan memberitahukannya di ringkasan backup.
+- **Documents di Android 11+ perlu dipilih sendiri**: sistem tidak memberi aplikasi akses ke folder `Download` atau `Documents` secara langsung. Pilih foldernya di Pengaturan > Folder Dokumen (pemilih folder bawaan Android); kategori yang tetap terbaca 0 berkas akan memberitahukannya di ringkasan backup.
 - **Android 15+ membatasi foreground service `dataSync` kurang lebih 6 jam per hari**: backup yang lebih lama dari itu bisa dihentikan sistem; jalankan ulang atau kecilkan jumlah berkas per run (`maxFilesPerRun`).
 - **Jadwal global, bukan per folder**: satu jadwal untuk semua kategori terpilih.
 - **Jam tertentu butuh izin alarm eksak**: Android 12 ke atas membatasi alarm eksak, jadi app memakai izin alarm (di Android 13+, `USE_EXACT_ALARM` diberikan tanpa dialog). Kalau izin itu dicabut, penjadwalan turun ke alarm tidak eksak dan bisa bergeser beberapa menit.

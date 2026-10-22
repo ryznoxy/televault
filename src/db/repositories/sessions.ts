@@ -110,6 +110,15 @@ export const sessionsRepo = {
     return result.rows.map(asRecord);
   },
 
+  /** Latest run that finished and left something to show for it; partial counts. */
+  async lastFinished(): Promise<SessionRecord | null> {
+    const result = await getDb().execute(
+      "SELECT * FROM backup_sessions WHERE status IN ('success', 'partial') ORDER BY started_at DESC LIMIT 1",
+    );
+    const row = result.rows[0];
+    return row ? asRecord(row) : null;
+  },
+
   async lastSuccess(): Promise<SessionRecord | null> {
     const result = await getDb().execute(
       "SELECT * FROM backup_sessions WHERE status = 'success' ORDER BY started_at DESC LIMIT 1",
