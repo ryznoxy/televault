@@ -421,7 +421,7 @@ test('overall progress moves inside a chunk upload, not only when it finishes', 
   expect(overallCurrents[overallCurrents.length - 1]).toBe(1);
 });
 
-test('caps each category at maxFilesPerRun, defers the excess, and still succeeds', async () => {
+test('caps the run at maxFilesPerRun, defers the excess, and still succeeds', async () => {
   useSettingsStore.getState().setMaxFilesPerRun(2);
   const items: ScanResult[] = [1, 2, 3, 4, 5].map(n => ({
     ...PHOTO_ITEM,
@@ -438,6 +438,32 @@ test('caps each category at maxFilesPerRun, defers the excess, and still succeed
   expect(result.deferred).toBe(3);
   // The three deferred files were never marked backed up, so they stay pending.
   expect(filesMock.markBackup).toHaveBeenCalledTimes(2);
+});
+
+test('the budget is shared by every category that has files, not repeated for each', async () => {
+  useSettingsStore.getState().setMaxFilesPerRun(2);
+  const photos: ScanResult[] = [1, 2, 3].map(n => ({
+    ...PHOTO_ITEM,
+    path: `/photo/${n}.jpg`,
+    displayName: `${n}.jpg`,
+    category: 'photo',
+  }));
+  const videos: ScanResult[] = [1, 2, 3].map(n => ({
+    ...PHOTO_ITEM,
+    path: `/video/${n}.mp4`,
+    displayName: `${n}.mp4`,
+    category: 'video',
+  }));
+  scanMock.mockImplementation(async (category: string) =>
+    category === 'photo' ? photos : category === 'video' ? videos : [],
+  );
+
+  const result = await runBackup();
+
+  expect(result.status).toBe('success');
+  // Two categories, budget two: one file each, not two each.
+  expect(result.files).toBe(2);
+  expect(result.deferred).toBe(4);
 });
 
 test('a zero maxFilesPerRun still processes at least one file', async () => {
