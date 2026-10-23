@@ -1,17 +1,17 @@
 # Graph Report - rn  (2026-10-23)
 
 ## Corpus Check
-- 124 files · ~110,647 words
+- 124 files · ~110,887 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 30 file(s) not represented in the graph (top: .xml 7, (none) 6, .ttf 5)
 
 ## Summary
-- 860 nodes · 2284 edges · 47 communities (30 shown, 17 thin omitted)
+- 860 nodes · 2284 edges · 48 communities (30 shown, 18 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 38 edges (avg confidence: 0.88)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `23c787e6`
+- Built from commit: `8871ffa3`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -46,7 +46,7 @@
 - ExactAlarm
 - HomeScreen.tsx
 - manifest.ts
-- StatusNotification.kt
+- .build
 - react-native-blob-util
 - chunker.ts
 - AlarmReceiver.kt
@@ -89,7 +89,7 @@
 - **Run-the-app workflow (Metro + platform build + Fast Refresh)** — readme_metro, readme_android_platform, readme_ios_platform, readme_fast_refresh [EXTRACTED 1.00]
 - **Android Launcher Icon Multi-Density Asset Set** — android_app_src_main_res_mipmap_hdpi_ic_launcher_android_default_icon_square, android_app_src_main_res_mipmap_mdpi_ic_launcher_android_default_icon_square, android_app_src_main_res_mipmap_xhdpi_ic_launcher_android_default_icon_square, android_app_src_main_res_mipmap_xxhdpi_ic_launcher_android_default_icon_square, android_app_src_main_res_mipmap_xxxhdpi_ic_launcher_android_default_icon_square, android_app_src_main_res_mipmap_hdpi_ic_launcher_round_android_default_icon_round, android_app_src_main_res_mipmap_mdpi_ic_launcher_round_android_default_icon_round, android_app_src_main_res_mipmap_xhdpi_ic_launcher_round_android_default_icon_round, android_app_src_main_res_mipmap_xxhdpi_ic_launcher_round_android_default_icon_round, android_app_src_main_res_mipmap_xxxhdpi_ic_launcher_round_android_default_icon_round [INFERRED 0.85]
 
-## Communities (47 total, 17 thin omitted)
+## Communities (48 total, 18 thin omitted)
 
 ### Community 0 - "SettingsScreen.tsx"
 Cohesion: 0.13
@@ -214,7 +214,7 @@ Nodes (3): mockBlobFiles, { webcrypto }, react-native-safe-area-context
 ## Knowledge Gaps
 - **31 isolated node(s):** `UIKit`, `React`, `React_RCTAppDelegate`, `ReactAppDependencyProvider`, `@react-native-clipboard/clipboard` (+26 more)
   These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 268 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **17 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **18 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_

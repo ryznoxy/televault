@@ -26,7 +26,10 @@
   "42": "BootReceiver.kt",
   "43": "ScheduledRunService.kt",
   "44": "incremental.ts",
-  "45": "react-native-safe-area-context",
+  "45": "ThemeProvider.tsx",
   "46": "DESIGN.md",
-  "47": "StatusNotification.kt"
+  "47": "StatusNotification.kt",
+  "48": "TroubleshootScreen.tsx",
+  "49": "AppNav.tsx",
+  "50": "VaultStatusModule.kt"
 }
