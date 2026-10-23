@@ -63,7 +63,12 @@ export default function AppNav() {
   useEffect(() => {
     check();
     const subscription = AppState.addEventListener('change', state => {
-      if (state === 'active') check();
+      if (state === 'active') {
+        check();
+        // A notification posted by an older build keeps its old icon until it
+        // is replaced, so re-post on every return to the foreground.
+        refreshStatusNotification();
+      }
     });
     return () => subscription.remove();
   }, [check]);
