@@ -62,11 +62,15 @@ jobs:
             -PTELEVAULT_VERSION_CODE=${{ steps.ver.outputs.code }}
       - name: Checksum
         run: |
-          cp android/app/build/outputs/apk/release/*.apk app-release.apk
-          sha256sum app-release.apk > SHA256SUMS
+          # The asset carries the version so a download says which build it is.
+          # The updater picks the first `.apk` asset and matches it against
+          # SHA256SUMS by name, so the name itself is free to change.
+          APK="TeleVault-v${{ steps.ver.outputs.name }}.apk"
+          cp android/app/build/outputs/apk/release/*.apk "$APK"
+          sha256sum "$APK" > SHA256SUMS
       - uses: softprops/action-gh-release@v2
         with:
           files: |
-            app-release.apk
+            TeleVault-*.apk
             SHA256SUMS
           generate_release_notes: true
