@@ -14,6 +14,7 @@ import { TelegramBotApi } from '../src/net/telegramApi';
 import { secureStore } from '../src/state/secureStore';
 import { useSettingsStore } from '../src/state/settingsStore';
 import { Category } from '../src/types/models';
+import { isUnmeteredNetwork } from '../src/background/androidStatus';
 
 jest.mock('../src/db/repositories/files', () => ({
   filesRepo: {
@@ -59,6 +60,12 @@ jest.mock('../src/state/secureStore', () => ({
 jest.mock('../src/backup/fileScanner', () => ({
   scanCategory: jest.fn(async () => []),
   ensureLocalPath: jest.fn(async (path: string) => path),
+}));
+
+// The real module reads a native constant that does not exist in the test
+// runtime; the Wi-Fi rule test flips this mock instead.
+jest.mock('../src/background/androidStatus', () => ({
+  isUnmeteredNetwork: jest.fn(async () => true),
 }));
 
 const filesMock = filesRepo as unknown as {
@@ -180,6 +187,8 @@ beforeEach(() => {
   useSettingsStore.getState().setEncryptionEnabled(false);
   useSettingsStore.getState().setCompressZip(true);
   useSettingsStore.getState().setDirectMedia(false);
+  useSettingsStore.getState().setWifiOnly(false);
+  (isUnmeteredNetwork as jest.Mock).mockResolvedValue(true);
 });
 
 test('re-uploads a changed file because existing state is read before upsert', async () => {
@@ -260,13 +269,14 @@ test('unlinks localized content copies but never the originals', async () => {
   expect(unlinkMock).not.toHaveBeenCalledWith('/photo/a.jpg');
 });
 
-test('names every uploaded part after the manifest entry, single part included', async () => {
+test('names a single-part archive after the manifest entry, without a part suffix', async () => {
   scanMock.mockImplementation(async (category: string) => (category === 'photo' ? [PHOTO_ITEM] : []));
 
   await runBackup();
 
   const names = latestApi().sendDocument.mock.calls.map(call => String(call[0].name));
-  expect(names.some(name => /^backup-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}\.zip\.001$/.test(name))).toBe(true);
+  // One part means the archive is whole, so it keeps its own name.
+  expect(names.some(name => /^backup-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}\.zip$/.test(name))).toBe(true);
   // Manifest and scripts carry the archive's name, so a downloaded file says
   // which zip it belongs to.
   expect(names.some(name => /^backup-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}\.zip\.manifest\.json$/.test(name))).toBe(true);
@@ -787,10 +797,11 @@ test('P0-3: two files with the same name get distinct entries and part names', a
   expect(result.status).toBe('success');
   expect(result.files).toBe(2);
   const names = latestApi().sendDocument.mock.calls.map(call => String(call[0].name));
-  // Distinct part names, so restore finds both sets back instead of matching one
-  // set for both entries and overwriting the output.
-  expect(names).toContain('IMG_0001.jpg.001');
-  expect(names).toContain('IMG_0001 (2).jpg.001');
+  // Distinct names, so restore finds both sets back instead of matching one
+  // set for both entries and overwriting the output. A single-part photo keeps
+  // its own name so Telegram can preview it.
+  expect(names).toContain('IMG_0001.jpg');
+  expect(names).toContain('IMG_0001 (2).jpg');
 
   const manifestName = names.find(name => name.endsWith('.manifest.json')) as string;
   const manifestRaw = await ReactNativeBlobUtil.fs.readFile(`/cache/meta_1/${manifestName}`, 'utf8');
@@ -907,11 +918,12 @@ test('direct media: a small photo is sent loose while a big video is zipped', as
   await runBackup();
 
   const names = latestApi().sendDocument.mock.calls.map(call => String(call[0].name));
-  // The small photo travelled as itself (single part).
-  expect(names).toContain('a.jpg.001');
-  // The 60 MB video went into a zip archive, not a loose video part.
-  expect(names.some(name => /^backup-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}\.zip\.001$/.test(name))).toBe(true);
-  expect(names).not.toContain('b.mp4.001');
+  // The small photo travelled as itself: one part, own name, Telegram preview.
+  expect(names).toContain('a.jpg');
+  // The 60 MB video went into a zip archive, not a loose video part. The
+  // archive is one part here, so it keeps its own name too.
+  expect(names.some(name => /^backup-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}\.zip$/.test(name))).toBe(true);
+  expect(names).not.toContain('b.mp4');
   // Two manifests: the archive's, plus the session manifest for the loose photo.
   const finishCalls = (sessionsRepo.finishSession as unknown as jest.Mock).mock.calls;
   expect(finishCalls[0][7]).toBe('9,9');
@@ -935,7 +947,22 @@ test('direct media: encryption off only, since a .enc file cannot be opened in T
   const names = latestApi().sendDocument.mock.calls.map(call => String(call[0].name));
   // The photo stayed in the archive even though it is far under the size limit.
   expect(names.some(name => name.startsWith('a.jpg'))).toBe(false);
-  expect(names.some(name => /^backup-.*\.zip\.enc\.\d{3}$/.test(name))).toBe(true);
+  expect(names.some(name => /^backup-.*\.zip\.enc(\.\d{3})?$/.test(name))).toBe(true);
+});
+
+test('wifi only: a metered connection refuses the run before any upload', async () => {
+  useSettingsStore.getState().setWifiOnly(true);
+  (isUnmeteredNetwork as jest.Mock).mockResolvedValue(false);
+  useSettingsStore.getState().setCategories([Category.PHOTO]);
+  scanMock.mockImplementation(async (category: string) => (category === 'photo' ? [PHOTO_ITEM] : []));
+
+  const result = await runBackup();
+
+  expect(result.status).toBe('failed');
+  expect(result.error).toContain('Wi-Fi');
+  expect(apiMock).not.toHaveBeenCalled();
+  // No session row either: the run never started, so stats stay honest.
+  expect(sessionsRepo.insert).not.toHaveBeenCalled();
 });
 
 test('P1: an empty gallery stays quiet, a category that lost its files is reported', async () => {

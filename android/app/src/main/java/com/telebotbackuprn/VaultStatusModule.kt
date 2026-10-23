@@ -2,6 +2,8 @@ package com.telebotbackuprn
 
 import android.content.ComponentName
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
@@ -96,6 +98,26 @@ class VaultStatusModule(reactContext: ReactApplicationContext) :
   fun isIgnoringBatteryOptimizations(promise: Promise) {
     val power = reactApplicationContext.getSystemService(PowerManager::class.java)
     promise.resolve(power?.isIgnoringBatteryOptimizations(reactApplicationContext.packageName) ?: false)
+  }
+
+  /**
+   * True when the active network is not metered (Wi-Fi, Ethernet). The backup
+   * rule "upload only on Wi-Fi" is enforced in JS before any upload, because
+   * JobScheduler's unmetered constraint does not cover the exact-alarm path or
+   * a manual run.
+   */
+  @ReactMethod
+  fun isUnmetered(promise: Promise) {
+    val manager = reactApplicationContext.getSystemService(ConnectivityManager::class.java)
+    val network = manager?.activeNetwork
+    val caps = if (manager != null && network != null) {
+      manager.getNetworkCapabilities(network)
+    } else {
+      null
+    }
+    promise.resolve(
+      caps?.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED) == true,
+    )
   }
 
   @ReactMethod

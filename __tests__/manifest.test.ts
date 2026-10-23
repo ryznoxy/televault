@@ -31,9 +31,8 @@ test('manifest JSON matches the locked PRD shape', () => {
     encrypted: false,
     sha256: 'abc',
   });
-  expect(json.reassembly).toBe(
-    "cat 'DCIM.zip.001' 'DCIM.zip.002' 'DCIM.zip.003' > 'DCIM.zip' cat 'Pictures.zip.001' > 'Pictures.zip'",
-  );
+  // A single-part entry is already whole, so it gets no join step.
+  expect(json.reassembly).toBe("cat 'DCIM.zip.001' 'DCIM.zip.002' 'DCIM.zip.003' > 'DCIM.zip'");
 });
 
 test('reassembly quotes a filename containing a space', () => {
@@ -48,11 +47,11 @@ test('reassembly quotes a filename containing a space', () => {
 
 test('reassembly escapes parentheses and single quotes for sh', () => {
   const tricky: ManifestFile[] = [
-    { name: "Vacation (2024) O'Brien.zip", size: 10, chunks: 1, encrypted: false, sha256: 'x' },
+    { name: "Vacation (2024) O'Brien.zip", size: 10, chunks: 2, encrypted: false, sha256: 'x' },
   ];
   const json = JSON.parse(manifestToJson(createManifest('Pixel 7', 0, tricky, 's')));
   expect(json.reassembly).toBe(
-    "cat 'Vacation (2024) O'\\''Brien.zip.001' > 'Vacation (2024) O'\\''Brien.zip'",
+    "cat 'Vacation (2024) O'\\''Brien.zip.001' 'Vacation (2024) O'\\''Brien.zip.002' > 'Vacation (2024) O'\\''Brien.zip'",
   );
 });
 
