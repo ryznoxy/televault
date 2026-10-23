@@ -15,6 +15,7 @@ type VaultStatusNative = {
   scheduleExactAlarm?: (hour: number) => void;
   cancelExactAlarm?: () => void;
   isIgnoringBatteryOptimizations: () => Promise<boolean>;
+  isUnmetered: () => Promise<boolean>;
   requestIgnoreBatteryOptimizations: () => void;
   openAutostartSettings: () => void;
 };
@@ -30,6 +31,23 @@ export function nativeStatus(): VaultStatusNative | undefined {
 /** Drops the ongoing status notification so the run's own notification stands alone. */
 export function hideStatusNotification(): void {
   nativeStatus()?.hideStatus();
+}
+
+/**
+ * Whether the current connection is unmetered (Wi-Fi/Ethernet). Unknown counts
+ * as unmetered: refusing every run on a platform that cannot answer would be
+ * worse than the rule being ignored there.
+ */
+export async function isUnmeteredNetwork(): Promise<boolean> {
+  const native = nativeStatus();
+  if (!native?.isUnmetered) {
+    return true;
+  }
+  try {
+    return await native.isUnmetered();
+  } catch {
+    return true;
+  }
 }
 
 /**

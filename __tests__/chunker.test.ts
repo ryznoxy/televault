@@ -1,4 +1,4 @@
-import { computeChunkRanges, chunkName, MAX_CHUNK_SIZE } from '../src/backup/chunker';
+import { computeChunkRanges, chunkName, MAX_CHUNK_SIZE, partNameFor } from '../src/backup/chunker';
 
 test('file within one chunk returns a single range covering the whole file', () => {
   expect(computeChunkRanges(1000)).toEqual([{ index: 1, start: 0, end: 1000, size: 1000 }]);
@@ -22,6 +22,11 @@ test('120MB splits into three ranges that cover the whole file', () => {
 test('chunk names are zero-padded to three digits', () => {
   expect(chunkName('DCIM.zip', 1)).toBe('DCIM.zip.001');
   expect(chunkName('DCIM.zip', 12)).toBe('DCIM.zip.012');
+});
+
+test('a single part keeps the plain name so Telegram can preview it', () => {
+  expect(partNameFor('IMG_0001.jpg', 1, 1)).toBe('IMG_0001.jpg');
+  expect(partNameFor('DCIM.zip', 1, 3)).toBe('DCIM.zip.001');
 });
 
 test('config-driven chunk size splits a 3GB file into 2 vs 7 ranges', () => {

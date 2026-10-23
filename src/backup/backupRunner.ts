@@ -1,6 +1,12 @@
 import { Platform } from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
-import { chunkFile, chunkName, cleanupChunks, MAX_CHUNK_SIZE, type ChunkFile } from './chunker';
+import {
+  chunkFile,
+  cleanupChunks,
+  MAX_CHUNK_SIZE,
+  partNameFor,
+  type ChunkFile,
+} from './chunker';
 import {
   encryptFileWithKey,
   isCryptoAvailable,
@@ -12,6 +18,7 @@ import { scanCategory, scanCustomFolders, ensureLocalPath, type ScanResult } fro
 import { shareBudget } from './fileBudget';
 import { clearRunStop, runStopRequested } from './runControl';
 import { sha256File } from './hasher';
+import { isUnmeteredNetwork } from '../background/androidStatus';
 import { sendGapMs } from '../net/throttle';
 import { needsBackup } from './incremental';
 import {
@@ -65,6 +72,13 @@ const DEVICE = (() => {
 })();
 
 const PBKDF2_ITERATIONS = 210000;
+
+/**
+ * A run refused because "Wi-Fi only" is on and the active connection is
+ * metered. Phrased for the UI: the run did nothing, it did not fail midway.
+ */
+export const WIFI_REQUIRED_ERROR =
+  'Backup hanya diizinkan lewat Wi-Fi. Sambungkan ke Wi-Fi atau matikan opsi "Hanya Wi-Fi" di Pengaturan.';
 
 /**
  * PRD §11/§19 lock auto-delete of chunked sources OFF for v1. Gated here as
@@ -170,6 +184,20 @@ export async function runBackup(
   }
 
   const config = getConfig();
+
+  // The "Wi-Fi only" rule has to hold for every path (manual button, exact
+  // alarm, JobScheduler); only the last of those has a network constraint of
+  // its own, which is why it is enforced here instead.
+  if (config.wifiOnly && !(await isUnmeteredNetwork())) {
+    return {
+      status: 'failed',
+      chunksSent: 0,
+      files: 0,
+      totalSize: 0,
+      deferred: 0,
+      error: WIFI_REQUIRED_ERROR,
+    };
+  }
 
   const permissions = await requestBackupPermissions(config.categories);
   if (!permissions.granted) {
@@ -373,7 +401,7 @@ export async function runBackup(
         sessionId,
         chunkIndex: chunk.index,
         size: chunk.size,
-        partName: chunkName(entryName, chunk.index),
+        partName: partNameFor(entryName, chunk.index, chunks.length),
       });
       chunkIds.set(chunk.index, rowId);
     }
@@ -398,9 +426,10 @@ export async function runBackup(
       const caption =
         chunks.length === 1 ? entryName : `${entryName} part ${chunk.index}/${chunks.length}`;
       // The manifest stores `entryName` plus the part count, and the
-      // reassembly scripts rebuild `<entryName>` from `<entryName>.001`…, so
-      // every part carries that name — a single part included.
-      const partName = chunkName(entryName, chunk.index);
+      // reassembly scripts rebuild `<entryName>` from `<entryName>.001`… A
+      // file that fits one part is sent under its own name so Telegram can
+      // preview it; split files keep the numbered parts.
+      const partName = partNameFor(entryName, chunk.index, chunks.length);
       // `chunk.index` is 1-based, so the chunks already sent are `index - 1`.
       const sentBefore = chunk.index - 1;
       const reportBytes = onBytes

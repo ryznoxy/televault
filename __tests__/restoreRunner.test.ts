@@ -699,7 +699,21 @@ test('restoreFromTelegram fails an entry whose part has no stored file id', asyn
 
   const result = await restoreFromTelegram(api as never, 1, 'manifest-doc');
   expect(result.status).toBe('failed');
-  expect(result.files[0].error).toContain('note.txt.001');
+  // A single-part file is stored under its own name, not `note.txt.001`.
+  expect(result.files[0].error).toContain('note.txt');
+});
+
+test('a single-part entry uploaded under its own name restores without a .001 suffix', async () => {
+  const dir = '/picked-plain';
+  await fs.writeFile(`${dir}/note.txt`, 'AAA');
+  await writeManifest(dir, [
+    { name: 'note.txt', size: 3, chunks: 1, encrypted: false, sha256: shaOf('AAA') },
+  ]);
+
+  const result = await restoreFromFiles([`${dir}/note.txt`, `${dir}/manifest.json`]);
+
+  expect(result.files[0].status).toBe('ok');
+  expect(await fs.readFile('/cache/restored/note.txt')).toBe('AAA');
 });
 
 test('a zip entry is kept as a saveable archive and extracted beside it', async () => {

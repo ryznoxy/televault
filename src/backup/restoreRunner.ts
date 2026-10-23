@@ -1,6 +1,6 @@
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import { unzip } from 'react-native-zip-archive';
-import { chunkName } from './chunker';
+import { chunkName, partNameFor } from './chunker';
 import { decryptFile, decryptFileWithKey, keyFromPassphrase } from './crypto';
 import { sha256File } from './hasher';
 import { trackTempDir, untrackTempDir } from './tempDirs';
@@ -318,6 +318,16 @@ export async function loadManifestFromFolder(dir: string): Promise<Manifest> {
 }
 
 /**
+ * Names part `index` may be stored under. A file that fits one part is uploaded
+ * under its own name; backups made before that change used the `.001` suffix,
+ * so a single-part entry accepts both.
+ */
+function partNames(file: ManifestFile, index: number): string[] {
+  const name = partNameFor(file.name, index, file.chunks);
+  return file.chunks === 1 ? [name, chunkName(file.name, 1)] : [name];
+}
+
+/**
  * Map a manifest entry to its parts among a flat list of picked files, matching
  * by basename so `content://`-derived copies resolve the same as real paths.
  */
@@ -329,12 +339,12 @@ export function resolveParts(file: ManifestFile, availablePaths: string[]): Part
   const parts: string[] = [];
   const missing: string[] = [];
   for (let index = 1; index <= file.chunks; index += 1) {
-    const name = chunkName(file.name, index);
-    const path = byName.get(name);
+    const names = partNames(file, index);
+    const path = names.map(name => byName.get(name)).find(found => found !== undefined);
     if (path !== undefined) {
       parts.push(path);
     } else {
-      missing.push(name);
+      missing.push(names[0]);
     }
   }
   return { parts, missing };
@@ -527,12 +537,19 @@ export async function restoreFromFolder(
     const parts: string[] = [];
     const missing: string[] = [];
     for (let index = 1; index <= file.chunks; index += 1) {
-      const name = chunkName(file.name, index);
-      const path = safeJoin(base, name);
-      if (await ReactNativeBlobUtil.fs.exists(path)) {
-        parts.push(path);
+      const names = partNames(file, index);
+      let found: string | undefined;
+      for (const name of names) {
+        const path = safeJoin(base, name);
+        if (await ReactNativeBlobUtil.fs.exists(path)) {
+          found = path;
+          break;
+        }
+      }
+      if (found !== undefined) {
+        parts.push(found);
       } else {
-        missing.push(name);
+        missing.push(names[0]);
       }
     }
     return { parts, missing };
@@ -598,12 +615,13 @@ export async function restoreFromTelegram(
       const parts: string[] = [];
       const missing: string[] = [];
       for (let index = 1; index <= file.chunks; index += 1) {
-        const name = chunkName(file.name, index);
-        const fileId = byPart.get(name);
-        if (!fileId) {
-          missing.push(name);
+        const names = partNames(file, index);
+        const name = names.find(candidate => byPart.has(candidate));
+        if (name === undefined) {
+          missing.push(names[0]);
           continue;
         }
+        const fileId = byPart.get(name) as string;
         let local = localByPart.get(name);
         if (!local) {
           local = `${workDir}/${assertSafeNameReturn(name)}`;

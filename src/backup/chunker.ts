@@ -39,6 +39,16 @@ export function chunkName(fileName: string, index: number): string {
 }
 
 /**
+ * Name a part is uploaded under. A file that fits in one part keeps its own
+ * name, so Telegram shows a photo/video preview instead of an opaque document
+ * called `IMG_0001.jpg.001`. Files that are actually split keep the numbered
+ * parts the reassembly scripts expect.
+ */
+export function partNameFor(fileName: string, index: number, count: number): string {
+  return count === 1 ? fileName : chunkName(fileName, index);
+}
+
+/**
  * Slice a file into `.001`, `.002`, … parts. Parts land in `outDir` (the cache
  * staging dir) because the source may live in a public directory this app
  * cannot write to under scoped storage. A file that fits one chunk is returned

@@ -92,11 +92,15 @@ export function reassemblyScripts(
     ...(encrypted ? [DECRYPT_NOTE(manifestName)] : []),
     'set -e',
     '',
-    ...manifest.files.map(file => {
+    ...manifest.files.flatMap(file => {
+      if (file.chunks === 1) {
+        // Uploaded whole under its own name: nothing to join.
+        return [];
+      }
       const parts = Array.from({ length: file.chunks }, (_, index) =>
         shQuote(chunkName(file.name, index + 1)),
       ).join(' ');
-      return `cat ${parts} > ${shQuote(file.name)}`;
+      return [`cat ${parts} > ${shQuote(file.name)}`];
     }),
     '',
     ...manifest.files.map(file => `echo "Done: ${file.name}"`),
@@ -114,11 +118,14 @@ export function reassemblyScripts(
       : []),
     'setlocal',
     '',
-    ...manifest.files.map(file => {
+    ...manifest.files.flatMap(file => {
+      if (file.chunks === 1) {
+        return [];
+      }
       const parts = Array.from({ length: file.chunks }, (_, index) =>
         batQuote(chunkName(file.name, index + 1)),
       ).join('+');
-      return `copy /b ${parts} ${batQuote(file.name)} >nul`;
+      return [`copy /b ${parts} ${batQuote(file.name)} >nul`];
     }),
     '',
     ...manifest.files.map(file => `echo Done: ${file.name}`),
@@ -130,6 +137,7 @@ export function reassemblyScripts(
 
 function reassemblyCommand(files: ManifestFile[]): string {
   return files
+    .filter(file => file.chunks > 1)
     .map(file => {
       const parts = Array.from(
         { length: file.chunks },
