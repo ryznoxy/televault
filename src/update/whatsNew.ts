@@ -9,6 +9,14 @@ export type WhatsNew = {
 };
 
 export const WHATS_NEW: Record<string, WhatsNew> = {
+  '1.6.2': {
+    title: 'Apa baru di v1.6.2',
+    items: [
+      'Foto dan video yang cukup satu potongan dikirim dengan nama aslinya, jadi tampil dengan pratinjau di Telegram',
+      'Opsi "Hanya Wi-Fi" sekarang benar-benar dipatuhi: backup ditolak saat memakai data seluler, termasuk backup terjadwal',
+      'Notifikasi status tidak lagi memakai ikon besar kotak hitam',
+    ],
+  },
   '1.6.1': {
     title: 'Apa baru di v1.6.1',
     items: [
