@@ -39,6 +39,9 @@ Siapkan satu HP fisik dengan galeri berisi: 1 foto kecil, 1 video >49 MB, 1 doku
 - [ ] Notifikasi foreground service muncul selama backup
 - [ ] Jadwal (interval 15 menit) jalan saat app ditutup → sesi baru muncul di History
 - [ ] Wifi-only aktif → backup menolak jalan di data seluler
+- [ ] Toggle "Hanya saat Charging": cabut kabel saat HP bangun untuk jadwal → tidak ada sesi baru; colok dan tunggu → sesi muncul
+- [ ] Alarm ditolak sistem (mis. setelah izin alarm dicabut) → app tidak crash, `adb shell dumpsys alarm | findstr televault` masih menampilkan wake berikutnya
+- [ ] Izinkan "Akses semua file" → kategori Dokumen membaca berkas dari Download/Documents publik, dan tombol cepat menambah folder `file:///storage/emulated/0/Documents`
 - [ ] App di-kill saat backup → buka lagi, tidak ada sesi "running" menggantung
 - [ ] HP RAM 2 GB: backup galeri besar dengan enkripsi → tidak OOM (pantau di logcat `FATAL EXCEPTION`)
 - [ ] Rotasi layar + dark mode sistem tidak merusak tata letak
