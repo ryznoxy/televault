@@ -45,7 +45,8 @@ Cocok untuk yang ingin backup rutin tanpa menyewa storage: Telegram sudah jadi t
 
 ### Penjadwalan dan latar belakang
 
-- **Frekuensi**: Tiap Jam, ±15 Menit, Mingguan, Harian pada jam pilihan (default 02:00), hanya saat charging, atau manual.
+- **Frekuensi**: Tiap Jam, ±15 Menit, Mingguan, atau Harian pada jam pilihan (default 02:00).
+- **Hanya saat charging**: satu toggle yang menahan jadwal apa pun sampai HP dicolok. Alarm 02:00 tetap bangun tepat waktu, memeriksa charger, lalu melewati slot itu kalau tidak dicas.
 - **Jeda kapan saja**: tombol Jeda di layar Utama menghentikan jadwal tanpa menghapus pengaturan.
 - **Alarm eksak**: jadwal jam tertentu memakai alarm bentuk alarm jam, jadi tidak digeser Doze.
 - **Tahan reboot**: alarm dipasang ulang setelah HP reboot, jam diubah, atau zona waktu berpindah.
@@ -181,11 +182,12 @@ Checklist lengkap ada di [`docs/release-checklist.md`](docs/release-checklist.md
 - **49 MB per potongan**: batas Bot API publik, dan 16 MB saat enkripsi aktif demi RAM.
 - **Kirim langsung butuh enkripsi mati**: berkas `.enc` tidak bisa dibuka di Telegram.
 - **Contacts dan SMS belum ada**: barisnya tampil nonaktif, belum ada pembacanya.
-- **Documents kosong di Android 11+**: sistem menutup folder publik, kategori ini membaca 0 berkas.
+- **Documents kosong tanpa izin Semua file**: Android 11+ menutup folder Download dan Documents publik dari aplikasi biasa, dan pemilih folder bawaan menolak kedua folder itu. Nyalakan **Akses semua file** di Pengaturan, lalu tambahkan foldernya lewat tombol cepat di layar yang sama.
 - **Foreground service dibatasi di Android 15+**: backup yang berjalan lebih dari sekitar 6 jam bisa dihentikan sistem.
 - **Jadwal global, bukan per folder**: satu jadwal untuk semua kategori terpilih.
 - **Jam tertentu butuh izin alarm**: kalau izin dicabut, jadwal turun ke alarm tidak eksak.
-- **Mode interval dan charging tidak eksak**: keduanya lewat JobScheduler, jadi Doze dan pembatasan merek bisa menundanya.
+- **Mode interval dan charging tidak eksak**: keduanya lewat JobScheduler, jadi Doze dan pembatasan merek bisa menundanya. Jalur charging menambah syarat colokan, jadi bisa lebih lambat lagi.
+- **Izin Semua file hanya bisa dinyalakan manual**: Android tidak menyediakan dialog, hanya layar setelan dengan sakelar; app membuka layar itu untukmu.
 - **Restore one-tap butuh database lokal**: `file_id` potongan disimpan di SQLite, hilang kalau app dihapus.
 - **Autostart tidak bisa diaktifkan dari app**: Android tidak menyediakan API-nya, app hanya membuka layar setelan merek.
 - **APK debug butuh Metro**: hanya build release yang membundel JavaScript.

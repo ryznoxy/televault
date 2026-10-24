@@ -94,6 +94,57 @@ class VaultStatusModule(reactContext: ReactApplicationContext) :
     ExactAlarm.cancel(reactApplicationContext)
   }
 
+  /**
+   * True while the device is on a charger or already full. The exact alarm
+   * cannot carry a charging constraint, so `scheduledRunTask` asks here before
+   * running and re-arms for tomorrow when the answer is no.
+   */
+  @ReactMethod
+  fun isCharging(promise: Promise) {
+    val battery = reactApplicationContext.registerReceiver(
+      null,
+      android.content.IntentFilter(android.content.Intent.ACTION_BATTERY_CHANGED),
+    )
+    val status = battery?.getIntExtra(android.os.BatteryManager.EXTRA_STATUS, -1) ?: -1
+    promise.resolve(
+      status == android.os.BatteryManager.BATTERY_STATUS_CHARGING ||
+        status == android.os.BatteryManager.BATTERY_STATUS_FULL,
+    )
+  }
+
+  /**
+   * MANAGE_EXTERNAL_STORAGE: the only way to read the public Download and
+   * Documents folders on Android 11+, where the folder picker refuses to hand
+   * out those roots. It is a manual switch in system settings, never a dialog.
+   */
+  @ReactMethod
+  fun hasAllFilesAccess(promise: Promise) {
+    val granted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+      android.os.Environment.isExternalStorageManager()
+    } else {
+      // Below Android 11 the ordinary storage permission is enough.
+      reactApplicationContext.checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE) ==
+        android.content.pm.PackageManager.PERMISSION_GRANTED
+    }
+    promise.resolve(granted)
+  }
+
+  @ReactMethod
+  fun openAllFilesSettings() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+      val direct = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+        .setData(Uri.parse("package:${reactApplicationContext.packageName}"))
+      val list = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+      open(direct, list)
+    } else {
+      open(
+        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+          .setData(Uri.parse("package:${reactApplicationContext.packageName}")),
+        Intent(Settings.ACTION_APPLICATION_SETTINGS),
+      )
+    }
+  }
+
   @ReactMethod
   fun isIgnoringBatteryOptimizations(promise: Promise) {
     val power = reactApplicationContext.getSystemService(PowerManager::class.java)

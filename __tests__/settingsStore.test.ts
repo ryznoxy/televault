@@ -18,6 +18,32 @@ test('setScheduleMode updates schedule mode', () => {
   expect(getConfig().scheduleMode).toBe(ScheduleMode.CHARGING);
 });
 
+test('setChargingOnly toggles the constraint without touching the frequency', () => {
+  useSettingsStore.getState().setScheduleMode(ScheduleMode.INTERVAL);
+  useSettingsStore.getState().setChargingOnly(true);
+
+  expect(getConfig().chargingOnly).toBe(true);
+  expect(getConfig().scheduleMode).toBe(ScheduleMode.INTERVAL);
+});
+
+test('a stored charging mode migrates to interval plus the charging toggle', async () => {
+  mmkv.set(
+    'telebot-settings',
+    JSON.stringify({
+      state: {
+        config: { ...DEFAULT_CONFIG, scheduleMode: 'charging' },
+        setupDone: true,
+      },
+      version: 0,
+    }),
+  );
+
+  await useSettingsStore.persist.rehydrate();
+
+  expect(getConfig().scheduleMode).toBe(ScheduleMode.INTERVAL);
+  expect(getConfig().chargingOnly).toBe(true);
+});
+
 test('adds and removes watched folders', () => {
   const folder: WatchedFolder = { id: 'a', uri: 'file:///x/Docs', name: 'Docs', schedule: '6 jam' };
   useSettingsStore.getState().addWatchedFolder(folder);

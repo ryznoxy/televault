@@ -1,6 +1,7 @@
 import { runScheduledBackup } from './scheduler';
 import { runBackupInNativeService } from './foregroundService';
-import { syncExactAlarm } from './androidStatus';
+import { isCharging, syncExactAlarm } from './androidStatus';
+import { getConfig } from '../state/settingsStore';
 import { recordWake } from './wake';
 import { logError } from '../state/errorLog';
 
@@ -13,6 +14,13 @@ import { logError } from '../state/errorLog';
 export async function scheduledRunTask(): Promise<void> {
   recordWake('alarm');
   try {
+    // The exact alarm cannot carry a charging constraint, so the check happens
+    // here. Skipping leaves `lastSuccess` untouched, which means the alarm's
+    // next slot tomorrow tries again, and the JobScheduler fallback can still
+    // pick the run up once a charger is connected today.
+    if (getConfig().chargingOnly && !(await isCharging())) {
+      return;
+    }
     await runScheduledBackup(runBackupInNativeService);
   } catch (error) {
     logError('scheduler', error);

@@ -24,6 +24,13 @@
          granted without a prompt; Android 12 gets SCHEDULE_EXACT_ALARM, which
          react-native-background-fetch already declares. -->
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <!-- Public Download/Documents folders are closed to apps on Android 11+ and
+         the folder picker refuses to hand out those roots. "All files" access
+         is the only way to read them; it is a manual switch in system settings.
+         Restricted on Play, which this app does not use. -->
+    <uses-permission
+      android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+      tools:ignore="ScopedStorage" />
 
     <!-- Declared by libraries but never used here, and each one shows up in the
          store listing as a permission the app asks for: the keychain is read

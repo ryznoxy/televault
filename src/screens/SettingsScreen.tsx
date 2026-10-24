@@ -27,6 +27,7 @@ import {
 } from '../components/ui';
 import { FONT, ON_ACCENT, TG_LIGHT,  RADIUS, tgTheme, type TGPalette } from '../theme/theme';
 import { requestNotificationPermission } from '../backup/permissions';
+import { hasAllFilesAccess, openAllFilesSettings } from '../background/androidStatus';
 import { isActiveTempDir } from '../backup/tempDirs';
 import { isCryptoAvailable, newSaltB64 } from '../backup/crypto';
 import { sessionsRepo } from '../db/repositories/sessions';
@@ -50,6 +51,9 @@ import type { RootStackParamList } from '../navigation/Routes';
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
 const HIT_SLOP = { top: 8, bottom: 8, left: 8, right: 8 } as const;
+
+/** Public roots the app can only read with "all files" access. */
+const PUBLIC_FOLDERS = ['Documents', 'Download'] as const;
 const CARD_SHADOW = {
   shadowOffset: { width: 0, height: 2 },
   shadowOpacity: 0.05,
@@ -58,7 +62,7 @@ const CARD_SHADOW = {
   shadowColor: TG_LIGHT.ink,
 };
 
-type FreqKey = 'hour' | 'day' | 'week' | 'realtime' | 'charging' | 'manual';
+type FreqKey = 'hour' | 'day' | 'week' | 'realtime';
 
 const FREQ_OPTIONS: { key: FreqKey; label: string }[] = [
   { key: 'hour', label: 'Tiap Jam' },
@@ -66,15 +70,12 @@ const FREQ_OPTIONS: { key: FreqKey; label: string }[] = [
   { key: 'week', label: 'Mingguan' },
   // Scheduler clamps intervals to the Android minimum of 15 minutes.
   { key: 'realtime', label: '\u00b115 Menit' },
-  // Runs whenever JobScheduler fires while the phone is charging.
-  { key: 'charging', label: 'Charging' },
-  { key: 'manual', label: 'Manual' },
 ];
 
 const CATEGORY_HINTS: Record<CategoryKey, string> = {
   photo: 'Foto dari kamera perangkat ini',
   video: 'Video hasil rekaman & unduhan',
-  doc: 'Folder Download publik — Android 11+ menutupnya',
+  doc: 'PDF, dokumen, dan arsip; butuh izin akses semua file',
   contact: 'Kontak telepon',
   sms: 'Pesan teks',
   custom: 'Folder yang Anda pilih sendiri',
@@ -100,12 +101,6 @@ function freqFromConfig(config: BackupConfig): FreqKey | null {
   if (config.scheduleMode === ScheduleMode.TIME) {
     return 'day';
   }
-  if (config.scheduleMode === ScheduleMode.CHARGING) {
-    return 'charging';
-  }
-  if (config.scheduleMode === ScheduleMode.MANUAL) {
-    return 'manual';
-  }
   if (config.scheduleMode === ScheduleMode.INTERVAL) {
     if (config.intervalHours === 1) {
       return 'hour';
@@ -121,7 +116,9 @@ function freqFromConfig(config: BackupConfig): FreqKey | null {
 }
 
 function nextRunText(config: BackupConfig): string {
-  const via = config.wifiOnly ? ' via Wi-Fi.' : '.';
+  const via = config.wifiOnly ? ' via Wi-Fi' : '';
+  const charging = config.chargingOnly ? ' saat charging' : '';
+  const suffix = `${via}${charging}.`;
   if (config.automationPaused) {
     return 'Otomasi dijeda — jadwal tidak berjalan.';
   }
@@ -134,7 +131,7 @@ function nextRunText(config: BackupConfig): string {
     const target = new Date(now);
     target.setHours(config.scheduledTimeHour, 0, 0, 0);
     const when = target.getTime() > now.getTime() ? 'Hari ini' : 'Besok';
-    return `Jadwal berikutnya: ${when} pukul ${hh}:00 WIB${via}`;
+    return `Jadwal berikutnya: ${when} pukul ${hh}:00 WIB${suffix}`;
   }
   if (config.scheduleMode === ScheduleMode.INTERVAL) {
     const h = config.intervalHours;
@@ -146,9 +143,9 @@ function nextRunText(config: BackupConfig): string {
           : h % 24 === 0
             ? `setiap ${h / 24} hari`
             : `setiap ${h} jam`;
-    return `Jadwal berikutnya: ${label}${via}`;
+    return `Jadwal berikutnya: ${label}${suffix}`;
   }
-  return `Jadwal berikutnya: saat mengisi daya${via}`;
+  return `Jadwal berikutnya: saat mengisi daya${suffix}`;
 }
 
 function formatBytes(bytes: number): string {
@@ -218,6 +215,7 @@ export default function SettingsScreen({ navigation }: Props) {
   const setIntervalHours = useSettingsStore(state => state.setIntervalHours);
   const setScheduledHour = useSettingsStore(state => state.setScheduledHour);
   const setWifiOnly = useSettingsStore(state => state.setWifiOnly);
+  const setChargingOnly = useSettingsStore(state => state.setChargingOnly);
   const setEncryptionEnabled = useSettingsStore(state => state.setEncryptionEnabled);
   const setEncryptionSalt = useSettingsStore(state => state.setEncryptionSalt);
   const setCompressZip = useSettingsStore(state => state.setCompressZip);
@@ -241,6 +239,17 @@ export default function SettingsScreen({ navigation }: Props) {
   const [passphrase, setPassphrase] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [editingPassphrase, setEditingPassphrase] = useState(false);
+  const [allFiles, setAllFiles] = useState(false);
+
+  // The "all files" switch lives in system settings, so the state is refreshed
+  // every time this screen is shown again, not only on mount.
+  useEffect(() => {
+    const refresh = () => {
+      hasAllFilesAccess().then(setAllFiles).catch(() => undefined);
+    };
+    refresh();
+    return navigation.addListener('focus', refresh);
+  }, [navigation]);
 
   const refreshCache = useCallback(async () => {
     setCacheSize(await measureDir(ReactNativeBlobUtil.fs.dirs.CacheDir));
@@ -288,14 +297,6 @@ export default function SettingsScreen({ navigation }: Props) {
         setScheduleMode(ScheduleMode.INTERVAL);
         setIntervalHours(0.25);
         break;
-      case 'charging':
-        setScheduleMode(ScheduleMode.CHARGING);
-        setShowHourPicker(false);
-        break;
-      case 'manual':
-        setScheduleMode(ScheduleMode.MANUAL);
-        setShowHourPicker(false);
-        break;
     }
   };
 
@@ -316,6 +317,27 @@ export default function SettingsScreen({ navigation }: Props) {
 
   const shiftHour = (delta: number) => {
     setScheduledHour((config.scheduledTimeHour + delta + 24) % 24);
+  };
+
+  const onOpenAllFiles = () => {
+    openAllFilesSettings();
+    if (!allFiles) {
+      showToast(
+        'Nyalakan izin',
+        'Di layar sistem, aktifkan "Allow management of all files", lalu kembali ke sini.',
+        'info',
+      );
+    }
+  };
+
+  const onAddPublicFolder = (name: (typeof PUBLIC_FOLDERS)[number]) => {
+    const uri = `file:///storage/emulated/0/${name}`;
+    if (config.watchedFolders.some(folder => folder.uri === uri)) {
+      showToast('Sudah ada', `Folder ${name} sudah dipantau.`, 'info');
+      return;
+    }
+    addWatchedFolder(makeWatchedFolder(uri));
+    showToast('Folder ditambahkan', `${name} ikut dicadangkan.`, 'success');
   };
 
   const onAddFolder = async () => {
@@ -585,6 +607,14 @@ export default function SettingsScreen({ navigation }: Props) {
                 value={config.wifiOnly}
                 onValueChange={setWifiOnly}
               />
+
+              <IconToggleRow
+                icon="batteryCharging"
+                title="Hanya saat Charging"
+                subtitle="Backup dijadwalkan hanya berjalan saat HP sedang dicas"
+                value={config.chargingOnly}
+                onValueChange={setChargingOnly}
+              />
             </View>
           </View>
 
@@ -621,6 +651,47 @@ export default function SettingsScreen({ navigation }: Props) {
                   />
                 );
               })}
+            </View>
+
+            <View style={styles.card}>
+              <View style={styles.cardHeaderRow}>
+                <Text style={styles.cardHeaderText} numberOfLines={1}>
+                  AKSES SEMUA FILE
+                </Text>
+                <View style={styles.countChip}>
+                  <Text style={styles.countChipText}>{allFiles ? 'Aktif' : 'Belum'}</Text>
+                </View>
+              </View>
+              <Text style={styles.emptyText} numberOfLines={4}>
+                Dibutuhkan untuk membaca folder Download dan Documents publik. Android 11+
+                menutup kedua folder itu dari aplikasi biasa, dan pemilih folder bawaan menolaknya.
+              </Text>
+              <Pressable
+                onPress={onOpenAllFiles}
+                accessibilityRole="button"
+                accessibilityLabel="Izinkan pengelolaan semua file"
+                style={({ pressed }) => [styles.addFolderButton, pressed && styles.pressed]}>
+                <TgIcon name="folder" color="#FFFFFF" size={18} />
+                <Text style={styles.addFolderText} numberOfLines={1}>
+                  {allFiles ? 'Buka Setelan Izin' : 'Izinkan Pengelolaan Semua File'}
+                </Text>
+              </Pressable>
+              {allFiles ? (
+                <View style={styles.quickFolderRow}>
+                  {PUBLIC_FOLDERS.map(folder => (
+                    <Pressable
+                      key={folder}
+                      onPress={() => onAddPublicFolder(folder)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Tambah folder ${folder}`}
+                      style={({ pressed }) => [styles.presetChip, styles.presetChipIdle, pressed && styles.pressed]}>
+                      <Text style={[styles.presetText, styles.presetTextIdle]} numberOfLines={1}>
+                        + {folder}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              ) : null}
             </View>
 
             <View style={styles.card}>
@@ -1264,6 +1335,7 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
   stepperHour: { color: TG.ink, fontSize: 28, lineHeight: 34, fontWeight: '700', fontFamily: FONT.bold },
   stepperWib: { color: TG.secondary, fontSize: 11, lineHeight: 14, fontWeight: '500', fontFamily: FONT.medium },
   presetRow: { flexDirection: 'row', gap: 8 },
+  quickFolderRow: { flexDirection: 'row', gap: 8, marginTop: 4 },
   presetChip: {
     flex: 1,
     minHeight: 34,

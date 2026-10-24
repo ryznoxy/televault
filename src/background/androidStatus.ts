@@ -16,6 +16,9 @@ type VaultStatusNative = {
   cancelExactAlarm?: () => void;
   isIgnoringBatteryOptimizations: () => Promise<boolean>;
   isUnmetered: () => Promise<boolean>;
+  isCharging: () => Promise<boolean>;
+  hasAllFilesAccess: () => Promise<boolean>;
+  openAllFilesSettings: () => void;
   requestIgnoreBatteryOptimizations: () => void;
   openAutostartSettings: () => void;
 };
@@ -48,6 +51,40 @@ export async function isUnmeteredNetwork(): Promise<boolean> {
   } catch {
     return true;
   }
+}
+
+/**
+ * Whether the device is on a charger. Unknown counts as charging: skipping a
+ * run because the platform could not answer would silently break the schedule.
+ */
+export async function isCharging(): Promise<boolean> {
+  const native = nativeStatus();
+  if (!native?.isCharging) {
+    return true;
+  }
+  try {
+    return await native.isCharging();
+  } catch {
+    return true;
+  }
+}
+
+/** True when Android has granted "all files" access (MANAGE_EXTERNAL_STORAGE). */
+export async function hasAllFilesAccess(): Promise<boolean> {
+  const native = nativeStatus();
+  if (!native?.hasAllFilesAccess) {
+    return false;
+  }
+  try {
+    return await native.hasAllFilesAccess();
+  } catch {
+    return false;
+  }
+}
+
+/** Opens the system screen with the "Allow management of all files" switch. */
+export function openAllFilesSettings(): void {
+  nativeStatus()?.openAllFilesSettings?.();
 }
 
 /**

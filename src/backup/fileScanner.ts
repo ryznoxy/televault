@@ -113,9 +113,17 @@ async function scanDocuments(): Promise<ScanResult[]> {
   // The public Download dir is `LegacyDownloadDir`; `DownloadDir` and
   // `DocumentDir` are this app's own sandbox (`getExternalFilesDir` and
   // `getFilesDir`), which never hold the user's files, so scanning them
-  // guaranteed an empty result on every Android version. The public dir is
-  // only readable up to Android 10.
-  const roots = [ReactNativeBlobUtil.fs.dirs.LegacyDownloadDir];
+  // guaranteed an empty result on every Android version.
+  //
+  // Both public roots are hidden from ordinary apps on Android 11+; they only
+  // list anything once "all files" access is granted. Without it `ls` throws
+  // and `walk` swallows the error, which is the behaviour that made this
+  // category read zero files for years.
+  const external = ReactNativeBlobUtil.fs.dirs.LegacyDownloadDir.replace(/\/Download$/, '');
+  const roots = [
+    ReactNativeBlobUtil.fs.dirs.LegacyDownloadDir,
+    `${external}/Documents`,
+  ];
   const results: ScanResult[] = [];
   for (const root of roots) {
     await walk(root, Category.DOC, results);
