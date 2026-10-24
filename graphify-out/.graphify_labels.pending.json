@@ -8,7 +8,7 @@
   "7": "StatsScreen.tsx",
   "14": "SafFolderModule.kt",
   "20": "engines",
-  "23": "VaultStatusModule",
+  "23": "BackgroundTour.tsx",
   "28": "Checklist rilis",
   "29": "updateStore.ts",
   "30": "ui.tsx",
@@ -18,7 +18,7 @@
   "34": "ExactAlarm",
   "35": "HomeScreen.tsx",
   "36": "manifest.ts",
-  "37": ".build",
+  "37": "StatusNotification.kt",
   "38": "react-native-blob-util",
   "39": "chunker.ts",
   "40": "AlarmReceiver.kt",
@@ -28,8 +28,10 @@
   "44": "incremental.ts",
   "45": "ThemeProvider.tsx",
   "46": "DESIGN.md",
-  "47": "StatusNotification.kt",
+  "47": "secureStore.ts",
   "48": "TroubleshootScreen.tsx",
   "49": "AppNav.tsx",
-  "50": "VaultStatusModule.kt"
+  "50": "VaultStatusModule.kt",
+  "51": "tgTheme",
+  "52": "react-native-safe-area-context"
 }
