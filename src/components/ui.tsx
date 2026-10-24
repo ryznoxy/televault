@@ -422,6 +422,8 @@ export function Button({
   disabled,
   icon,
   style,
+  fill,
+  text,
 }: {
   title: string;
   onPress: () => void;
@@ -429,11 +431,18 @@ export function Button({
   disabled?: boolean;
   icon?: IconName;
   style?: StyleProp<ViewStyle>;
+  /**
+   * Overrides the primary fill and label colour. The update alert uses it to
+   * keep its action button in the Telegram blue of its own card instead of the
+   * app-wide violet accent.
+   */
+  fill?: string;
+  text?: string;
 }) {
   const { theme } = useTheme();
   const bg =
-    variant === 'primary' ? theme.accent : variant === 'secondary' ? theme.surface : 'transparent';
-  const fg = variant === 'primary' ? theme.onAccent : theme.ink;
+    variant === 'primary' ? fill ?? theme.accent : variant === 'secondary' ? theme.surface : 'transparent';
+  const fg = variant === 'primary' ? text ?? theme.onAccent : theme.ink;
   return (
     <Pressable
       onPress={onPress}
@@ -886,6 +895,10 @@ export function UpdateAlert() {
           <Button
             title={phase === 'opening' ? 'Membuka…' : 'Perbarui'}
             disabled={busy}
+            // The card is Telegram blue; the app-wide violet accent reads as a
+            // foreign colour inside it, so the action keeps the card's own hue.
+            fill={TG.primaryContainer}
+            text={TG.onPrimaryContainer}
             onPress={() => {
               setProblem(null);
               startDownload(setProblem);

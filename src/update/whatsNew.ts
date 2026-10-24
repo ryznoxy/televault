@@ -15,6 +15,7 @@ export const WHATS_NEW: Record<string, WhatsNew> = {
       'Jadwal kini punya toggle "Hanya saat Charging": keempat frekuensi tetap, dan backup hanya jalan saat HP dicas',
       'Izin "Akses semua file" di Pengaturan: kategori Dokumen dan folder Download/Documents publik akhirnya bisa dibaca',
       'Alarm yang ditolak sistem tidak lagi mematikan aplikasi, dan jadwal besok tetap terpasang',
+      'Tombol Perbarui di alert pembaruan kini biru, sewarna kartunya, bukan ungu',
     ],
   },
   '1.6.3': {
