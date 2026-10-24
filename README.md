@@ -45,7 +45,7 @@ Cocok untuk yang ingin backup rutin tanpa menyewa storage: Telegram sudah jadi t
 
 ### Penjadwalan dan latar belakang
 
-- **Frekuensi**: Tiap Jam, ±15 Menit, Mingguan, atau Harian pada jam pilihan (default 02:00).
+- **Frekuensi**: Tiap Jam, ±15 Menit, Mingguan, Harian pada jam pilihan (default 02:00), hanya saat charging, atau manual.
 - **Jeda kapan saja**: tombol Jeda di layar Utama menghentikan jadwal tanpa menghapus pengaturan.
 - **Alarm eksak**: jadwal jam tertentu memakai alarm bentuk alarm jam, jadi tidak digeser Doze.
 - **Tahan reboot**: alarm dipasang ulang setelah HP reboot, jam diubah, atau zona waktu berpindah.
@@ -184,9 +184,8 @@ Checklist lengkap ada di [`docs/release-checklist.md`](docs/release-checklist.md
 - **Documents kosong di Android 11+**: sistem menutup folder publik, kategori ini membaca 0 berkas.
 - **Foreground service dibatasi di Android 15+**: backup yang berjalan lebih dari sekitar 6 jam bisa dihentikan sistem.
 - **Jadwal global, bukan per folder**: satu jadwal untuk semua kategori terpilih.
-- **Mode manual dan hanya-saat-charging belum ada di UI**: mesin penjadwal mendukung keduanya (`ScheduleMode.MANUAL`, `CHARGING`), tapi belum ada kontrol untuk memilihnya. Saat ini Manual hanya berlaku untuk instalasi yang belum pernah memilih frekuensi.
 - **Jam tertentu butuh izin alarm**: kalau izin dicabut, jadwal turun ke alarm tidak eksak.
-- **Mode interval tidak eksak**: lewat JobScheduler, jadi Doze dan pembatasan merek bisa menundanya.
+- **Mode interval dan charging tidak eksak**: keduanya lewat JobScheduler, jadi Doze dan pembatasan merek bisa menundanya.
 - **Restore one-tap butuh database lokal**: `file_id` potongan disimpan di SQLite, hilang kalau app dihapus.
 - **Autostart tidak bisa diaktifkan dari app**: Android tidak menyediakan API-nya, app hanya membuka layar setelan merek.
 - **APK debug butuh Metro**: hanya build release yang membundel JavaScript.
