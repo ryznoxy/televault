@@ -58,7 +58,7 @@ const CARD_SHADOW = {
   shadowColor: TG_LIGHT.ink,
 };
 
-type FreqKey = 'hour' | 'day' | 'week' | 'realtime';
+type FreqKey = 'hour' | 'day' | 'week' | 'realtime' | 'charging' | 'manual';
 
 const FREQ_OPTIONS: { key: FreqKey; label: string }[] = [
   { key: 'hour', label: 'Tiap Jam' },
@@ -66,6 +66,9 @@ const FREQ_OPTIONS: { key: FreqKey; label: string }[] = [
   { key: 'week', label: 'Mingguan' },
   // Scheduler clamps intervals to the Android minimum of 15 minutes.
   { key: 'realtime', label: '\u00b115 Menit' },
+  // Runs whenever JobScheduler fires while the phone is charging.
+  { key: 'charging', label: 'Charging' },
+  { key: 'manual', label: 'Manual' },
 ];
 
 const CATEGORY_HINTS: Record<CategoryKey, string> = {
@@ -96,6 +99,12 @@ const HOUR_PRESETS = [
 function freqFromConfig(config: BackupConfig): FreqKey | null {
   if (config.scheduleMode === ScheduleMode.TIME) {
     return 'day';
+  }
+  if (config.scheduleMode === ScheduleMode.CHARGING) {
+    return 'charging';
+  }
+  if (config.scheduleMode === ScheduleMode.MANUAL) {
+    return 'manual';
   }
   if (config.scheduleMode === ScheduleMode.INTERVAL) {
     if (config.intervalHours === 1) {
@@ -278,6 +287,14 @@ export default function SettingsScreen({ navigation }: Props) {
       case 'realtime':
         setScheduleMode(ScheduleMode.INTERVAL);
         setIntervalHours(0.25);
+        break;
+      case 'charging':
+        setScheduleMode(ScheduleMode.CHARGING);
+        setShowHourPicker(false);
+        break;
+      case 'manual':
+        setScheduleMode(ScheduleMode.MANUAL);
+        setShowHourPicker(false);
         break;
     }
   };
@@ -1172,13 +1189,15 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
 
   segmentTrack: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     backgroundColor: TG.container,
     borderRadius: RADIUS.md,
     padding: 4,
     gap: 4,
   },
   segmentItem: {
-    flex: 1,
+    flexGrow: 1,
+    flexBasis: '30%',
     minHeight: 34,
     borderRadius: RADIUS.sm,
     alignItems: 'center',

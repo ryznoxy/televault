@@ -9,10 +9,11 @@ export type WhatsNew = {
 };
 
 export const WHATS_NEW: Record<string, WhatsNew> = {
-  '1.6.3': {
-    title: 'Apa baru di v1.6.3',
+  '1.7.0': {
+    title: 'Apa baru di v1.7.0',
     items: [
-      'Notifikasi status kini menghitung backup yang selesai sebagian, jadi tidak lagi menulis "belum pernah berjalan" padahal Riwayat berisi',
+      'Pengaturan jadwal kini punya pilihan Hanya saat charging dan Manual, di samping Tiap Jam, Harian, Mingguan, dan 15 Menit',
+      'Notifikasi status menghitung backup yang selesai sebagian, jadi tidak lagi menulis "belum pernah berjalan" padahal Riwayat berisi',
     ],
   },
   '1.6.2': {
