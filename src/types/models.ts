@@ -95,6 +95,12 @@ export type BackupConfig = {
   silentNotifications: boolean;
   alertOnFailure: boolean;
   batteryMinEnabled: boolean;
+  /**
+   * Run scheduled backups only while the device is charging. Independent of
+   * the frequency: the JobScheduler job carries `requiresCharging`, and the
+   * exact alarm skips its slot when no charger is connected.
+   */
+  chargingOnly: boolean;
   maxFilesPerRun: number;
 };
 
@@ -120,5 +126,6 @@ export const DEFAULT_CONFIG: BackupConfig = {
   silentNotifications: false,
   alertOnFailure: true,
   batteryMinEnabled: true,
+  chargingOnly: false,
   maxFilesPerRun: 250,
 };

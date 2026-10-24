@@ -9,6 +9,13 @@ export type WhatsNew = {
 };
 
 export const WHATS_NEW: Record<string, WhatsNew> = {
+  '1.6.4': {
+    title: 'Apa baru di v1.6.4',
+    items: [
+      'Jadwal kini punya toggle "Hanya saat Charging": keempat frekuensi tetap, dan backup hanya jalan saat HP dicas',
+      'Izin "Akses semua file" di Pengaturan: kategori Dokumen dan folder Download/Documents publik akhirnya bisa dibaca',
+    ],
+  },
   '1.6.3': {
     title: 'Apa baru di v1.6.3',
     items: [

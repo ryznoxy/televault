@@ -547,7 +547,11 @@ export default function HomeScreen({ navigation }: Props) {
               label="Total Ter-backup"
             />
             <StatTile icon="database" value={formatCount(fileCount)} label="File Tersimpan" />
-            <StatTile icon="clock" value={nextRunLabel(config)} label="Jadwal Berikutnya" />
+            <StatTile
+              icon="clock"
+              value={nextRunLabel(config)}
+              label={config.chargingOnly ? 'Jadwal (saat charging)' : 'Jadwal Berikutnya'}
+            />
             <StatTile
               icon="verified"
               value={ratio == null ? '\u2014' : `${(ratio * 100).toFixed(1)}%`}

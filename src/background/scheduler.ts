@@ -44,7 +44,7 @@ export async function configureScheduler(): Promise<void> {
       requiredNetworkType: config.wifiOnly
         ? BackgroundFetch.NETWORK_TYPE_UNMETERED
         : BackgroundFetch.NETWORK_TYPE_ANY,
-      requiresCharging: config.scheduleMode === ScheduleMode.CHARGING,
+      requiresCharging: config.chargingOnly,
       requiresBatteryNotLow: config.batteryMinEnabled,
       requiresStorageNotLow: true,
     },

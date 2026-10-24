@@ -15,12 +15,23 @@ beforeEach(() => {
 test('the Documents category falls back to the public Download dir without a SAF folder', async () => {
   const ls = ReactNativeBlobUtil.fs.ls as unknown as jest.Mock;
   ls.mockResolvedValueOnce(['a.pdf']);
+  ls.mockResolvedValueOnce([]);
   const items = await scanCategory(Category.DOC, null);
   expect(ls).toHaveBeenCalledWith(ReactNativeBlobUtil.fs.dirs.LegacyDownloadDir);
   expect(items[0]).toMatchObject({
     path: `${ReactNativeBlobUtil.fs.dirs.LegacyDownloadDir}/a.pdf`,
     category: Category.DOC,
   });
+});
+
+test('the Documents category also reads the public Documents dir', async () => {
+  const ls = ReactNativeBlobUtil.fs.ls as unknown as jest.Mock;
+  ls.mockResolvedValueOnce([]);
+  ls.mockResolvedValueOnce(['b.pdf']);
+  const items = await scanCategory(Category.DOC, null);
+  // Download first, then Documents: both only list with "all files" access.
+  expect(ls).toHaveBeenNthCalledWith(2, '/storage/emulated/0/Documents');
+  expect(items.map(item => item.path)).toContain('/storage/emulated/0/Documents/b.pdf');
 });
 
 test('a watched folder is read through the SAF module', async () => {

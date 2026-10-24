@@ -7,6 +7,7 @@ import {
   CategoryKey,
   DEFAULT_CONFIG,
   makeWatchedFolder,
+  ScheduleMode,
   ScheduleModeKey,
   WatchedFolder,
 } from '../types/models';
@@ -35,6 +36,7 @@ type SettingsState = {
   setSilentNotifications: (value: boolean) => void;
   setAlertOnFailure: (value: boolean) => void;
   setBatteryMinEnabled: (value: boolean) => void;
+  setChargingOnly: (value: boolean) => void;
   setMaxFilesPerRun: (value: number) => void;
   setSetupDone: (value: boolean) => void;
 };
@@ -93,6 +95,7 @@ export const useSettingsStore = create<SettingsState>()(
         set(s => ({ config: { ...s.config, alertOnFailure } })),
       setBatteryMinEnabled: batteryMinEnabled =>
         set(s => ({ config: { ...s.config, batteryMinEnabled } })),
+      setChargingOnly: chargingOnly => set(s => ({ config: { ...s.config, chargingOnly } })),
       setMaxFilesPerRun: maxFilesPerRun => set(s => ({ config: { ...s.config, maxFilesPerRun } })),
       setSetupDone: setupDone => set({ setupDone }),
     }),
@@ -102,6 +105,13 @@ export const useSettingsStore = create<SettingsState>()(
       merge: (persisted, current) => {
         const stored = (persisted ?? {}) as Partial<SettingsState>;
         const config: BackupConfig = { ...DEFAULT_CONFIG, ...(stored.config ?? {}) };
+        // v1.6.3 exposed charging as a schedule mode of its own; it is now a
+        // toggle on top of a frequency, so a stored mode moves over instead of
+        // leaving the user stuck in a mode the UI no longer shows.
+        if ((config.scheduleMode as string) === ScheduleMode.CHARGING) {
+          config.scheduleMode = ScheduleMode.INTERVAL;
+          config.chargingOnly = true;
+        }
         // v1.6.0 allowed up to 2000 MB, past the 49 MB part size, so a stored
         // value could promise a single upload it cannot deliver.
         config.directMediaMaxMb = Math.min(45, Math.max(1, Math.round(config.directMediaMaxMb)));
