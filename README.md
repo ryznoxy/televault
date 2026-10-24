@@ -203,6 +203,41 @@ Checklist lengkap ada di [`docs/release-checklist.md`](docs/release-checklist.md
 - Gap antar kiriman mulai dari 1 detik, naik ke jendela `retry_after` saat Bot API membalas 429, lalu turun perlahan lagi.
 - Troubleshooting menyimpan 20 entri log terakhir, supaya kegagalan yang tertelan sistem tetap terlihat.
 
+## Kebijakan privasi
+
+Ringkas, tanpa server sisi kami:
+
+- **Tidak ada analitik, iklan, atau telemetri.** App tidak mengumpulkan data penggunaan dan tidak memuat kode pihak ketiga untuk itu.
+- **Yang keluar dari HP kamu hanya backup itu sendiri**, dikirim ke chat bot Telegram milikmu lewat Bot API. Kalau enkripsi mati, berkas dikirim apa adanya ke chat itu; kalau enkripsi hidup, yang sampai ke Telegram adalah potongan terenkripsi dan manifest.
+- **Kunci tidak pernah ikut.** Passphrase dibaca dari keychain perangkat, dipakai untuk menurunkan kunci, lalu dibuang. Yang tercatat di manifest hanya salt dan daftar IV.
+- **Cek pembaruan memanggil `api.github.com` dan mengunduh APK dari `github.com`.** GitHub melihat alamat IP dan user agent untuk permintaan itu, seperti pada kunjungan web biasa. Tidak ada identitas perangkat atau akun yang dikirim; versi terpasang dibaca dari `PackageManager` dan dibandingkan di sisi app.
+- **Semua state app ada di perangkat**: SQLite (sesi, berkas, potongan), MMKV (pengaturan dan catatan penjadwalan), keychain (token bot, chat ID, passphrase). Tidak ada sinkronisasi ke layanan kami karena tidak ada layanan kami.
+- **Ekspor CSV memakai share sheet Android**, jadi kamu yang memilih tujuannya.
+- **Penghapusan data**: hapus pesan di chat Telegram, lalu uninstall app. Tidak ada akun atau basis data sisi kami yang perlu dihapus.
+
+Izin yang diminta dan alasannya:
+
+| Izin | Alasan |
+|---|---|
+| `READ_MEDIA_IMAGES`, `READ_MEDIA_VIDEO` | Membaca galeri untuk kategori Photos dan Videos |
+| `READ_EXTERNAL_STORAGE` (Android 12 ke bawah) | Membaca folder yang sama di versi Android lama |
+| `MANAGE_EXTERNAL_STORAGE` (opsional, sakelar manual) | Membaca folder Download dan Documents publik, yang ditutup Android 11+ |
+| `INTERNET`, `ACCESS_NETWORK_STATE` | Mengunggah ke Bot API dan memeriksa apakah koneksi berbayar |
+| `POST_NOTIFICATIONS` | Notifikasi status dan progres backup |
+| `FOREGROUND_SERVICE` dan `FOREGROUND_SERVICE_DATA_SYNC` | Backup tetap jalan saat app di latar belakang |
+| `WAKE_LOCK`, `RECEIVE_BOOT_COMPLETED`, `USE_EXACT_ALARM` | Menjaga jadwal tetap bangun, termasuk setelah reboot |
+| `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` | Membuka dialog pengecualian baterai, karena pembatasan merek menunda jadwal |
+| `REQUEST_INSTALL_PACKAGES` | Memasang APK saat kamu menekan Perbarui |
+
+## Hak cipta dan lisensi
+
+Copyright (c) 2026 ryznoxy. Semua hak dilindungi.
+
+- Source code, logo, dan nama TeleVault adalah karya proyek ini. Belum ada lisensi publik; mengunduh APK untuk dipakai sendiri di perangkatmu dipersilakan, membagikan build hasil modifikasi atas nama TeleVault tidak.
+- Komponen pihak ketiga tetap di bawah lisensinya masing-masing: React Native dan Hermes (MIT), `react-native-background-fetch` (MIT), `react-native-background-actions` (MIT), `react-native-blob-util` (MIT), `@react-native-documents/picker` (MIT), `react-native-keychain` (MIT), `react-native-mmkv` dan Nitro Modules (MIT), `op-sqlite` (MIT), `zustand` (MIT), `@noble/ciphers` dan `@noble/hashes` (MIT).
+- Telegram adalah merek dagang Telegram Messenger. Aplikasi ini tidak berafiliasi, tidak disponsori, dan tidak diperiksa oleh Telegram maupun Google.
+- APK ditandatangani upload key proyek. Build dengan penanda tangan lain tidak bisa dipasang di atas instalasi yang ada, jadi hanya rilis di halaman Releases yang kompatibel satu sama lain.
+
 ---
 
 <div align="center">

@@ -68,3 +68,11 @@ test('a download in flight shows progress and a way out', () => {
   expect(text).toContain('50%');
   expect(text).toContain('Batal');
 });
+
+test('the update action is Telegram blue, not the violet app accent', () => {
+  setUpdate({ update: RELEASE });
+  const tree = render();
+  const text = shown(tree);
+  expect(text).toContain('#229ED9');
+  expect(text).not.toContain('#5B5BF0');
+});
