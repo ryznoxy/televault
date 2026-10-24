@@ -72,9 +72,17 @@ export function syncExactAlarm(config: BackupConfig = getConfig()): void {
  * Keeps the ongoing notification truthful: what the last backup was and that
  * automation is on. `setOngoing(true)` on the native side means the user cannot
  * swipe it away, so it must never claim automation is running while paused.
+ *
+ * The last run counts whether it ended `success` or `partial`: runs that skip a
+ * chunk or report an unreadable category are still real uploads, and the app
+ * shows them everywhere else. Using `lastSuccess` left the notification saying
+ * "belum pernah berjalan" for users whose runs always end partial.
  */
-export function refreshStatusNotification(): void {
-  const native = nativeStatus();
+export function refreshStatusNotification(
+  native: VaultStatusNative | undefined = nativeStatus(),
+  /** Injected in tests; the default reads the sessions table. */
+  repo: Pick<typeof sessionsRepo, 'lastFinished'> = sessionsRepo,
+): void {
   if (!native) {
     return;
   }
@@ -82,8 +90,8 @@ export function refreshStatusNotification(): void {
     native.hideStatus();
     return;
   }
-  sessionsRepo
-    .lastSuccess()
+  repo
+    .lastFinished()
     .then(last =>
       native.showStatus(
         'TeleVault aktif',
