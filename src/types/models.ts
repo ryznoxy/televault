@@ -116,7 +116,7 @@ export const DEFAULT_CONFIG: BackupConfig = {
   watchedFolders: [],
   automationPaused: false,
   compressZip: true,
-  directMedia: true,
+  directMedia: false,
   // 45 MB: comfortably under the 49 MB part cap and above almost every phone
   // photo, so photos travel whole while long videos go into the zip.
   directMediaMaxMb: 45,

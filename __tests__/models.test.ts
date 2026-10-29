@@ -9,6 +9,8 @@ beforeEach(() => {
 
 test('new backup config fields have the documented defaults', () => {
   expect(DEFAULT_CONFIG.archiveFormat).toBe('zip');
+  expect(DEFAULT_CONFIG.compressZip).toBe(true);
+  expect(DEFAULT_CONFIG.directMedia).toBe(false);
   expect(DEFAULT_CONFIG.deleteLocalAfterBackup).toBe(false);
   expect(DEFAULT_CONFIG.notifyBotSummary).toBe(true);
   expect(DEFAULT_CONFIG.silentNotifications).toBe(false);
