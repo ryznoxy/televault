@@ -9,6 +9,17 @@ export type WhatsNew = {
 };
 
 export const WHATS_NEW: Record<string, WhatsNew> = {
+  '1.7.0': {
+    title: 'Apa baru di v1.7.0',
+    items: [
+      'Ganti HP jadi mudah: tekan "Impor manifest dari Telegram", kirim manifest ke bot, semua foto/video terunduh otomatis',
+      'Backup baru kini default di-zip jadi satu arsip; mode kirim langsung tetap bisa dinyalakan di Pengaturan',
+      'Restore dari folder: tunjuk folder backup lama di HP, file dicocokkan otomatis lewat nama dan hash',
+      'Manifest kini menyimpan alamat file di Telegram, jadi restore tetap jalan walau database lokal hilang',
+      'Uji Pemulihan lebih cermat: cukup cek satu arsip utuh terkecil, sesi yang potongannya kurang dilewati',
+      'Izin folder yang dicabut Android kini memunculkan pesan jelas: pilih ulang folder di Pengaturan',
+    ],
+  },
   '1.6.4': {
     title: 'Apa baru di v1.6.4',
     items: [

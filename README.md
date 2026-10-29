@@ -39,8 +39,8 @@ Cocok untuk yang ingin backup rutin tanpa menyewa storage: Telegram sudah jadi t
 - **Inkremental**: berkas yang tidak berubah dilewati, jadi backup harian hanya mengunggah yang baru.
 - **Batas per run**: jumlah berkas dibagi rata ke kategori yang punya berkas baru, sisanya lanjut di run berikutnya.
 - **Enkripsi di perangkat**: AES-256-GCM, kunci dari PBKDF2-SHA256, satu IV untuk setiap potongan.
-- **Kirim media langsung**: foto dan video di bawah 45 MB dikirim dengan nama aslinya sehingga tampil dengan pratinjau di Telegram.
-- **Zip opsional**: sisanya digabung per kategori, lalu dipotong maksimal 49 MB per bagian.
+- **Kirim media langsung (opsional)**: foto dan video di bawah 45 MB dikirim dengan nama aslinya sehingga tampil dengan pratinjau di Telegram; bisa dinyalakan di Pengaturan.
+- **Zip secara default**: backup baru digabung per kategori, lalu dipotong maksimal 49 MB per bagian — sedikit pesan, mudah dipulihkan.
 - **Manifest dan skrip**: setiap arsip membawa manifest JSON plus skrip `.sh` dan `.bat` untuk menyatukan potongan tanpa aplikasi.
 
 ### Penjadwalan dan latar belakang
@@ -58,7 +58,10 @@ Cocok untuk yang ingin backup rutin tanpa menyewa storage: Telegram sudah jadi t
 ### Pemulihan
 
 - **Restore one-tap**: pilih sesi, unduh manifest dan semua potongan dari chat, gabung, verifikasi SHA-256, dekripsi, ekstrak.
-- **Restore manual**: unduh berkas dari Telegram lalu pilih lewat aplikasi, untuk backup lama atau HP baru.
+- **Impor manifest dari Telegram**: di HP baru atau setelah reinstall — kirim file manifest ke bot, app mengunduh semua potongan otomatis tanpa perlu database lama.
+- **Resolusi alamat file berlapis**: unduhan mencari `file_id` dari database lokal, lalu dari manifest, lalu bot menyalin pesan aslinya (`forwardMessage`) untuk mendapat alamat baru.
+- **Restore dari folder**: untuk backup lama tanpa alamat file di manifest — tunjuk folder backup di HP, app mencocokkan berkas lewat nama dan hash.
+- **Restore manual**: unduh berkas dari Telegram lalu pilih lewat aplikasi.
 - **Uji pemulihan**: satu tombol di Troubleshooting yang mengunduh arsip terkecil, mendekripsi, dan mencocokkan hash-nya.
 - **Riwayat dan statistik**: sesi tersimpan di SQLite lokal, rasio keberhasilan dihitung dari run selesai, bisa diekspor CSV.
 
@@ -75,7 +78,7 @@ Cocok untuk yang ingin backup rutin tanpa menyewa storage: Telegram sudah jadi t
 ## Alur backup
 
 ```
-scan kategori -> saring berkas berubah -> (opsional) zip -> potong 49 MB
+scan kategori -> saring berkas berubah -> zip per kategori (default) -> potong 49 MB
    -> enkripsi per potongan -> kirim ke chat bot -> simpan file_id dan sesi
 ```
 
@@ -188,7 +191,7 @@ Checklist lengkap ada di [`docs/release-checklist.md`](docs/release-checklist.md
 - **Jam tertentu butuh izin alarm**: kalau izin dicabut, jadwal turun ke alarm tidak eksak.
 - **Mode interval dan charging tidak eksak**: keduanya lewat JobScheduler, jadi Doze dan pembatasan merek bisa menundanya. Jalur charging menambah syarat colokan, jadi bisa lebih lambat lagi.
 - **Izin Semua file hanya bisa dinyalakan manual**: Android tidak menyediakan dialog, hanya layar setelan dengan sakelar; app membuka layar itu untukmu.
-- **Restore one-tap butuh database lokal**: `file_id` potongan disimpan di SQLite, hilang kalau app dihapus.
+- **Restore backup lama tanpa `file_id`**: manifest lama (sebelum v2.1) belum menyimpan alamat file; pakai Restore dari folder atau unduh manual.
 - **Autostart tidak bisa diaktifkan dari app**: Android tidak menyediakan API-nya, app hanya membuka layar setelan merek.
 - **APK debug butuh Metro**: hanya build release yang membundel JavaScript.
 - **Package Kotlin masih `com.telebotbackuprn`**: id yang dipasang tetap `com.televault.app`, permanen setelah rilis pertama.
@@ -197,7 +200,7 @@ Checklist lengkap ada di [`docs/release-checklist.md`](docs/release-checklist.md
 
 - Potongan 49 MB karena batas unggah Bot API publik 50 MB. Saat enkripsi aktif batasnya turun ke 16 MB, karena jalur kripto di JS memegang beberapa salinan satu potongan sekaligus.
 - Berkas yang hanya jadi satu potongan diunggah dengan nama aslinya. Berkas yang benar-benar dipecah memakai akhiran `.001`, `.002`, dan restore menerima kedua bentuk nama.
-- Manifest versi 2.0 menyimpan nama, ukuran, jumlah potongan, SHA-256 arsip, dan daftar IV per potongan.
+- Manifest versi 2.1 menyimpan nama, ukuran, jumlah potongan, SHA-256 arsip, daftar IV per potongan, dan alamat `file_id` + nomor pesan Telegram tiap potongan — manifest cukup sendiri untuk mengunduh ulang semuanya.
 - Jadwal jam tertentu memakai `setAlarmClock`, bentuk alarm yang tidak ditunda Doze dan diperlakukan seperti alarm pengguna oleh pengelola baterai merek. Konsekuensinya ikon alarm tampil di status bar selama jadwal aktif. Tidak ada suara yang dibunyikan app.
 - Android 12 ke atas menolak foreground service yang dimulai dari latar belakang, jadi alarm itu sendiri yang memulai service, bukan job periodik.
 - Gap antar kiriman mulai dari 1 detik, naik ke jendela `retry_after` saat Bot API membalas 429, lalu turun perlahan lagi.
