@@ -10,6 +10,7 @@ export type NewChunk = {
 
 export type StoredPart = {
   part_name: string;
+  size: number;
   telegram_file_id: string | null;
 };
 
@@ -44,7 +45,7 @@ export const chunksRepo = {
   /** Uploaded parts of a run that carry a re-downloadable file_id. */
   async listDownloadableParts(sessionId: number): Promise<StoredPart[]> {
     const result = await getDb().execute(
-      `SELECT part_name, telegram_file_id FROM chunks
+      `SELECT part_name, size, telegram_file_id FROM chunks
        WHERE session_id = ? AND telegram_file_id IS NOT NULL`,
       [sessionId],
     );
@@ -59,5 +60,14 @@ export const chunksRepo = {
       [sessionId],
     );
     return result.rows.map(row => row as unknown as PartTelegramIds);
+  },
+
+  /** Every chunk row of a run, including those whose upload stored no file_id. */
+  async listParts(sessionId: number): Promise<StoredPart[]> {
+    const result = await getDb().execute(
+      'SELECT part_name, size, telegram_file_id FROM chunks WHERE session_id = ?',
+      [sessionId],
+    );
+    return result.rows.map(row => row as unknown as StoredPart);
   },
 };

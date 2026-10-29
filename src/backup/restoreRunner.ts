@@ -37,6 +37,8 @@ export type RestoreOptions = {
   passphrase?: string;
   outputDir?: string;
   onProgress?: (progress: RestoreProgress) => void;
+  /** Restore only entries this predicate accepts (drill: one archive/entry). */
+  only?: (file: ManifestFile) => boolean;
 };
 
 export type PartResolution = {
@@ -413,7 +415,8 @@ async function restoreEntries(
   await ReactNativeBlobUtil.fs.mkdir(tempDir).catch(() => undefined);
   trackTempDir(tempDir);
 
-  const total = manifest.files.length;
+  const entries = options.only ? manifest.files.filter(options.only) : manifest.files;
+  const total = entries.length;
   const files: RestoreFileResult[] = [];
   // v2 parts are encrypted one by one, so the key is derived once per manifest
   // instead of once per part (210k PBKDF2 iterations each).
@@ -434,7 +437,7 @@ async function restoreEntries(
   };
 
   for (let index = 0; index < total; index += 1) {
-    const file = manifest.files[index];
+    const file = entries[index];
     const emit = (phase: RestorePhase) =>
       options.onProgress?.({ file: file.name, index: index + 1, total, phase });
     try {
