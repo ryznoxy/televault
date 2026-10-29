@@ -39,7 +39,7 @@ import { sessionsRepo } from '../db/repositories/sessions';
 import { chunksRepo } from '../db/repositories/chunks';
 import { TelegramBotApi, type SendResult } from '../net/telegramApi';
 import { secureStore } from '../state/secureStore';
-import { getConfig } from '../state/settingsStore';
+import { getConfig, useSettingsStore } from '../state/settingsStore';
 import { CATEGORY_NAMES_ID, Category, type CategoryKey } from '../types/models';
 
 export type BackupProgress = {
@@ -545,10 +545,24 @@ export async function runBackup(
     }
     try {
       emit('scanning', category, 0, 0);
-      const scanned =
-        category === Category.CUSTOM && customUris.length > 0
-          ? await scanCustomFolders(customUris)
-          : await scanCategory(category, config.customFolderUri);
+      let scanned: ScanResult[];
+      if (category === Category.CUSTOM && customUris.length > 0) {
+        const { results, denied } = await scanCustomFolders(config.watchedFolders);
+        // A revoked SAF grant cannot be fixed silently — Android requires the
+        // user to re-pick via ACTION_OPEN_DOCUMENT. Mark each folder invalid so
+        // Settings shows "perlu pilih ulang" and the next run skips it, and say
+        // exactly which folder and what to do instead of a raw SecurityException.
+        if (denied.length > 0) {
+          failure = true;
+          for (const folder of denied) {
+            useSettingsStore.getState().updateWatchedFolder(folder.id, { invalid: true });
+            errors.push(`Akses folder "${folder.name}" dicabut. Pilih ulang folder di Pengaturan.`);
+          }
+        }
+        scanned = results;
+      } else {
+        scanned = await scanCategory(category, config.customFolderUri);
+      }
 
       // A category that reads nothing is not an error, but it must not look
       // like a successful backup either. Only speak up when it matters: DOC on

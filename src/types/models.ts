@@ -53,6 +53,8 @@ export type WatchedFolder = {
   uri: string;
   name: string;
   schedule: string;
+  /** SAF grant revoked / tree moved: the user must re-pick the folder. */
+  invalid?: boolean;
 };
 
 /** Build a watched folder from a picked directory URI (name = last path segment). */

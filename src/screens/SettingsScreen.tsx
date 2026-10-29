@@ -714,9 +714,16 @@ export default function SettingsScreen({ navigation }: Props) {
                       <TgIcon name="folder" color={TG.primary} size={18} />
                     </View>
                     <View style={styles.folderText}>
-                      <Text style={styles.folderName} numberOfLines={1} ellipsizeMode="middle">
-                        {folder.name}
-                      </Text>
+                      <View style={styles.folderNameRow}>
+                        <Text style={styles.folderName} numberOfLines={1} ellipsizeMode="middle">
+                          {folder.name}
+                        </Text>
+                        {folder.invalid ? (
+                          <View style={styles.invalidBadge}>
+                            <Text style={styles.invalidBadgeText}>perlu pilih ulang</Text>
+                          </View>
+                        ) : null}
+                      </View>
                       <Text style={styles.folderUri} numberOfLines={1} ellipsizeMode="middle">
                         {folder.uri}
                       </Text>
@@ -1456,7 +1463,16 @@ const createStyles = (TG: TGPalette) => StyleSheet.create({
     flexShrink: 0,
   },
   folderText: { flex: 1, minWidth: 0, gap: 2 },
-  folderName: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '500', fontFamily: FONT.medium },
+  folderNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, minWidth: 0 },
+  folderName: { color: TG.ink, fontSize: 14, lineHeight: 20, fontWeight: '500', fontFamily: FONT.medium, flexShrink: 1 },
+  invalidBadge: {
+    backgroundColor: TG.errorSoft,
+    borderRadius: RADIUS.sm,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    flexShrink: 0,
+  },
+  invalidBadgeText: { color: TG.error, fontSize: 10, lineHeight: 14, fontFamily: FONT.semi },
   folderUri: { color: TG.secondary, fontSize: 11, lineHeight: 15 },
   removeButton: {
     width: 36,

@@ -41,6 +41,12 @@ class SafFolderModule(reactContext: ReactApplicationContext) :
       val out = Arguments.createArray()
       walk(context, root, out, 0)
       promise.resolve(out)
+    } catch (security: SecurityException) {
+      // The OS revoked the SAF grant (or the tree moved), so listing throws
+      // "Permission Denial ... ACTION_OPEN_DOCUMENT". Surface it with a stable
+      // code the JS scanner recognises to mark the folder invalid instead of
+      // burying it in a generic error.
+      promise.reject("EPERMDENIED", security.message, security)
     } catch (error: Exception) {
       promise.reject("EUNSPECIFIED", error.message, error)
     }

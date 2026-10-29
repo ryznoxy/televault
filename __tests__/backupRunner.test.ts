@@ -4,7 +4,7 @@ import { PermissionsAndroid, Platform } from 'react-native';
 import { filesRepo, type FileRecord } from '../src/db/repositories/files';
 import { sessionsRepo } from '../src/db/repositories/sessions';
 import { chunksRepo } from '../src/db/repositories/chunks';
-import { scanCategory, ensureLocalPath, type ScanResult } from '../src/backup/fileScanner';
+import { scanCategory, scanCustomFolders, ensureLocalPath, type ScanResult } from '../src/backup/fileScanner';
 import {
   needsMediaPermissions,
   requestBackupPermissions,
@@ -13,7 +13,7 @@ import {
 import { TelegramBotApi } from '../src/net/telegramApi';
 import { secureStore } from '../src/state/secureStore';
 import { useSettingsStore } from '../src/state/settingsStore';
-import { Category } from '../src/types/models';
+import { Category, makeWatchedFolder } from '../src/types/models';
 import { isUnmeteredNetwork } from '../src/background/androidStatus';
 
 jest.mock('../src/db/repositories/files', () => ({
@@ -61,6 +61,7 @@ jest.mock('../src/state/secureStore', () => ({
 jest.mock('../src/backup/fileScanner', () => ({
   scanCategory: jest.fn(async () => []),
   ensureLocalPath: jest.fn(async (path: string) => path),
+  scanCustomFolders: jest.fn(async () => ({ results: [], denied: [] })),
 }));
 
 // The real module reads a native constant that does not exist in the test
@@ -84,6 +85,7 @@ const chunksMock = chunksRepo as unknown as {
 };
 const scanMock = scanCategory as unknown as jest.Mock;
 const localizeMock = ensureLocalPath as unknown as jest.Mock;
+const scanCustomFoldersMock = scanCustomFolders as unknown as jest.Mock;
 const unlinkMock = ReactNativeBlobUtil.fs.unlink as unknown as jest.Mock;
 const sliceMock = ReactNativeBlobUtil.fs.slice as unknown as jest.Mock;
 const statMock = ReactNativeBlobUtil.fs.stat as unknown as jest.Mock;
@@ -179,6 +181,7 @@ beforeEach(() => {
   chunksMock.markUploaded.mockResolvedValue(undefined);
   chunksMock.listPartTelegramIds.mockResolvedValue([]);
   scanMock.mockResolvedValue([]);
+  scanCustomFoldersMock.mockResolvedValue({ results: [], denied: [] });
   localizeMock.mockImplementation(async (path: string) => path);
   statMock.mockResolvedValue({ size: 0, lastModified: 0, type: 'file' });
   (sessionsRepo.insert as unknown as jest.Mock).mockResolvedValue(1);
@@ -1033,4 +1036,24 @@ test('P1: the session reason keeps a bounded number of failures', () => {
   expect(summarizeErrors([])).toBeNull();
   // A single huge error is truncated too, so the row stays one line.
   expect(summarizeErrors(['x'.repeat(600)])?.length).toBe(498);
+});
+
+test('a revoked SAF grant marks the folder invalid and yields a clear partial message', async () => {
+  useSettingsStore.getState().setCategories([Category.PHOTO, Category.CUSTOM]);
+  const folder = makeWatchedFolder('content://tree/docs');
+  useSettingsStore.getState().addWatchedFolder(folder);
+  scanMock.mockImplementation(async (category: string) =>
+    category === 'photo' ? [PHOTO_ITEM] : [],
+  );
+  scanCustomFoldersMock.mockResolvedValue({ results: [], denied: [folder] });
+
+  const result = await runBackup();
+
+  expect(result.status).toBe('partial');
+  expect(result.error).toContain('Akses folder "docs" dicabut');
+  // The folder is persisted invalid, so Settings shows "perlu pilih ulang" and
+  // the next run skips it instead of re-rejecting the raw SecurityException.
+  const stored = useSettingsStore.getState().config.watchedFolders.find(f => f.id === folder.id);
+  expect(stored?.invalid).toBe(true);
+  useSettingsStore.getState().removeWatchedFolder(folder.id);
 });

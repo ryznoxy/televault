@@ -1,8 +1,11 @@
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import { ensureLocalPath, scanCategory, scanCustomFolders } from '../src/backup/fileScanner';
-import { Category } from '../src/types/models';
+import { Category, makeWatchedFolder } from '../src/types/models';
 
-jest.mock('../src/backup/safFolder', () => ({ listSafFolder: jest.fn(async () => []) }));
+jest.mock('../src/backup/safFolder', () => ({
+  ...jest.requireActual('../src/backup/safFolder'),
+  listSafFolder: jest.fn(async () => []),
+}));
 
 const copyToInternal = ReactNativeBlobUtil.MediaCollection.copyToInternal as unknown as jest.Mock;
 const listSafFolder = jest.requireMock('../src/backup/safFolder').listSafFolder as jest.Mock;
@@ -35,12 +38,14 @@ test('the Documents category also reads the public Documents dir', async () => {
 });
 
 test('a watched folder is read through the SAF module', async () => {
+  const folder = makeWatchedFolder('content://tree/docs');
   listSafFolder.mockResolvedValueOnce([
     { path: 'content://docs/a.pdf', displayName: 'a.pdf', size: 10, modifiedAt: 1 },
   ]);
-  const items = await scanCustomFolders(['content://tree/docs']);
+  const { results, denied } = await scanCustomFolders([folder]);
   expect(listSafFolder).toHaveBeenCalledWith('content://tree/docs');
-  expect(items).toEqual([
+  expect(denied).toEqual([]);
+  expect(results).toEqual([
     {
       path: 'content://docs/a.pdf',
       displayName: 'a.pdf',
@@ -49,6 +54,30 @@ test('a watched folder is read through the SAF module', async () => {
       category: Category.CUSTOM,
     },
   ]);
+});
+
+test('a folder whose SAF grant was revoked is denied, not thrown', async () => {
+  const folder = makeWatchedFolder('content://tree/docs');
+  listSafFolder.mockRejectedValueOnce(
+    Object.assign(
+      new Error(
+        'Permission Denial: opening provider com.android.externalstorage.ExternalStorageProvider requires ACTION_OPEN_DOCUMENT',
+      ),
+      { code: 'EPERMDENIED' },
+    ),
+  );
+  const { results, denied } = await scanCustomFolders([folder]);
+  expect(results).toEqual([]);
+  expect(denied).toEqual([folder]);
+});
+
+test('an invalid folder is skipped without consulting the SAF module', async () => {
+  const folder = makeWatchedFolder('content://tree/docs');
+  folder.invalid = true;
+  const { results, denied } = await scanCustomFolders([folder]);
+  expect(listSafFolder).not.toHaveBeenCalled();
+  expect(results).toEqual([]);
+  expect(denied).toEqual([]);
 });
 
 test('returns real filesystem paths unchanged', async () => {
