@@ -24,10 +24,14 @@ import { AppHeader, TgIcon } from '../components/ui';
 import { FONT, ON_ACCENT, TG_LIGHT,  RADIUS, tgTheme, type TGPalette } from '../theme/theme';
 import {
   findManifestPath,
+  isManifestName,
   loadManifestFromFolder,
   loadManifestFromPaths,
+  parseManifest,
+  partNames,
   restoreFromFiles,
   restoreFromFolder,
+  restoreFromManifest,
   restoreFromTelegram,
   toFileUri,
   type RestoreFileResult,
@@ -35,8 +39,11 @@ import {
   type RestoreResult,
 } from '../backup/restoreRunner';
 import { sessionsRepo, type SessionRecord } from '../db/repositories/sessions';
+import { chunksRepo } from '../db/repositories/chunks';
 import { secureStore } from '../state/secureStore';
 import { TelegramBotApi } from '../net/telegramApi';
+import { listSafFolder } from '../backup/safFolder';
+import { partNameFor } from '../backup/chunker';
 import type { Manifest } from '../backup/manifest';
 import type { RootStackParamList } from '../navigation/Routes';
 
@@ -99,6 +106,14 @@ export default function RestoreScreen({ navigation }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [tgSessions, setTgSessions] = useState<SessionRecord[]>([]);
   const [tgSession, setTgSession] = useState<SessionRecord | null>(null);
+  const [manifestDocs, setManifestDocs] = useState<
+    Array<{ fileId: string; fileName: string; messageId: number; date: number }> | null
+  >(null);
+  const [importedManifest, setImportedManifest] = useState<{
+    manifest: Manifest;
+    manifestFileId: string;
+    manifestPath: string;
+  } | null>(null);
 
   useEffect(() => {
     sessionsRepo
@@ -118,6 +133,8 @@ export default function RestoreScreen({ navigation }: Props) {
     setError(null);
     setProgress(null);
     setCopyErrors([]);
+    setImportedManifest(null);
+    setManifestDocs(null);
   };
 
   const loadManifest = async (load: () => Promise<Manifest>) => {
@@ -166,22 +183,177 @@ export default function RestoreScreen({ navigation }: Props) {
   const onPickFolder = async () => {
     try {
       const picked = await pickDirectory();
-      const path = picked.uri.replace(/^file:\/\//, '');
+      const uri = picked.uri;
       reset();
       setFiles(null);
-      if (path.startsWith('content://')) {
-        setDir(null);
-        setFolderHint(
-          'Android tidak mengizinkan aplikasi membaca folder lewat pemilih folder. Pakai "Pilih berkas backup" di atas.',
-        );
+      setDir(null);
+      setFolderHint(null);
+      setImportedManifest(null);
+      if (uri.startsWith('content://')) {
+        // Android SAF tree: enumerate the picked folder, copy only the manifest
+        // and the parts it names into the cache, then restore from that set.
+        const entries = await listSafFolder(uri);
+        const manifestEntries = entries.filter(entry => isManifestName(entry.displayName));
+        if (manifestEntries.length === 0) {
+          setError('Manifest tidak ditemukan di folder yang dipilih.');
+          return;
+        }
+        const copyEntries = async (list: typeof entries) => {
+          const toCopy = list.map(entry => ({ uri: entry.path, fileName: entry.displayName }));
+          const copies = await keepLocalCopy({
+            files: [toCopy[0], ...toCopy.slice(1)],
+            destination: 'cachesDirectory',
+          });
+          const paths: string[] = [];
+          const errors: string[] = [];
+          for (const copy of copies) {
+            if (copy.status === 'success') {
+              paths.push(copy.localUri.replace(/^file:\/\//, ''));
+            } else {
+              errors.push(`${baseName(copy.sourceUri)}: ${copy.copyError}`);
+            }
+          }
+          return { paths, errors };
+        };
+
+        const manifestCopies = await copyEntries(manifestEntries);
+        const loaded = await loadManifestFromPaths(manifestCopies.paths);
+        const wanted = new Set(manifestEntries.map(entry => entry.displayName));
+        for (const file of loaded.files) {
+          for (let index = 1; index <= file.chunks; index += 1) {
+            for (const name of partNames(file, index)) {
+              wanted.add(name);
+            }
+          }
+        }
+        const partCopies = await copyEntries(entries.filter(entry => wanted.has(entry.displayName)));
+        setCopyErrors([...manifestCopies.errors, ...partCopies.errors]);
+        setFiles(partCopies.paths);
+        setManifest(loaded);
         return;
       }
-      setFolderHint(null);
+      const path = uri.replace(/^file:\/\//, '');
       setDir(path);
       await loadManifest(() => loadManifestFromFolder(path));
     } catch {
       // user cancelled
     }
+  };
+
+  /** Download and parse a manifest the user forwarded to the bot. */
+  const onImportManifest = async (doc: {
+    fileId: string;
+    fileName: string;
+    messageId: number;
+    date: number;
+  }) => {
+    setBusy(true);
+    setError(null);
+    try {
+      const credentials = await secureStore.get();
+      const api = new TelegramBotApi(credentials.botToken, credentials.chatId);
+      const path = `${ReactNativeBlobUtil.fs.dirs.CacheDir}/imported_${doc.messageId || Date.now()}.manifest.json`;
+      await api.downloadFile(doc.fileId, path);
+      const raw = await ReactNativeBlobUtil.fs.readFile(path, 'utf8');
+      const parsed = parseManifest(typeof raw === 'string' ? raw : String(raw));
+      reset();
+      setFiles(null);
+      setDir(null);
+      setFolderHint(null);
+      setManifestDocs(null);
+      setManifest(parsed);
+      setImportedManifest({ manifest: parsed, manifestFileId: doc.fileId, manifestPath: path });
+    } catch (caught) {
+      setError(messageOf(caught));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  /** Pick a `*.manifest.json` straight from the device storage. */
+  const onPickManifest = async () => {
+    try {
+      const picked = await pick({ allowMultiSelection: false, type: [types.allFiles] });
+      const first = picked[0];
+      if (!first) {
+        return;
+      }
+      const copies = await keepLocalCopy({
+        files: [{ uri: first.uri, fileName: first.name ?? 'manifest.json' }],
+        destination: 'cachesDirectory',
+      });
+      const copy = copies[0];
+      if (!copy || copy.status !== 'success') {
+        throw new Error(copy?.copyError ?? 'Berkas manifest gagal dibaca');
+      }
+      const path = copy.localUri.replace(/^file:\/\//, '');
+      const raw = await ReactNativeBlobUtil.fs.readFile(path, 'utf8');
+      const parsed = parseManifest(typeof raw === 'string' ? raw : String(raw));
+      reset();
+      setFiles(null);
+      setDir(null);
+      setFolderHint(null);
+      setManifestDocs(null);
+      setManifest(parsed);
+      setImportedManifest({ manifest: parsed, manifestFileId: '', manifestPath: path });
+    } catch {
+      // user cancelled or unreadable file
+    }
+  };
+
+  /** Scan the bot chat for forwarded manifests. */
+  const onScanManifests = async () => {
+    setBusy(true);
+    setError(null);
+    setManifestDocs(null);
+    try {
+      const credentials = await secureStore.get();
+      const api = new TelegramBotApi(credentials.botToken, credentials.chatId);
+      const docs = await api.getRecentManifestDocuments();
+      setManifestDocs(docs);
+      if (docs.length === 0) {
+        setError('Tidak ada manifest ditemukan. Teruskan berkas *.manifest.json ke bot, lalu coba lagi.');
+      }
+    } catch (caught) {
+      setError(messageOf(caught));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  /**
+   * Store a restored session in the local DB so it shows up in the restore
+   * list next time (fresh install path).
+   */
+  const persistImportedSession = async (source: Manifest, manifestFileId: string) => {
+    const chunksTotal = source.files.reduce((sum, file) => sum + file.chunks, 0);
+    const sessionId = await sessionsRepo.insertImportedSession({
+      startedAt: source.createdAt * 1000,
+      finishedAt: Date.now(),
+      totalFiles: source.files.length,
+      totalSize: source.totalSize,
+      chunksTotal,
+      chunksSent: chunksTotal,
+      status: 'success',
+      manifestId: source.sessionId,
+      manifestFileIds: manifestFileId,
+      encrypted: source.encryption ? 1 : 0,
+    });
+    for (const file of source.files) {
+      for (let part = 1; part <= file.chunks; part += 1) {
+        const name = partNameFor(file.name, part, file.chunks);
+        const recorded = file.parts?.find(entry => entry.name === name);
+        await chunksRepo.insertImportedPart(
+          sessionId,
+          part,
+          0,
+          name,
+          recorded?.fileId ?? null,
+          recorded?.messageId ?? null,
+        );
+      }
+    }
+    setTgSessions(await sessionsRepo.recentRestorable());
   };
 
   const onRestore = async () => {
@@ -197,9 +369,21 @@ export default function RestoreScreen({ navigation }: Props) {
         onProgress: (update: { index: number; total: number; phase: RestorePhase }) =>
           setProgress({ index: update.index, total: update.total, phase: update.phase }),
       };
-      const next = files
-        ? await restoreFromFiles(files, options)
-        : await restoreFromFolder(dir as string, options);
+      let next: RestoreResult;
+      if (importedManifest) {
+        const credentials = await secureStore.get();
+        const api = new TelegramBotApi(credentials.botToken, credentials.chatId);
+        next = await restoreFromManifest(importedManifest.manifest, api, options);
+        if (importedManifest.manifestFileId !== '' && next.status !== 'failed') {
+          await persistImportedSession(importedManifest.manifest, importedManifest.manifestFileId).catch(
+            () => undefined,
+          );
+        }
+      } else if (files) {
+        next = await restoreFromFiles(files, options);
+      } else {
+        next = await restoreFromFolder(dir as string, options);
+      }
       setResult(next);
     } catch (caught) {
       setError(messageOf(caught));
@@ -270,14 +454,16 @@ export default function RestoreScreen({ navigation }: Props) {
     }
   };
 
-  const hasSource = files !== null || dir !== null;
+  const hasSource = files !== null || dir !== null || importedManifest !== null;
   const canRestore =
     hasSource && !!manifest && !busy && (!encrypted || passphrase.trim() !== '');
-  const sourceLabel = files
-    ? `${files.length} berkas dipilih`
-    : dir
-      ? dir.split('/').slice(-2).join('/')
-      : 'Belum ada sumber dipilih';
+  const sourceLabel = importedManifest
+    ? `Manifest ${baseName(importedManifest.manifestPath)}`
+    : files
+      ? `${files.length} berkas dipilih`
+      : dir
+        ? dir.split('/').slice(-2).join('/')
+        : 'Belum ada sumber dipilih';
 
   return (
     <View style={[styles.root, { backgroundColor: TG.bg }]}>
@@ -351,9 +537,77 @@ export default function RestoreScreen({ navigation }: Props) {
               ]}>
               <TgIcon name="folder" color={TG.onPrimaryContainer} size={20} />
               <Text style={styles.secondaryButtonText} numberOfLines={1}>
-                Pilih folder backup
+                Pulihkan dari folder
               </Text>
             </Pressable>
+
+            <Pressable
+              onPress={onPickManifest}
+              disabled={busy}
+              accessibilityRole="button"
+              accessibilityState={{ disabled: busy }}
+              style={({ pressed }) => [
+                styles.secondaryButton,
+                busy && styles.disabled,
+                pressed && styles.pressed,
+              ]}>
+              <TgIcon name="fileText" color={TG.onPrimaryContainer} size={20} />
+              <Text style={styles.secondaryButtonText} numberOfLines={1}>
+                Pilih berkas manifest
+              </Text>
+            </Pressable>
+
+            <Pressable
+              onPress={onScanManifests}
+              disabled={busy}
+              accessibilityRole="button"
+              accessibilityState={{ disabled: busy }}
+              style={({ pressed }) => [
+                styles.secondaryButton,
+                busy && styles.disabled,
+                pressed && styles.pressed,
+              ]}>
+              <TgIcon name="download" color={TG.onPrimaryContainer} size={20} />
+              <Text style={styles.secondaryButtonText} numberOfLines={1}>
+                Impor manifest dari Telegram
+              </Text>
+            </Pressable>
+
+            {manifestDocs && manifestDocs.length > 0 ? (
+              <View>
+                <Text style={styles.hintText}>
+                  Manifest ditemukan di chat bot — pilih satu untuk dipulihkan.
+                </Text>
+                {manifestDocs.map(doc => (
+                  <Pressable
+                    key={`${doc.fileId}-${doc.messageId}`}
+                    onPress={() => onImportManifest(doc)}
+                    disabled={busy}
+                    accessibilityRole="button"
+                    style={({ pressed }) => [
+                      styles.tgSessionRow,
+                      busy && styles.disabled,
+                      pressed && styles.pressed,
+                    ]}>
+                    <TgIcon name="fileText" color={TG.secondary} size={18} />
+                    <View style={styles.tgSessionText}>
+                      <Text style={styles.tgSessionTitle} numberOfLines={1} ellipsizeMode="middle">
+                        {doc.fileName}
+                      </Text>
+                      <Text style={styles.tgSessionMeta} numberOfLines={1}>
+                        {new Date(doc.date * 1000).toLocaleString('id-ID')}
+                      </Text>
+                    </View>
+                  </Pressable>
+                ))}
+              </View>
+            ) : null}
+
+            {importedManifest ? (
+              <Text style={styles.metaText}>
+                Manifest diimpor &middot; {importedManifest.manifest.files.length} berkas
+              </Text>
+            ) : null}
 
             {folderHint ? <Text style={styles.hintText}>{folderHint}</Text> : null}
 

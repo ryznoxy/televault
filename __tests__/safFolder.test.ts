@@ -1,5 +1,5 @@
 import { NativeModules, Platform } from 'react-native';
-import { listSafFolder } from '../src/backup/safFolder';
+import { listSafFolder, isSafPermissionDenied } from '../src/backup/safFolder';
 
 jest.mock('react-native', () => ({
   NativeModules: {},
@@ -29,5 +29,21 @@ describe('listSafFolder', () => {
     } finally {
       Object.defineProperty(Platform, 'OS', { value: 'android', configurable: true });
     }
+  });
+});
+
+describe('isSafPermissionDenied', () => {
+  it('detects the native EPERMDENIED code', () => {
+    expect(isSafPermissionDenied({ code: 'EPERMDENIED' })).toBe(true);
+  });
+
+  it('detects a Permission Denial message even without the code', () => {
+    expect(
+      isSafPermissionDenied(new Error('Permission Denial: opening provider ... requires ACTION_OPEN_DOCUMENT')),
+    ).toBe(true);
+  });
+
+  it('passes an unrelated error through', () => {
+    expect(isSafPermissionDenied(new Error('disk full'))).toBe(false);
   });
 });

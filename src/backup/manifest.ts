@@ -7,6 +7,16 @@ export type ManifestEncryption = {
   salt: string;
 };
 
+/** v2.1: one uploaded part of a file, with what Telegram needs to re-download it. */
+export type ManifestPart = {
+  /** The uploaded part name (e.g. `backup-2026-10-31.zip.001`, or the file itself). */
+  name: string;
+  /** Telegram `document.file_id` of this part; null when the DB lost it. */
+  fileId: string | null;
+  /** Telegram message id the part was sent in. */
+  messageId: number | null;
+};
+
 export type ManifestFile = {
   name: string;
   size: number;
@@ -18,6 +28,8 @@ export type ManifestFile = {
   ivs?: string[];
   /** v2 + `encrypted` only, written by builds that encrypted the whole archive. */
   iv?: string;
+  /** v2.1: per-part Telegram ids, so restore needs no local DB. */
+  parts?: ManifestPart[];
 };
 
 export type Manifest = {
@@ -149,7 +161,7 @@ function reassemblyCommand(files: ManifestFile[]): string {
 }
 
 /** Current manifest shape. `restoreRunner` still reads 1.0 for old backups. */
-export const MANIFEST_VERSION = '2.0';
+export const MANIFEST_VERSION = '2.1';
 
 export function manifestToJson(manifest: Manifest): string {
   const payload: Record<string, unknown> = {
@@ -170,6 +182,11 @@ export function manifestToJson(manifest: Manifest): string {
       }
       if (file.iv) {
         entry.iv = file.iv;
+      }
+      // v2.1: the Telegram ids make the manifest self-contained. Written only
+      // when present, so a manifest built without DB lookups stays v2-shaped.
+      if (file.parts && file.parts.length > 0) {
+        entry.parts = file.parts;
       }
       return entry;
     }),

@@ -39,7 +39,7 @@ import { sessionsRepo } from '../db/repositories/sessions';
 import { chunksRepo } from '../db/repositories/chunks';
 import { TelegramBotApi, type SendResult } from '../net/telegramApi';
 import { secureStore } from '../state/secureStore';
-import { getConfig } from '../state/settingsStore';
+import { getConfig, useSettingsStore } from '../state/settingsStore';
 import { CATEGORY_NAMES_ID, Category, type CategoryKey } from '../types/models';
 
 export type BackupProgress = {
@@ -545,10 +545,24 @@ export async function runBackup(
     }
     try {
       emit('scanning', category, 0, 0);
-      const scanned =
-        category === Category.CUSTOM && customUris.length > 0
-          ? await scanCustomFolders(customUris)
-          : await scanCategory(category, config.customFolderUri);
+      let scanned: ScanResult[];
+      if (category === Category.CUSTOM && customUris.length > 0) {
+        const { results, denied } = await scanCustomFolders(config.watchedFolders);
+        // A revoked SAF grant cannot be fixed silently — Android requires the
+        // user to re-pick via ACTION_OPEN_DOCUMENT. Mark each folder invalid so
+        // Settings shows "perlu pilih ulang" and the next run skips it, and say
+        // exactly which folder and what to do instead of a raw SecurityException.
+        if (denied.length > 0) {
+          failure = true;
+          for (const folder of denied) {
+            useSettingsStore.getState().updateWatchedFolder(folder.id, { invalid: true });
+            errors.push(`Akses folder "${folder.name}" dicabut. Pilih ulang folder di Pengaturan.`);
+          }
+        }
+        scanned = results;
+      } else {
+        scanned = await scanCategory(category, config.customFolderUri);
+      }
 
       // A category that reads nothing is not an error, but it must not look
       // like a successful backup either. Only speak up when it matters: DOC on
@@ -802,6 +816,29 @@ export async function runBackup(
     try {
       const metaDir = `${ReactNativeBlobUtil.fs.dirs.CacheDir}/meta_${sessionId}`;
       await ReactNativeBlobUtil.fs.mkdir(metaDir).catch(() => undefined);
+      //
+      // v2.1: every upload is recorded in the chunks table before the manifest
+      // is built, so its parts can carry the Telegram `file_id` + message id.
+      // The manifest then survives a reinstall (local DB lost) and restore can
+      // re-download from Telegram alone. A part the DB does not know (an older
+      // table shape, a write that failed) leaves its ids null instead of
+      // failing the run: the manifest stays useful for name-based restore.
+      const storedParts = await chunksRepo.listPartTelegramIds(sessionId);
+      const telegramIds = new Map(storedParts.map(part => [part.part_name, part]));
+      for (const file of manifestFiles) {
+        for (let part = 1; part <= file.chunks; part += 1) {
+          const name = partNameFor(file.name, part, file.chunks);
+          const stored = telegramIds.get(name);
+          file.parts = [
+            ...(file.parts ?? []),
+            {
+              name,
+              fileId: stored?.telegram_file_id ?? null,
+              messageId: stored?.telegram_msg_id ?? null,
+            },
+          ];
+        }
+      }
       const sentIds: string[] = [];
       const sentFileIds: string[] = [];
       for (let index = 0; index < groups.length; index += 1) {

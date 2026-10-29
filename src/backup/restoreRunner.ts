@@ -6,7 +6,7 @@ import { sha256File } from './hasher';
 import { trackTempDir, untrackTempDir } from './tempDirs';
 import { chunksRepo } from '../db/repositories/chunks';
 import type { TelegramBotApi } from '../net/telegramApi';
-import type { Manifest, ManifestEncryption, ManifestFile } from './manifest';
+import type { Manifest, ManifestEncryption, ManifestFile, ManifestPart } from './manifest';
 
 export type RestorePhase = 'joining' | 'verifying' | 'decrypting' | 'extracting' | 'done';
 
@@ -37,6 +37,8 @@ export type RestoreOptions = {
   passphrase?: string;
   outputDir?: string;
   onProgress?: (progress: RestoreProgress) => void;
+  /** Restore only entries this predicate accepts (drill: one archive/entry). */
+  only?: (file: ManifestFile) => boolean;
 };
 
 export type PartResolution = {
@@ -47,6 +49,8 @@ export type PartResolution = {
 const MANIFEST_VERSION = '1.0';
 /** Backup builds since the per-part encryption change write 2.0 manifests. */
 const MANIFEST_VERSION_V2 = '2.0';
+/** v2.1 adds optional per-part Telegram ids: the manifest becomes self-contained. */
+const MANIFEST_VERSION_V21 = '2.1';
 const LEGACY_MANIFEST_NAME = 'manifest.json';
 
 /** A backup manifest, legacy (`manifest.json`) or named after its archive. */
@@ -136,12 +140,33 @@ function parseEncryption(raw: unknown): ManifestEncryption {
   return { algorithm: 'AES-256-GCM', kdf: 'PBKDF2-SHA256', iterations, salt };
 }
 
+/**
+ * Parse one `parts[]` entry of a v2.1 manifest: the uploaded part name plus
+ * whatever Telegram ids the writing build managed to record (either may be
+ * null — the manifest is the fallback source, restore still has DB / chat).
+ */
+function parsePartEntry(file: string, part: unknown, partIndex: number): ManifestPart {
+  if (!part || typeof part !== 'object') {
+    throw new Error(`Berkas ${file}: parts[${partIndex}] tidak valid`);
+  }
+  const record = part as Record<string, unknown>;
+  const { name, fileId, messageId } = record;
+  if (typeof name !== 'string' || name === '') {
+    throw new Error(`Berkas ${file}: parts[${partIndex}] tidak valid`);
+  }
+  const id = fileId === null || fileId === undefined ? null : String(fileId);
+  const msg = messageId === null || messageId === undefined ? null : Number(messageId);
+  if (id === '' || Number.isNaN(msg)) {
+    throw new Error(`Berkas ${file}: parts[${partIndex}] tidak valid`);
+  }
+  return { name, fileId: id, messageId: msg };
+}
 function parseFileEntry(entry: unknown, index: number): ManifestFile {
   if (!entry || typeof entry !== 'object') {
     throw new Error(`Berkas ke-${index + 1} di manifest tidak valid`);
   }
   const record = entry as Record<string, unknown>;
-  const { name, size, chunks, encrypted, sha256, iv, ivs } = record;
+  const { name, size, chunks, encrypted, sha256, iv, ivs, parts } = record;
   if (typeof name !== 'string' || !isSafeName(name)) {
     throw new Error(`Berkas ke-${index + 1}: nama berkas tidak valid`);
   }
@@ -175,6 +200,14 @@ function parseFileEntry(entry: unknown, index: number): ManifestFile {
     }
     file.ivs = ivs as string[];
   }
+  // v2.1: optional per-part Telegram ids. Absent in v1.0/v2.0 manifests,
+  // in which case restore keeps using its older, purely local sources.
+  if (parts !== undefined) {
+    if (!Array.isArray(parts) || parts.length !== chunks) {
+      throw new Error(`Berkas ${name}: daftar parts tidak cocok dengan jumlah potongan`);
+    }
+    file.parts = parts.map((part, partIndex) => parsePartEntry(name, part, partIndex));
+  }
   if (encrypted && !file.iv && !file.ivs) {
     throw new Error(`Berkas ${name}: berkas terenkripsi tanpa IV`);
   }
@@ -192,7 +225,11 @@ export function parseManifest(json: string): Manifest {
     throw new Error('manifest.json tidak valid');
   }
   const record = raw as Record<string, unknown>;
-  if (record.version !== MANIFEST_VERSION && record.version !== MANIFEST_VERSION_V2) {
+  if (
+    record.version !== MANIFEST_VERSION &&
+    record.version !== MANIFEST_VERSION_V2 &&
+    record.version !== MANIFEST_VERSION_V21
+  ) {
     throw new Error(`Versi manifest tidak didukung: ${String(record.version)}`);
   }
   if (typeof record.session_id !== 'string') {
@@ -322,7 +359,7 @@ export async function loadManifestFromFolder(dir: string): Promise<Manifest> {
  * under its own name; backups made before that change used the `.001` suffix,
  * so a single-part entry accepts both.
  */
-function partNames(file: ManifestFile, index: number): string[] {
+export function partNames(file: ManifestFile, index: number): string[] {
   const name = partNameFor(file.name, index, file.chunks);
   return file.chunks === 1 ? [name, chunkName(file.name, 1)] : [name];
 }
@@ -378,7 +415,8 @@ async function restoreEntries(
   await ReactNativeBlobUtil.fs.mkdir(tempDir).catch(() => undefined);
   trackTempDir(tempDir);
 
-  const total = manifest.files.length;
+  const entries = options.only ? manifest.files.filter(options.only) : manifest.files;
+  const total = entries.length;
   const files: RestoreFileResult[] = [];
   // v2 parts are encrypted one by one, so the key is derived once per manifest
   // instead of once per part (210k PBKDF2 iterations each).
@@ -399,7 +437,7 @@ async function restoreEntries(
   };
 
   for (let index = 0; index < total; index += 1) {
-    const file = manifest.files[index];
+    const file = entries[index];
     const emit = (phase: RestorePhase) =>
       options.onProgress?.({ file: file.name, index: index + 1, total, phase });
     try {
@@ -605,41 +643,175 @@ export async function restoreFromTelegram(
     }
     const manifest = mergeManifests(manifests);
 
-    const stored = await chunksRepo.listDownloadableParts(sessionId);
-    const byPart = new Map(stored.map(part => [part.part_name, part.telegram_file_id]));
+    const outDir =
+      options.outputDir ?? `${ReactNativeBlobUtil.fs.dirs.CacheDir}/restored_${sessionId}`;
+    return restoreFromManifest(manifest, api, options, {
+      sessionId,
+      workDir,
+      outDir,
+    });
+  } finally {
+    await ReactNativeBlobUtil.fs.unlink(workDir).catch(() => undefined);
+    untrackTempDir(workDir);
+  }
+}
 
-    // Download each needed part once; repeated entries (the same archive named
-    // twice) hit the local cache instead of the network again.
+export type RestoreManifestOptions = RestoreOptions & {
+  sessionId?: number;
+  workDir?: string;
+  chatId?: string | number;
+};
+
+/**
+ * Restore directly from a Manifest structure with layered file_id resolution:
+ * 1. Local SQLite DB (`chunks` table for sessionId if provided).
+ * 2. `parts[].fileId` from manifest v2.1.
+ * 3. Fallback `forwardMessage(chatId, messageId)` to obtain fresh file_id, then `deleteMessage`.
+ * Missing parts are skipped per-file, reported in final result, without aborting overall run.
+ */
+export async function restoreFromManifest(
+  manifest: Manifest,
+  api: TelegramBotApi,
+  options: RestoreOptions = {},
+  context: {
+    sessionId?: number;
+    workDir?: string;
+    outDir?: string;
+    chatId?: string | number;
+  } = {},
+): Promise<RestoreResult> {
+  const ownWorkDir = !context.workDir;
+  const workDir =
+    context.workDir ?? `${ReactNativeBlobUtil.fs.dirs.CacheDir}/manifest_restore_${Date.now()}`;
+  if (ownWorkDir) {
+    await ReactNativeBlobUtil.fs.mkdir(workDir).catch(() => undefined);
+    trackTempDir(workDir);
+  }
+
+  try {
+    const targetChatId = context.chatId ?? (api as unknown as { chatId?: string | number }).chatId;
+    let storedByPart = new Map<string, string>();
+    if (context.sessionId !== undefined && context.sessionId !== null) {
+      try {
+        const stored = await chunksRepo.listDownloadableParts(context.sessionId);
+        storedByPart = new Map(
+          stored
+            .filter((part): part is typeof part & { telegram_file_id: string } => part.telegram_file_id !== null)
+            .map(part => [part.part_name, part.telegram_file_id]),
+        );
+      } catch {
+        // DB not available or empty; continue with manifest
+      }
+    }
+
+    // Build part lookup from manifest v2.1 parts if present
+    const manifestPartMap = new Map<string, ManifestPart>();
+    for (const file of manifest.files) {
+      if (file.parts) {
+        for (const part of file.parts) {
+          manifestPartMap.set(part.name, part);
+        }
+      }
+    }
+
     const localByPart = new Map<string, string>();
+
     const downloader: Resolver = async file => {
       const parts: string[] = [];
       const missing: string[] = [];
+
       for (let index = 1; index <= file.chunks; index += 1) {
         const names = partNames(file, index);
-        const name = names.find(candidate => byPart.has(candidate));
-        if (name === undefined) {
-          missing.push(names[0]);
+        // Find best matching part name
+        const name =
+          names.find(candidate => storedByPart.has(candidate)) ??
+          names.find(candidate => manifestPartMap.has(candidate)) ??
+          names[0];
+
+        let local = localByPart.get(name);
+        if (local) {
+          parts.push(local);
           continue;
         }
-        const fileId = byPart.get(name) as string;
-        let local = localByPart.get(name);
-        if (!local) {
-          local = `${workDir}/${assertSafeNameReturn(name)}`;
-          await api.downloadFile(fileId, local);
-          localByPart.set(name, local);
+
+        // 1. Check local DB
+        let fileId = storedByPart.get(name) ?? null;
+        let messageId: number | null = null;
+
+        // 2. Check manifest v2.1 parts
+        const manifestPart = manifestPartMap.get(name);
+        if (!fileId && manifestPart?.fileId) {
+          fileId = manifestPart.fileId;
         }
-        parts.push(local);
+        if (manifestPart?.messageId) {
+          messageId = manifestPart.messageId;
+        }
+
+        local = `${workDir}/${assertSafeNameReturn(name)}`;
+        let downloaded = false;
+
+        // Attempt direct download if fileId exists
+        if (fileId) {
+          try {
+            await api.downloadFile(fileId, local);
+            downloaded = true;
+          } catch {
+            downloaded = false;
+          }
+        }
+
+        // 3. Fallback forwardMessage if download failed and we have messageId and targetChatId
+        if (!downloaded && messageId !== null && targetChatId !== undefined) {
+          try {
+            const fwd = await api.forwardMessage(targetChatId, targetChatId, messageId);
+            if (fwd.fileId) {
+              await api.downloadFile(fwd.fileId, local);
+              downloaded = true;
+            }
+            if (fwd.messageId) {
+              await api.deleteMessage(targetChatId, fwd.messageId);
+            }
+          } catch {
+            downloaded = false;
+          }
+        }
+
+        if (downloaded) {
+          localByPart.set(name, local);
+          parts.push(local);
+        } else {
+          missing.push(name);
+        }
       }
       return { parts, missing };
     };
 
     const outDir =
-      options.outputDir ?? `${ReactNativeBlobUtil.fs.dirs.CacheDir}/restored_${sessionId}`;
-    return restoreEntries(manifest, outDir, options, downloader);
+      context.outDir ??
+      options.outputDir ??
+      `${ReactNativeBlobUtil.fs.dirs.CacheDir}/restored_${manifest.sessionId || Date.now()}`;
+
+    return await restoreEntries(manifest, outDir, options, downloader);
   } finally {
-    await ReactNativeBlobUtil.fs.unlink(workDir).catch(() => undefined);
-    untrackTempDir(workDir);
+    if (ownWorkDir) {
+      await ReactNativeBlobUtil.fs.unlink(workDir).catch(() => undefined);
+      untrackTempDir(workDir);
+    }
   }
+}
+
+/**
+ * Restore from a local manifest file (`*.manifest.json`) on disk using TelegramBotApi
+ * with layered resolution.
+ */
+export async function restoreFromManifestFile(
+  manifestPath: string,
+  api: TelegramBotApi,
+  options: RestoreOptions = {},
+): Promise<RestoreResult> {
+  const content = await readText(manifestPath);
+  const manifest = parseManifest(content);
+  return restoreFromManifest(manifest, api, options);
 }
 
 function assertSafeNameReturn(name: string): string {

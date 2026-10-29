@@ -69,6 +69,75 @@ test('testConnection returns the bot username', async () => {
   expect(await api.testConnection()).toBe('@my_bot');
 });
 
+test('getRecentManifestDocuments returns manifest documents only, deduped', async () => {
+  const { transport } = fakeTransport({
+    status: 200,
+    body: JSON.stringify({
+      ok: true,
+      result: [
+        {
+          message: {
+            message_id: 11,
+            date: 100,
+            document: { file_id: 'doc-1', file_name: 'backup-1.manifest.json', file_size: 42 },
+          },
+        },
+        {
+          message: {
+            message_id: 12,
+            date: 101,
+            document: { file_id: 'doc-2', file_name: 'photo.jpg' },
+          },
+        },
+        {
+          channel_post: {
+            message_id: 13,
+            date: 102,
+            document: { file_id: 'doc-3', file_name: 'manifest.json' },
+          },
+        },
+        {
+          message: {
+            message_id: 14,
+            date: 103,
+            document: { file_id: 'doc-1', file_name: 'backup-1.manifest.json' },
+          },
+        },
+      ],
+    }),
+  });
+  const api = new TelegramBotApi('token', '0', transport);
+  const docs = await api.getRecentManifestDocuments();
+  expect(docs).toEqual([
+    { fileId: 'doc-1', fileName: 'backup-1.manifest.json', fileSize: 42, messageId: 11, date: 100 },
+    { fileId: 'doc-3', fileName: 'manifest.json', fileSize: undefined, messageId: 13, date: 102 },
+  ]);
+});
+
+test('forwardMessage posts chat/from/message ids and returns the fresh file id', async () => {
+  const { transport, calls } = fakeTransport({
+    status: 200,
+    body: JSON.stringify({
+      ok: true,
+      result: { message_id: 55, date: 1, document: { file_id: 'fresh-id' } },
+    }),
+  });
+  const api = new TelegramBotApi('token', '0', transport);
+  const forwarded = await api.forwardMessage('777', '777', 444);
+  expect(forwarded).toEqual({ messageId: 55, fileId: 'fresh-id' });
+  expect(calls[0].url).toBe('https://api.telegram.org/bottoken/forwardMessage');
+  expect(calls[0].fields).toEqual({ chat_id: '777', from_chat_id: '777', message_id: '444' });
+});
+
+test('deleteMessage swallows API failures so cleanup never breaks a restore', async () => {
+  const failing = fakeTransport({
+    status: 400,
+    body: JSON.stringify({ ok: false, description: 'message to delete not found' }),
+  });
+  const api = new TelegramBotApi('token', '0', failing.transport);
+  expect(await api.deleteMessage('777', 55)).toBe(false);
+});
+
 test('P2-l: sendMessage sends chat_id and text with no parse_mode', async () => {
   const { transport, calls } = fakeTransport({
     status: 200,

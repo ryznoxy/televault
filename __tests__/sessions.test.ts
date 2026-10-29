@@ -24,3 +24,25 @@ test('failStaleRunning closes only sessions that started before this process', a
   expect(params[1]).toBe(1000);
   expect(typeof closed).toBe('number');
 });
+
+test('insertImportedSession writes a restorable session row with its manifest ids', async () => {
+  const execute = getDb().execute as unknown as jest.Mock;
+  execute.mockClear();
+
+  await sessionsRepo.insertImportedSession({
+    startedAt: 1000,
+    finishedAt: 2000,
+    totalFiles: 3,
+    totalSize: 900,
+    chunksTotal: 4,
+    chunksSent: 4,
+    status: 'success',
+    manifestId: 'session-a',
+    manifestFileIds: 'doc-1',
+  });
+
+  const [sql, params] = execute.mock.calls[0];
+  expect(sql).toContain('INSERT INTO backup_sessions');
+  expect(params).toContain('success');
+  expect(params).toContain('doc-1');
+});

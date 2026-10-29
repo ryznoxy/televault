@@ -10,7 +10,15 @@ export type NewChunk = {
 
 export type StoredPart = {
   part_name: string;
+  size: number;
   telegram_file_id: string | null;
+};
+
+/** v2.1 manifest lookup: what Telegram needs to re-download each part. */
+export type PartTelegramIds = {
+  part_name: string;
+  telegram_file_id: string | null;
+  telegram_msg_id: number | null;
 };
 
 export const chunksRepo = {
@@ -37,10 +45,54 @@ export const chunksRepo = {
   /** Uploaded parts of a run that carry a re-downloadable file_id. */
   async listDownloadableParts(sessionId: number): Promise<StoredPart[]> {
     const result = await getDb().execute(
-      `SELECT part_name, telegram_file_id FROM chunks
+      `SELECT part_name, size, telegram_file_id FROM chunks
        WHERE session_id = ? AND telegram_file_id IS NOT NULL`,
       [sessionId],
     );
     return result.rows.map(row => row as unknown as StoredPart);
+  },
+
+  /** Uploaded parts of a session with their Telegram ids, keyed by part name. */
+  async listPartTelegramIds(sessionId: number): Promise<PartTelegramIds[]> {
+    const result = await getDb().execute(
+      `SELECT part_name, telegram_file_id, telegram_msg_id FROM chunks
+       WHERE session_id = ? AND part_name IS NOT NULL`,
+      [sessionId],
+    );
+    return result.rows.map(row => row as unknown as PartTelegramIds);
+  },
+
+  /** Every chunk row of a run, including those whose upload stored no file_id. */
+  async listParts(sessionId: number): Promise<StoredPart[]> {
+    const result = await getDb().execute(
+      'SELECT part_name, size, telegram_file_id FROM chunks WHERE session_id = ?',
+      [sessionId],
+    );
+    return result.rows.map(row => row as unknown as StoredPart);
+  },
+
+  /** Insert an imported part with its telegram file_id and message_id. */
+  async insertImportedPart(
+    sessionId: number,
+    chunkIndex: number,
+    size: number,
+    partName: string,
+    telegramFileId: string | null,
+    telegramMsgId: number | null,
+  ): Promise<number> {
+    const result = await getDb().execute(
+      `INSERT INTO chunks (session_id, chunk_index, size, part_name, telegram_file_id, telegram_msg_id, uploaded_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        sessionId,
+        chunkIndex,
+        size,
+        partName,
+        telegramFileId,
+        telegramMsgId,
+        Math.floor(Date.now() / 1000),
+      ],
+    );
+    return Number(result.insertId ?? 0);
   },
 };

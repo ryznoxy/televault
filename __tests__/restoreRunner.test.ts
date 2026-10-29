@@ -744,3 +744,89 @@ test('restoreFromFiles honors an explicit outputDir', async () => {
 
   expect(result.files[0].outputPath).toBe('/doc/restored/note.txt');
 });
+
+test('restoreFromTelegram restores using manifest v2.1 parts when local DB is empty', async () => {
+  const chunksRepo = require('../src/db/repositories/chunks').chunksRepo;
+  chunksRepo.listDownloadableParts.mockResolvedValue([]);
+  const content = 'V21_PART_CONTENT';
+  const api = {
+    downloadFile: jest.fn(async (fileId: string, dest: string) => {
+      if (fileId === 'manifest-doc') {
+        await fs.writeFile(
+          dest,
+          JSON.stringify({
+            version: '2.1',
+            session_id: '99',
+            device: 'Pixel 7',
+            created_at: 1,
+            total_size: content.length,
+            files: [
+              {
+                name: 'note_v21.txt',
+                size: content.length,
+                chunks: 1,
+                encrypted: false,
+                sha256: shaOf(content),
+                parts: [{ name: 'note_v21.txt', fileId: 'tg-part-id', messageId: 101 }],
+              },
+            ],
+          }),
+        );
+      } else if (fileId === 'tg-part-id') {
+        await fs.writeFile(dest, content);
+      }
+    }),
+  };
+
+  const result = await restoreFromTelegram(api as never, 99, 'manifest-doc');
+  expect(result.status).toBe('success');
+  expect(await fs.readFile('/cache/restored_99/note_v21.txt')).toBe(content);
+});
+
+test('restoreFromTelegram falls back to forwardMessage when fileId download fails', async () => {
+  const chunksRepo = require('../src/db/repositories/chunks').chunksRepo;
+  chunksRepo.listDownloadableParts.mockResolvedValue([]);
+  const content = 'FORWARDED_CONTENT';
+  const api = {
+    chatId: '777',
+    downloadFile: jest.fn(async (fileId: string, dest: string) => {
+      if (fileId === 'manifest-doc') {
+        await fs.writeFile(
+          dest,
+          JSON.stringify({
+            version: '2.1',
+            session_id: '100',
+            device: 'Pixel 7',
+            created_at: 1,
+            total_size: content.length,
+            files: [
+              {
+                name: 'photo.jpg',
+                size: content.length,
+                chunks: 1,
+                encrypted: false,
+                sha256: shaOf(content),
+                parts: [{ name: 'photo.jpg', fileId: 'expired-file-id', messageId: 444 }],
+              },
+            ],
+          }),
+        );
+      } else if (fileId === 'fresh-file-id') {
+        await fs.writeFile(dest, content);
+      } else {
+        throw new Error('Telegram API error 400: file is too old or invalid file_id');
+      }
+    }),
+    forwardMessage: jest.fn(async () => ({
+      messageId: 8888,
+      fileId: 'fresh-file-id',
+    })),
+    deleteMessage: jest.fn(async () => true),
+  };
+
+  const result = await restoreFromTelegram(api as never, 100, 'manifest-doc');
+  expect(result.status).toBe('success');
+  expect(api.forwardMessage).toHaveBeenCalledWith('777', '777', 444);
+  expect(api.deleteMessage).toHaveBeenCalledWith('777', 8888);
+  expect(await fs.readFile('/cache/restored_100/photo.jpg')).toBe(content);
+});

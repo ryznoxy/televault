@@ -1,7 +1,7 @@
 import { CameraRoll } from '@react-native-camera-roll/camera-roll';
 import ReactNativeBlobUtil from 'react-native-blob-util';
-import { Category, CategoryKey } from '../types/models';
-import { listSafFolder } from './safFolder';
+import { Category, CategoryKey, type WatchedFolder } from '../types/models';
+import { listSafFolder, isSafPermissionDenied } from './safFolder';
 
 export type ScanResult = {
   path: string;
@@ -151,13 +151,33 @@ async function scanCustomFolder(
   return results;
 }
 
-/** Scan every watched folder URI and flatten the results. */
-export async function scanCustomFolders(uris: string[]): Promise<ScanResult[]> {
+/**
+ * Scan every watched folder, flatten the results, and report which folders the
+ * OS no longer lets us read (SAF grant revoked or tree moved). A denied folder
+ * is reported back to the caller — which marks it invalid in settings — rather
+ * than thrown, so one revoked grant does not abort the whole category.
+ */
+export async function scanCustomFolders(
+  folders: WatchedFolder[],
+): Promise<{ results: ScanResult[]; denied: WatchedFolder[] }> {
   const results: ScanResult[] = [];
-  for (const uri of uris) {
-    results.push(...(await scanCustomFolder(uri)));
+  const denied: WatchedFolder[] = [];
+  for (const folder of folders) {
+    // Already marked invalid by a previous run: skip, don't re-reject raw.
+    if (folder.invalid) {
+      continue;
+    }
+    try {
+      results.push(...(await scanCustomFolder(folder.uri)));
+    } catch (error) {
+      if (isSafPermissionDenied(error)) {
+        denied.push(folder);
+      } else {
+        throw error;
+      }
+    }
   }
-  return results;
+  return { results, denied };
 }
 
 export async function scanCategory(

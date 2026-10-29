@@ -4,7 +4,7 @@ import { PermissionsAndroid, Platform } from 'react-native';
 import { filesRepo, type FileRecord } from '../src/db/repositories/files';
 import { sessionsRepo } from '../src/db/repositories/sessions';
 import { chunksRepo } from '../src/db/repositories/chunks';
-import { scanCategory, ensureLocalPath, type ScanResult } from '../src/backup/fileScanner';
+import { scanCategory, scanCustomFolders, ensureLocalPath, type ScanResult } from '../src/backup/fileScanner';
 import {
   needsMediaPermissions,
   requestBackupPermissions,
@@ -13,7 +13,7 @@ import {
 import { TelegramBotApi } from '../src/net/telegramApi';
 import { secureStore } from '../src/state/secureStore';
 import { useSettingsStore } from '../src/state/settingsStore';
-import { Category } from '../src/types/models';
+import { Category, makeWatchedFolder } from '../src/types/models';
 import { isUnmeteredNetwork } from '../src/background/androidStatus';
 
 jest.mock('../src/db/repositories/files', () => ({
@@ -41,6 +41,7 @@ jest.mock('../src/db/repositories/chunks', () => ({
   chunksRepo: {
     insert: jest.fn(async () => 1),
     markUploaded: jest.fn(async () => undefined),
+    listPartTelegramIds: jest.fn(async () => []),
   },
 }));
 
@@ -60,6 +61,7 @@ jest.mock('../src/state/secureStore', () => ({
 jest.mock('../src/backup/fileScanner', () => ({
   scanCategory: jest.fn(async () => []),
   ensureLocalPath: jest.fn(async (path: string) => path),
+  scanCustomFolders: jest.fn(async () => ({ results: [], denied: [] })),
 }));
 
 // The real module reads a native constant that does not exist in the test
@@ -76,9 +78,14 @@ const filesMock = filesRepo as unknown as {
   markBackup: jest.Mock;
   count: jest.Mock;
 };
-const chunksMock = chunksRepo as unknown as { insert: jest.Mock; markUploaded: jest.Mock };
+const chunksMock = chunksRepo as unknown as {
+  insert: jest.Mock;
+  markUploaded: jest.Mock;
+  listPartTelegramIds: jest.Mock;
+};
 const scanMock = scanCategory as unknown as jest.Mock;
 const localizeMock = ensureLocalPath as unknown as jest.Mock;
+const scanCustomFoldersMock = scanCustomFolders as unknown as jest.Mock;
 const unlinkMock = ReactNativeBlobUtil.fs.unlink as unknown as jest.Mock;
 const sliceMock = ReactNativeBlobUtil.fs.slice as unknown as jest.Mock;
 const statMock = ReactNativeBlobUtil.fs.stat as unknown as jest.Mock;
@@ -172,7 +179,9 @@ beforeEach(() => {
   filesMock.markBackup.mockResolvedValue(undefined);
   chunksMock.insert.mockResolvedValue(1);
   chunksMock.markUploaded.mockResolvedValue(undefined);
+  chunksMock.listPartTelegramIds.mockResolvedValue([]);
   scanMock.mockResolvedValue([]);
+  scanCustomFoldersMock.mockResolvedValue({ results: [], denied: [] });
   localizeMock.mockImplementation(async (path: string) => path);
   statMock.mockResolvedValue({ size: 0, lastModified: 0, type: 'file' });
   (sessionsRepo.insert as unknown as jest.Mock).mockResolvedValue(1);
@@ -859,7 +868,7 @@ test('P0-1: an encrypted run stores one IV per part and hashes the plaintext arc
     }[];
   };
   const entry = manifest.files[0];
-  expect(manifest.version).toBe('2.0');
+  expect(manifest.version).toBe('2.1');
   expect(entry.name).toMatch(/^backup-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}\.zip\.enc$/);
   expect(entry.encrypted).toBe(true);
   expect(entry.ivs).toHaveLength(entry.chunks);
@@ -927,6 +936,29 @@ test('direct media: a small photo is sent loose while a big video is zipped', as
   // Two manifests: the archive's, plus the session manifest for the loose photo.
   const finishCalls = (sessionsRepo.finishSession as unknown as jest.Mock).mock.calls;
   expect(finishCalls[0][7]).toBe('9,9');
+});
+
+test('v2.1: the manifest carries per-part Telegram ids from the chunks table', async () => {
+  useSettingsStore.getState().setCompressZip(false);
+  scanMock.mockImplementation(async (category: string) => (category === 'photo' ? [PHOTO_ITEM] : []));
+  chunksMock.listPartTelegramIds.mockResolvedValue([
+    { part_name: 'a.jpg', telegram_file_id: 'FID-1', telegram_msg_id: 11 },
+  ]);
+
+  await runBackup();
+
+  const manifestRaw = await ReactNativeBlobUtil.fs.readFile(
+    '/cache/meta_1/session_1.manifest.json',
+    'utf8',
+  );
+  const manifest = JSON.parse(String(manifestRaw)) as {
+    version: string;
+    files: { name: string; parts: { name: string; fileId: string | null; messageId: number | null }[] }[];
+  };
+  expect(manifest.version).toBe('2.1');
+  expect(manifest.files[0].parts).toEqual([
+    { name: 'a.jpg', fileId: 'FID-1', messageId: 11 },
+  ]);
 });
 
 test('direct media: encryption off only, since a .enc file cannot be opened in Telegram', async () => {
@@ -1004,4 +1036,24 @@ test('P1: the session reason keeps a bounded number of failures', () => {
   expect(summarizeErrors([])).toBeNull();
   // A single huge error is truncated too, so the row stays one line.
   expect(summarizeErrors(['x'.repeat(600)])?.length).toBe(498);
+});
+
+test('a revoked SAF grant marks the folder invalid and yields a clear partial message', async () => {
+  useSettingsStore.getState().setCategories([Category.PHOTO, Category.CUSTOM]);
+  const folder = makeWatchedFolder('content://tree/docs');
+  useSettingsStore.getState().addWatchedFolder(folder);
+  scanMock.mockImplementation(async (category: string) =>
+    category === 'photo' ? [PHOTO_ITEM] : [],
+  );
+  scanCustomFoldersMock.mockResolvedValue({ results: [], denied: [folder] });
+
+  const result = await runBackup();
+
+  expect(result.status).toBe('partial');
+  expect(result.error).toContain('Akses folder "docs" dicabut');
+  // The folder is persisted invalid, so Settings shows "perlu pilih ulang" and
+  // the next run skips it instead of re-rejecting the raw SecurityException.
+  const stored = useSettingsStore.getState().config.watchedFolders.find(f => f.id === folder.id);
+  expect(stored?.invalid).toBe(true);
+  useSettingsStore.getState().removeWatchedFolder(folder.id);
 });
