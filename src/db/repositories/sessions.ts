@@ -190,4 +190,45 @@ export const sessionsRepo = {
     const result = await getDb().execute('DELETE FROM backup_sessions WHERE started_at < ?', [ts]);
     return Number(result.rowsAffected ?? 0);
   },
+
+  /** Persist an imported session into backup_sessions so it appears in restore history. */
+  async insertImportedSession(session: {
+    startedAt: number;
+    finishedAt: number;
+    category?: string;
+    totalFiles: number;
+    totalSize: number;
+    chunksTotal: number;
+    chunksSent: number;
+    status: string;
+    manifestId?: string | null;
+    manifestFileIds?: string | null;
+    archiveName?: string | null;
+    encrypted?: number;
+    archiveFormat?: string | null;
+  }): Promise<number> {
+    const result = await getDb().execute(
+      `INSERT INTO backup_sessions (
+        started_at, finished_at, category, total_files, total_size,
+        chunks_total, chunks_sent, status, manifest_id, manifest_file_ids,
+        archive_name, encrypted, archive_format
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        session.startedAt,
+        session.finishedAt,
+        session.category ?? 'all',
+        session.totalFiles,
+        session.totalSize,
+        session.chunksTotal,
+        session.chunksSent,
+        session.status,
+        session.manifestId ?? null,
+        session.manifestFileIds ?? null,
+        session.archiveName ?? null,
+        session.encrypted ?? 0,
+        session.archiveFormat ?? 'zip',
+      ],
+    );
+    return Number(result.insertId ?? 0);
+  },
 };

@@ -70,4 +70,29 @@ export const chunksRepo = {
     );
     return result.rows.map(row => row as unknown as StoredPart);
   },
+
+  /** Insert an imported part with its telegram file_id and message_id. */
+  async insertImportedPart(
+    sessionId: number,
+    chunkIndex: number,
+    size: number,
+    partName: string,
+    telegramFileId: string | null,
+    telegramMsgId: number | null,
+  ): Promise<number> {
+    const result = await getDb().execute(
+      `INSERT INTO chunks (session_id, chunk_index, size, part_name, telegram_file_id, telegram_msg_id, uploaded_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        sessionId,
+        chunkIndex,
+        size,
+        partName,
+        telegramFileId,
+        telegramMsgId,
+        Math.floor(Date.now() / 1000),
+      ],
+    );
+    return Number(result.insertId ?? 0);
+  },
 };

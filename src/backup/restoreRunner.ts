@@ -359,7 +359,7 @@ export async function loadManifestFromFolder(dir: string): Promise<Manifest> {
  * under its own name; backups made before that change used the `.001` suffix,
  * so a single-part entry accepts both.
  */
-function partNames(file: ManifestFile, index: number): string[] {
+export function partNames(file: ManifestFile, index: number): string[] {
   const name = partNameFor(file.name, index, file.chunks);
   return file.chunks === 1 ? [name, chunkName(file.name, 1)] : [name];
 }
@@ -643,41 +643,175 @@ export async function restoreFromTelegram(
     }
     const manifest = mergeManifests(manifests);
 
-    const stored = await chunksRepo.listDownloadableParts(sessionId);
-    const byPart = new Map(stored.map(part => [part.part_name, part.telegram_file_id]));
+    const outDir =
+      options.outputDir ?? `${ReactNativeBlobUtil.fs.dirs.CacheDir}/restored_${sessionId}`;
+    return restoreFromManifest(manifest, api, options, {
+      sessionId,
+      workDir,
+      outDir,
+    });
+  } finally {
+    await ReactNativeBlobUtil.fs.unlink(workDir).catch(() => undefined);
+    untrackTempDir(workDir);
+  }
+}
 
-    // Download each needed part once; repeated entries (the same archive named
-    // twice) hit the local cache instead of the network again.
+export type RestoreManifestOptions = RestoreOptions & {
+  sessionId?: number;
+  workDir?: string;
+  chatId?: string | number;
+};
+
+/**
+ * Restore directly from a Manifest structure with layered file_id resolution:
+ * 1. Local SQLite DB (`chunks` table for sessionId if provided).
+ * 2. `parts[].fileId` from manifest v2.1.
+ * 3. Fallback `forwardMessage(chatId, messageId)` to obtain fresh file_id, then `deleteMessage`.
+ * Missing parts are skipped per-file, reported in final result, without aborting overall run.
+ */
+export async function restoreFromManifest(
+  manifest: Manifest,
+  api: TelegramBotApi,
+  options: RestoreOptions = {},
+  context: {
+    sessionId?: number;
+    workDir?: string;
+    outDir?: string;
+    chatId?: string | number;
+  } = {},
+): Promise<RestoreResult> {
+  const ownWorkDir = !context.workDir;
+  const workDir =
+    context.workDir ?? `${ReactNativeBlobUtil.fs.dirs.CacheDir}/manifest_restore_${Date.now()}`;
+  if (ownWorkDir) {
+    await ReactNativeBlobUtil.fs.mkdir(workDir).catch(() => undefined);
+    trackTempDir(workDir);
+  }
+
+  try {
+    const targetChatId = context.chatId ?? (api as unknown as { chatId?: string | number }).chatId;
+    let storedByPart = new Map<string, string>();
+    if (context.sessionId !== undefined && context.sessionId !== null) {
+      try {
+        const stored = await chunksRepo.listDownloadableParts(context.sessionId);
+        storedByPart = new Map(
+          stored
+            .filter((part): part is typeof part & { telegram_file_id: string } => part.telegram_file_id !== null)
+            .map(part => [part.part_name, part.telegram_file_id]),
+        );
+      } catch {
+        // DB not available or empty; continue with manifest
+      }
+    }
+
+    // Build part lookup from manifest v2.1 parts if present
+    const manifestPartMap = new Map<string, ManifestPart>();
+    for (const file of manifest.files) {
+      if (file.parts) {
+        for (const part of file.parts) {
+          manifestPartMap.set(part.name, part);
+        }
+      }
+    }
+
     const localByPart = new Map<string, string>();
+
     const downloader: Resolver = async file => {
       const parts: string[] = [];
       const missing: string[] = [];
+
       for (let index = 1; index <= file.chunks; index += 1) {
         const names = partNames(file, index);
-        const name = names.find(candidate => byPart.has(candidate));
-        if (name === undefined) {
-          missing.push(names[0]);
+        // Find best matching part name
+        const name =
+          names.find(candidate => storedByPart.has(candidate)) ??
+          names.find(candidate => manifestPartMap.has(candidate)) ??
+          names[0];
+
+        let local = localByPart.get(name);
+        if (local) {
+          parts.push(local);
           continue;
         }
-        const fileId = byPart.get(name) as string;
-        let local = localByPart.get(name);
-        if (!local) {
-          local = `${workDir}/${assertSafeNameReturn(name)}`;
-          await api.downloadFile(fileId, local);
-          localByPart.set(name, local);
+
+        // 1. Check local DB
+        let fileId = storedByPart.get(name) ?? null;
+        let messageId: number | null = null;
+
+        // 2. Check manifest v2.1 parts
+        const manifestPart = manifestPartMap.get(name);
+        if (!fileId && manifestPart?.fileId) {
+          fileId = manifestPart.fileId;
         }
-        parts.push(local);
+        if (manifestPart?.messageId) {
+          messageId = manifestPart.messageId;
+        }
+
+        local = `${workDir}/${assertSafeNameReturn(name)}`;
+        let downloaded = false;
+
+        // Attempt direct download if fileId exists
+        if (fileId) {
+          try {
+            await api.downloadFile(fileId, local);
+            downloaded = true;
+          } catch {
+            downloaded = false;
+          }
+        }
+
+        // 3. Fallback forwardMessage if download failed and we have messageId and targetChatId
+        if (!downloaded && messageId !== null && targetChatId !== undefined) {
+          try {
+            const fwd = await api.forwardMessage(targetChatId, targetChatId, messageId);
+            if (fwd.fileId) {
+              await api.downloadFile(fwd.fileId, local);
+              downloaded = true;
+            }
+            if (fwd.messageId) {
+              await api.deleteMessage(targetChatId, fwd.messageId);
+            }
+          } catch {
+            downloaded = false;
+          }
+        }
+
+        if (downloaded) {
+          localByPart.set(name, local);
+          parts.push(local);
+        } else {
+          missing.push(name);
+        }
       }
       return { parts, missing };
     };
 
     const outDir =
-      options.outputDir ?? `${ReactNativeBlobUtil.fs.dirs.CacheDir}/restored_${sessionId}`;
-    return restoreEntries(manifest, outDir, options, downloader);
+      context.outDir ??
+      options.outputDir ??
+      `${ReactNativeBlobUtil.fs.dirs.CacheDir}/restored_${manifest.sessionId || Date.now()}`;
+
+    return await restoreEntries(manifest, outDir, options, downloader);
   } finally {
-    await ReactNativeBlobUtil.fs.unlink(workDir).catch(() => undefined);
-    untrackTempDir(workDir);
+    if (ownWorkDir) {
+      await ReactNativeBlobUtil.fs.unlink(workDir).catch(() => undefined);
+      untrackTempDir(workDir);
+    }
   }
+}
+
+/**
+ * Restore from a local manifest file (`*.manifest.json`) on disk using TelegramBotApi
+ * with layered resolution.
+ */
+export async function restoreFromManifestFile(
+  manifestPath: string,
+  api: TelegramBotApi,
+  options: RestoreOptions = {},
+): Promise<RestoreResult> {
+  const content = await readText(manifestPath);
+  const manifest = parseManifest(content);
+  return restoreFromManifest(manifest, api, options);
 }
 
 function assertSafeNameReturn(name: string): string {

@@ -219,6 +219,133 @@ export class TelegramBotApi {
     return [...chats.values()];
   }
 
+  /**
+   * Scan recent updates for manifest document files forwarded or sent to the bot.
+   * Matches `*.manifest.json` and legacy `manifest.json`.
+   */
+  async getRecentManifestDocuments(): Promise<
+    Array<{
+      fileId: string;
+      fileName: string;
+      fileSize?: number;
+      messageId: number;
+      date: number;
+    }>
+  > {
+    const response = await this.request({
+      url: `${this.baseUrl}/getUpdates?limit=100`,
+      method: 'GET',
+    });
+    const updates = (this.parse(response).result ?? []) as Array<{
+      message?: {
+        message_id?: number;
+        date?: number;
+        document?: {
+          file_id?: string;
+          file_name?: string;
+          file_size?: number;
+        };
+      };
+      channel_post?: {
+        message_id?: number;
+        date?: number;
+        document?: {
+          file_id?: string;
+          file_name?: string;
+          file_size?: number;
+        };
+      };
+    }>;
+    const found: Array<{
+      fileId: string;
+      fileName: string;
+      fileSize?: number;
+      messageId: number;
+      date: number;
+    }> = [];
+    const seen = new Set<string>();
+
+    for (const update of updates) {
+      const msg = update.message ?? update.channel_post;
+      const doc = msg?.document;
+      const fileName = doc?.file_name;
+      const fileId = doc?.file_id;
+      if (!doc || !fileName || !fileId) {
+        continue;
+      }
+      if (fileName === 'manifest.json' || fileName.endsWith('.manifest.json')) {
+        if (!seen.has(fileId)) {
+          seen.add(fileId);
+          found.push({
+            fileId,
+            fileName,
+            fileSize: doc.file_size,
+            messageId: Number(msg?.message_id ?? 0),
+            date: Number(msg?.date ?? 0),
+          });
+        }
+      }
+    }
+    return found;
+  }
+
+  /**
+   * Forward a message to refresh its file_id or re-access media, returning new message info.
+   */
+  async forwardMessage(
+    chatId: string | number,
+    fromChatId: string | number,
+    messageId: number,
+  ): Promise<{ messageId: number; fileId?: string }> {
+    const fields: Record<string, string> = {
+      chat_id: String(chatId),
+      from_chat_id: String(fromChatId),
+      message_id: String(messageId),
+    };
+    const response = await this.request({
+      url: `${this.baseUrl}/forwardMessage`,
+      method: 'POST',
+      fields,
+    });
+    const parsed = this.parse(response).result as {
+      message_id?: number;
+      document?: { file_id?: string };
+      photo?: Array<{ file_id?: string }>;
+      video?: { file_id?: string };
+    };
+    const docFileId =
+      parsed.document?.file_id ??
+      (Array.isArray(parsed.photo) && parsed.photo.length > 0
+        ? parsed.photo[parsed.photo.length - 1].file_id
+        : undefined) ??
+      parsed.video?.file_id;
+    return {
+      messageId: Number(parsed.message_id ?? 0),
+      ...(docFileId ? { fileId: docFileId } : {}),
+    };
+  }
+
+  /**
+   * Delete a message by id (e.g. clean up a temporary forwarded message).
+   */
+  async deleteMessage(chatId: string | number, messageId: number): Promise<boolean> {
+    const fields: Record<string, string> = {
+      chat_id: String(chatId),
+      message_id: String(messageId),
+    };
+    try {
+      const response = await this.request({
+        url: `${this.baseUrl}/deleteMessage`,
+        method: 'POST',
+        fields,
+      });
+      const parsed = this.parse(response).result;
+      return Boolean(parsed);
+    } catch {
+      return false;
+    }
+  }
+
   async sendMessage(text: string, disableNotification = false): Promise<SendResult> {
     // No `parse_mode`: the only messages this app sends are fixed plain strings
     // (the run summary and the setup test message). Markdown would 400 on any
