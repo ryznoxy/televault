@@ -13,6 +13,13 @@ export type StoredPart = {
   telegram_file_id: string | null;
 };
 
+/** v2.1 manifest lookup: what Telegram needs to re-download each part. */
+export type PartTelegramIds = {
+  part_name: string;
+  telegram_file_id: string | null;
+  telegram_msg_id: number | null;
+};
+
 export const chunksRepo = {
   async insert(chunk: NewChunk): Promise<number> {
     const result = await getDb().execute(
@@ -42,5 +49,15 @@ export const chunksRepo = {
       [sessionId],
     );
     return result.rows.map(row => row as unknown as StoredPart);
+  },
+
+  /** Uploaded parts of a session with their Telegram ids, keyed by part name. */
+  async listPartTelegramIds(sessionId: number): Promise<PartTelegramIds[]> {
+    const result = await getDb().execute(
+      `SELECT part_name, telegram_file_id, telegram_msg_id FROM chunks
+       WHERE session_id = ? AND part_name IS NOT NULL`,
+      [sessionId],
+    );
+    return result.rows.map(row => row as unknown as PartTelegramIds);
   },
 };

@@ -802,6 +802,29 @@ export async function runBackup(
     try {
       const metaDir = `${ReactNativeBlobUtil.fs.dirs.CacheDir}/meta_${sessionId}`;
       await ReactNativeBlobUtil.fs.mkdir(metaDir).catch(() => undefined);
+      //
+      // v2.1: every upload is recorded in the chunks table before the manifest
+      // is built, so its parts can carry the Telegram `file_id` + message id.
+      // The manifest then survives a reinstall (local DB lost) and restore can
+      // re-download from Telegram alone. A part the DB does not know (an older
+      // table shape, a write that failed) leaves its ids null instead of
+      // failing the run: the manifest stays useful for name-based restore.
+      const storedParts = await chunksRepo.listPartTelegramIds(sessionId);
+      const telegramIds = new Map(storedParts.map(part => [part.part_name, part]));
+      for (const file of manifestFiles) {
+        for (let part = 1; part <= file.chunks; part += 1) {
+          const name = partNameFor(file.name, part, file.chunks);
+          const stored = telegramIds.get(name);
+          file.parts = [
+            ...(file.parts ?? []),
+            {
+              name,
+              fileId: stored?.telegram_file_id ?? null,
+              messageId: stored?.telegram_msg_id ?? null,
+            },
+          ];
+        }
+      }
       const sentIds: string[] = [];
       const sentFileIds: string[] = [];
       for (let index = 0; index < groups.length; index += 1) {

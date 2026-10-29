@@ -6,7 +6,7 @@ import { sha256File } from './hasher';
 import { trackTempDir, untrackTempDir } from './tempDirs';
 import { chunksRepo } from '../db/repositories/chunks';
 import type { TelegramBotApi } from '../net/telegramApi';
-import type { Manifest, ManifestEncryption, ManifestFile } from './manifest';
+import type { Manifest, ManifestEncryption, ManifestFile, ManifestPart } from './manifest';
 
 export type RestorePhase = 'joining' | 'verifying' | 'decrypting' | 'extracting' | 'done';
 
@@ -47,6 +47,8 @@ export type PartResolution = {
 const MANIFEST_VERSION = '1.0';
 /** Backup builds since the per-part encryption change write 2.0 manifests. */
 const MANIFEST_VERSION_V2 = '2.0';
+/** v2.1 adds optional per-part Telegram ids: the manifest becomes self-contained. */
+const MANIFEST_VERSION_V21 = '2.1';
 const LEGACY_MANIFEST_NAME = 'manifest.json';
 
 /** A backup manifest, legacy (`manifest.json`) or named after its archive. */
@@ -136,12 +138,33 @@ function parseEncryption(raw: unknown): ManifestEncryption {
   return { algorithm: 'AES-256-GCM', kdf: 'PBKDF2-SHA256', iterations, salt };
 }
 
+/**
+ * Parse one `parts[]` entry of a v2.1 manifest: the uploaded part name plus
+ * whatever Telegram ids the writing build managed to record (either may be
+ * null — the manifest is the fallback source, restore still has DB / chat).
+ */
+function parsePartEntry(file: string, part: unknown, partIndex: number): ManifestPart {
+  if (!part || typeof part !== 'object') {
+    throw new Error(`Berkas ${file}: parts[${partIndex}] tidak valid`);
+  }
+  const record = part as Record<string, unknown>;
+  const { name, fileId, messageId } = record;
+  if (typeof name !== 'string' || name === '') {
+    throw new Error(`Berkas ${file}: parts[${partIndex}] tidak valid`);
+  }
+  const id = fileId === null || fileId === undefined ? null : String(fileId);
+  const msg = messageId === null || messageId === undefined ? null : Number(messageId);
+  if (id === '' || Number.isNaN(msg)) {
+    throw new Error(`Berkas ${file}: parts[${partIndex}] tidak valid`);
+  }
+  return { name, fileId: id, messageId: msg };
+}
 function parseFileEntry(entry: unknown, index: number): ManifestFile {
   if (!entry || typeof entry !== 'object') {
     throw new Error(`Berkas ke-${index + 1} di manifest tidak valid`);
   }
   const record = entry as Record<string, unknown>;
-  const { name, size, chunks, encrypted, sha256, iv, ivs } = record;
+  const { name, size, chunks, encrypted, sha256, iv, ivs, parts } = record;
   if (typeof name !== 'string' || !isSafeName(name)) {
     throw new Error(`Berkas ke-${index + 1}: nama berkas tidak valid`);
   }
@@ -175,6 +198,14 @@ function parseFileEntry(entry: unknown, index: number): ManifestFile {
     }
     file.ivs = ivs as string[];
   }
+  // v2.1: optional per-part Telegram ids. Absent in v1.0/v2.0 manifests,
+  // in which case restore keeps using its older, purely local sources.
+  if (parts !== undefined) {
+    if (!Array.isArray(parts) || parts.length !== chunks) {
+      throw new Error(`Berkas ${name}: daftar parts tidak cocok dengan jumlah potongan`);
+    }
+    file.parts = parts.map((part, partIndex) => parsePartEntry(name, part, partIndex));
+  }
   if (encrypted && !file.iv && !file.ivs) {
     throw new Error(`Berkas ${name}: berkas terenkripsi tanpa IV`);
   }
@@ -192,7 +223,11 @@ export function parseManifest(json: string): Manifest {
     throw new Error('manifest.json tidak valid');
   }
   const record = raw as Record<string, unknown>;
-  if (record.version !== MANIFEST_VERSION && record.version !== MANIFEST_VERSION_V2) {
+  if (
+    record.version !== MANIFEST_VERSION &&
+    record.version !== MANIFEST_VERSION_V2 &&
+    record.version !== MANIFEST_VERSION_V21
+  ) {
     throw new Error(`Versi manifest tidak didukung: ${String(record.version)}`);
   }
   if (typeof record.session_id !== 'string') {

@@ -41,6 +41,7 @@ jest.mock('../src/db/repositories/chunks', () => ({
   chunksRepo: {
     insert: jest.fn(async () => 1),
     markUploaded: jest.fn(async () => undefined),
+    listPartTelegramIds: jest.fn(async () => []),
   },
 }));
 
@@ -76,7 +77,11 @@ const filesMock = filesRepo as unknown as {
   markBackup: jest.Mock;
   count: jest.Mock;
 };
-const chunksMock = chunksRepo as unknown as { insert: jest.Mock; markUploaded: jest.Mock };
+const chunksMock = chunksRepo as unknown as {
+  insert: jest.Mock;
+  markUploaded: jest.Mock;
+  listPartTelegramIds: jest.Mock;
+};
 const scanMock = scanCategory as unknown as jest.Mock;
 const localizeMock = ensureLocalPath as unknown as jest.Mock;
 const unlinkMock = ReactNativeBlobUtil.fs.unlink as unknown as jest.Mock;
@@ -172,6 +177,7 @@ beforeEach(() => {
   filesMock.markBackup.mockResolvedValue(undefined);
   chunksMock.insert.mockResolvedValue(1);
   chunksMock.markUploaded.mockResolvedValue(undefined);
+  chunksMock.listPartTelegramIds.mockResolvedValue([]);
   scanMock.mockResolvedValue([]);
   localizeMock.mockImplementation(async (path: string) => path);
   statMock.mockResolvedValue({ size: 0, lastModified: 0, type: 'file' });
@@ -859,7 +865,7 @@ test('P0-1: an encrypted run stores one IV per part and hashes the plaintext arc
     }[];
   };
   const entry = manifest.files[0];
-  expect(manifest.version).toBe('2.0');
+  expect(manifest.version).toBe('2.1');
   expect(entry.name).toMatch(/^backup-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}\.zip\.enc$/);
   expect(entry.encrypted).toBe(true);
   expect(entry.ivs).toHaveLength(entry.chunks);
@@ -927,6 +933,29 @@ test('direct media: a small photo is sent loose while a big video is zipped', as
   // Two manifests: the archive's, plus the session manifest for the loose photo.
   const finishCalls = (sessionsRepo.finishSession as unknown as jest.Mock).mock.calls;
   expect(finishCalls[0][7]).toBe('9,9');
+});
+
+test('v2.1: the manifest carries per-part Telegram ids from the chunks table', async () => {
+  useSettingsStore.getState().setCompressZip(false);
+  scanMock.mockImplementation(async (category: string) => (category === 'photo' ? [PHOTO_ITEM] : []));
+  chunksMock.listPartTelegramIds.mockResolvedValue([
+    { part_name: 'a.jpg', telegram_file_id: 'FID-1', telegram_msg_id: 11 },
+  ]);
+
+  await runBackup();
+
+  const manifestRaw = await ReactNativeBlobUtil.fs.readFile(
+    '/cache/meta_1/session_1.manifest.json',
+    'utf8',
+  );
+  const manifest = JSON.parse(String(manifestRaw)) as {
+    version: string;
+    files: { name: string; parts: { name: string; fileId: string | null; messageId: number | null }[] }[];
+  };
+  expect(manifest.version).toBe('2.1');
+  expect(manifest.files[0].parts).toEqual([
+    { name: 'a.jpg', fileId: 'FID-1', messageId: 11 },
+  ]);
 });
 
 test('direct media: encryption off only, since a .enc file cannot be opened in Telegram', async () => {

@@ -21,7 +21,7 @@ test('createManifest converts timestamp to seconds and sums sizes', () => {
 test('manifest JSON matches the locked PRD shape', () => {
   const manifest = createManifest('Pixel 7', 1694524800000, files, 'session-1');
   const json = JSON.parse(manifestToJson(manifest));
-  expect(json.version).toBe('2.0');
+  expect(json.version).toBe('2.1');
   expect(json.session_id).toBe('session-1');
   expect(json.device).toBe('Pixel 7');
   expect(json.files[0]).toEqual({
@@ -121,4 +121,26 @@ test('P0-1: a v2 entry serialises one IV per part and the scripts say so', () =>
   expect(scripts.sh).toContain('every part is encrypted on its own');
   expect(scripts.sh).toContain('"ivs"');
   expect(scripts.bat).toContain('Decrypt every part');
+});
+
+test('v2.1: per-part Telegram ids serialise, nulls stay null, and omission stays clean', () => {
+  const withParts: ManifestFile = {
+    name: 'DCIM.zip',
+    size: 100,
+    chunks: 3,
+    encrypted: false,
+    sha256: 'x',
+    parts: [
+      { name: 'DCIM.zip.001', fileId: 'AAA', messageId: 11 },
+      { name: 'DCIM.zip.002', fileId: null, messageId: null },
+      { name: 'DCIM.zip.003', fileId: 'CCC', messageId: 13 },
+    ],
+  };
+  const json = JSON.parse(manifestToJson(createManifest('Pixel 7', 0, [withParts], 's')));
+  expect(json.version).toBe('2.1');
+  expect(json.files[0].parts).toEqual(withParts.parts);
+
+  // A v2-shaped entry (no parts) serialises without a `parts` key.
+  const plain = JSON.parse(manifestToJson(createManifest('Pixel 7', 0, [files[1]], 's')));
+  expect(plain.files[0].parts).toBeUndefined();
 });
