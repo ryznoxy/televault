@@ -1,14 +1,14 @@
 {
   "0": "SettingsScreen.tsx",
   "1": "restoreRunner.ts",
-  "2": ".build",
+  "2": "StatusNotification.kt",
   "3": "foregroundService.ts",
   "4": "backupRunner.test.ts",
   "5": "backupRunner.ts",
   "7": "StatsScreen.tsx",
   "14": "SafFolderModule.kt",
   "20": "engines",
-  "23": "TroubleshootScreen.tsx",
+  "23": "BackgroundTour.tsx",
   "28": "Checklist rilis",
   "29": "updateStore.ts",
   "30": "ui.tsx",
@@ -18,7 +18,7 @@
   "34": "ExactAlarm",
   "35": "HomeScreen.tsx",
   "36": "manifest.ts",
-  "37": "StatusNotification.kt",
+  "37": "zustand",
   "38": "react-native-blob-util",
   "39": "chunker.ts",
   "40": "AlarmReceiver.kt",
@@ -26,9 +26,8 @@
   "42": "BootReceiver.kt",
   "43": "ScheduledRunService.kt",
   "44": "incremental.ts",
-  "45": "updateAlert.test.tsx",
+  "45": "ThemeProvider.tsx",
   "46": "DESIGN.md",
-  "49": "AppNav.tsx",
-  "50": "VaultStatusModule.kt",
-  "52": "react-native-safe-area-context"
+  "49": "TroubleshootScreen.tsx",
+  "50": "VaultStatusModule.kt"
 }
