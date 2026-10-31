@@ -34,7 +34,7 @@ describe('scheduledRunTask', () => {
     await scheduledRunTask();
 
     // The native runner is what avoids starting a second service from the background.
-    expect(mockRunScheduledBackup).toHaveBeenCalledWith(runBackupInNativeService);
+    expect(mockRunScheduledBackup).toHaveBeenCalledWith(runBackupInNativeService, true);
     expect(mockSyncExactAlarm).toHaveBeenCalledTimes(1);
     // The alarm's service records its own source, so Troubleshooting can tell it
     // apart from an inexact JobScheduler wake.
@@ -69,6 +69,6 @@ describe('scheduledRunTask', () => {
 
     await scheduledRunTask();
 
-    expect(mockRunScheduledBackup).toHaveBeenCalledWith(runBackupInNativeService);
+    expect(mockRunScheduledBackup).toHaveBeenCalledWith(runBackupInNativeService, true);
   });
 });

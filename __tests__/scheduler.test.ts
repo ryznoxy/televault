@@ -19,7 +19,7 @@ jest.mock('../src/background/androidStatus', () => ({
 }));
 
 jest.mock('../src/db/repositories/sessions', () => ({
-  sessionsRepo: { lastSuccess: jest.fn(async () => null) },
+  sessionsRepo: { lastAttemptAt: jest.fn(async () => null) },
 }));
 
 jest.mock('../src/background/foregroundService', () => ({

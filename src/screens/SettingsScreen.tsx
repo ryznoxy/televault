@@ -227,6 +227,7 @@ export default function SettingsScreen({ navigation }: Props) {
   const setDirectMedia = useSettingsStore(state => state.setDirectMedia);
   const setDirectMediaMaxMb = useSettingsStore(state => state.setDirectMediaMaxMb);
   const addWatchedFolder = useSettingsStore(state => state.addWatchedFolder);
+  const updateWatchedFolder = useSettingsStore(state => state.updateWatchedFolder);
   const removeWatchedFolder = useSettingsStore(state => state.removeWatchedFolder);
 
   const { toast, showToast } = useToast('bottom');
@@ -342,8 +343,20 @@ export default function SettingsScreen({ navigation }: Props) {
 
   const onAddFolder = async () => {
     try {
-      const result = await pickDirectory();
+      // `requestLongTermAccess` is what makes Android persist the folder grant;
+      // without it the folder is readable only until the next reboot, and the
+      // next run then marks it "perlu pilih ulang" for a grant that was never
+      // stored. Re-picking an invalid folder clears the flag instead of adding
+      // a second entry for the same directory.
+      const result = await pickDirectory({ requestLongTermAccess: true });
+      const existing = config.watchedFolders.find(folder => folder.uri === result.uri);
+      if (existing) {
+        updateWatchedFolder(existing.id, { invalid: false });
+        showToast('Folder dipulihkan', `${existing.name} bisa dibaca lagi.`, 'success');
+        return;
+      }
       addWatchedFolder(makeWatchedFolder(result.uri));
+      showToast('Folder ditambahkan', 'Isi folder ikut dicadangkan.', 'success');
     } catch {
       // user cancelled
     }

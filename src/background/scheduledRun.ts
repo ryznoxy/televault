@@ -21,7 +21,7 @@ export async function scheduledRunTask(): Promise<void> {
     if (getConfig().chargingOnly && !(await isCharging())) {
       return;
     }
-    await runScheduledBackup(runBackupInNativeService);
+    await runScheduledBackup(runBackupInNativeService, true);
   } catch (error) {
     logError('scheduler', error);
   } finally {
