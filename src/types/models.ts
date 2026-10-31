@@ -108,7 +108,9 @@ export type BackupConfig = {
 
 export const DEFAULT_CONFIG: BackupConfig = {
   categories: [Category.PHOTO, Category.VIDEO, Category.DOC],
-  scheduleMode: ScheduleMode.MANUAL,
+  // Daily out of the box: a fresh install backs up on its own at 02:00, with no
+  // trip to Settings first. Manual stays available as an explicit choice.
+  scheduleMode: ScheduleMode.TIME,
   intervalHours: 24,
   scheduledTimeHour: 2,
   wifiOnly: true,

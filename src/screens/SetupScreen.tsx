@@ -22,6 +22,10 @@ import {
 } from '../components/ui';
 import { FONT, ON_ACCENT, TG_LIGHT,  ELEVATION, RADIUS, SPACE, tgTheme, type TGPalette } from '../theme/theme';
 import { isCryptoAvailable, newSaltB64 } from '../backup/crypto';
+import {
+  requestBackupPermissions,
+  requestNotificationPermission,
+} from '../backup/permissions';
 import { TelegramBotApi } from '../net/telegramApi';
 import { stopScheduler } from '../background/scheduler';
 import { clipboard } from '../state/clipboard';
@@ -289,6 +293,14 @@ export default function SetupScreen({ navigation }: Props) {
       }
       setSetupDone(true);
       setSaveStatus('saved');
+      // First run has to end usable: the daily schedule (on by default) needs
+      // the notification grant for its foreground service, and photos/videos
+      // need the media grant. Both are asked here, while an activity is on
+      // screen — a scheduled/headless run cannot show these dialogs.
+      requestNotificationPermission().catch(() => undefined);
+      requestBackupPermissions(useSettingsStore.getState().config.categories).catch(
+        () => undefined,
+      );
       showToast('Tersimpan', 'Kredensial terverifikasi dan tersimpan.', 'success');
       if (saveTimer.current) {
         clearTimeout(saveTimer.current);
