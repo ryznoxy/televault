@@ -291,16 +291,17 @@ export default function SetupScreen({ navigation }: Props) {
         // No passphrase, or crypto backend unavailable: never claim encryption is on.
         setEncryptionEnabled(false);
       }
-      setSetupDone(true);
-      setSaveStatus('saved');
       // First run has to end usable: the daily schedule (on by default) needs
       // the notification grant for its foreground service, and photos/videos
       // need the media grant. Both are asked here, while an activity is on
-      // screen — a scheduled/headless run cannot show these dialogs.
-      requestNotificationPermission().catch(() => undefined);
-      requestBackupPermissions(useSettingsStore.getState().config.categories).catch(
+      // screen — a scheduled/headless run cannot show these dialogs. Awaited
+      // before `setSetupDone`, so the tour modal does not open underneath them.
+      await requestNotificationPermission().catch(() => undefined);
+      await requestBackupPermissions(useSettingsStore.getState().config.categories).catch(
         () => undefined,
       );
+      setSetupDone(true);
+      setSaveStatus('saved');
       showToast('Tersimpan', 'Kredensial terverifikasi dan tersimpan.', 'success');
       if (saveTimer.current) {
         clearTimeout(saveTimer.current);
