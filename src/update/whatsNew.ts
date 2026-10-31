@@ -9,6 +9,15 @@ export type WhatsNew = {
 };
 
 export const WHATS_NEW: Record<string, WhatsNew> = {
+  '1.7.1': {
+    title: 'Apa baru di v1.7.1',
+    items: [
+      'Instal baru langsung bisa dipakai: jadwal backup sudah Harian 02:00 sejak awal, tanpa perlu diatur dulu',
+      'Izin notifikasi dan izin foto/video kini diminta tepat setelah kredensial tersimpan, tidak lagi menunggu backup manual pertama',
+      'Tur persiapan jadi empat langkah dan ikut meminta "Akses semua file", jadi folder Download dan Documents langsung terbaca',
+      'Notifikasi status baru muncul setelah setup selesai, tidak lagi menyela sebelum bot tersambung',
+    ],
+  },
   '1.7.0': {
     title: 'Apa baru di v1.7.0',
     items: [

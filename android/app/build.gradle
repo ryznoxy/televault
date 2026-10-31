@@ -89,8 +89,8 @@ android {
         // without a source edit; local builds keep these defaults.
         def vaultVersionCode = project.findProperty('TELEVAULT_VERSION_CODE')
         def vaultVersionName = project.findProperty('TELEVAULT_VERSION_NAME')
-        versionCode vaultVersionCode != null ? vaultVersionCode.toInteger() : 1
-        versionName vaultVersionName != null ? vaultVersionName.toString() : "1.0.0"
+        versionCode vaultVersionCode != null ? vaultVersionCode.toInteger() : 10701
+        versionName vaultVersionName != null ? vaultVersionName.toString() : "1.7.1"
     }
     signingConfigs {
         debug {
