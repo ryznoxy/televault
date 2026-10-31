@@ -1,6 +1,6 @@
 import { NativeModules, Platform } from 'react-native';
 import { sessionsRepo } from '../db/repositories/sessions';
-import { getConfig } from '../state/settingsStore';
+import { getConfig, useSettingsStore } from '../state/settingsStore';
 import { ScheduleMode, type BackupConfig } from '../types/models';
 import { statusBody, statusVisible } from './statusText';
 
@@ -123,7 +123,10 @@ export function refreshStatusNotification(
   if (!native) {
     return;
   }
-  if (!statusVisible(getConfig())) {
+  // Automation is on by default now (daily), so schedule alone no longer means
+  // the app has anything to automate: a fresh install with no bot must not post
+  // "TeleVault aktif" before the user finished setup.
+  if (!useSettingsStore.getState().setupDone || !statusVisible(getConfig())) {
     native.hideStatus();
     return;
   }
