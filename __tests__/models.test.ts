@@ -1,10 +1,16 @@
-import { DEFAULT_CONFIG } from '../src/types/models';
+import { DEFAULT_CONFIG, ScheduleMode } from '../src/types/models';
 import { useSettingsStore, getConfig } from '../src/state/settingsStore';
 import { mmkv } from '../src/state/mmkv';
 
 beforeEach(() => {
   mmkv.clearAll();
   useSettingsStore.setState({ config: DEFAULT_CONFIG, setupDone: false });
+});
+
+test('a fresh install is already scheduled daily at 02:00', () => {
+  expect(DEFAULT_CONFIG.scheduleMode).toBe(ScheduleMode.TIME);
+  expect(DEFAULT_CONFIG.scheduledTimeHour).toBe(2);
+  expect(DEFAULT_CONFIG.automationPaused).toBe(false);
 });
 
 test('new backup config fields have the documented defaults', () => {

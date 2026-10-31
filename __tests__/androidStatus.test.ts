@@ -11,9 +11,23 @@ function fakeNative(): Native {
 const flush = () => new Promise<void>(resolve => setImmediate(() => resolve()));
 
 beforeEach(() => {
-  // The notification only exists while automation is on.
+  // The notification only exists while automation is on, after a finished setup.
   useSettingsStore.getState().setScheduleMode('time');
   useSettingsStore.getState().setAutomationPaused(false);
+  useSettingsStore.getState().setSetupDone(true);
+});
+
+test('an install that never finished setup posts nothing', async () => {
+  const native = fakeNative();
+  const repo = { lastFinished: jest.fn() };
+  useSettingsStore.getState().setSetupDone(false);
+
+  refreshStatusNotification(native as never, repo as never);
+  await flush();
+
+  expect(native.hideStatus).toHaveBeenCalled();
+  expect(native.showStatus).not.toHaveBeenCalled();
+  expect(repo.lastFinished).not.toHaveBeenCalled();
 });
 
 test('a partial run counts as the last backup, not "belum pernah berjalan"', async () => {

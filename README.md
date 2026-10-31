@@ -45,7 +45,7 @@ Cocok untuk yang ingin backup rutin tanpa menyewa storage: Telegram sudah jadi t
 
 ### Penjadwalan dan latar belakang
 
-- **Frekuensi**: Tiap Jam, ±15 Menit, Mingguan, atau Harian pada jam pilihan (default 02:00).
+- **Frekuensi**: Harian pada jam pilihan adalah bawaan instalasi baru (default 02:00), jadi backup jalan sendiri setelah setup; Tiap Jam, ±15 Menit, Mingguan, dan Manual tetap tersedia.
 - **Hanya saat charging**: satu toggle yang menahan jadwal apa pun sampai HP dicolok. Alarm 02:00 tetap bangun tepat waktu, memeriksa charger, lalu melewati slot itu kalau tidak dicas.
 - **Jeda kapan saja**: tombol Jeda di layar Utama menghentikan jadwal tanpa menghapus pengaturan.
 - **Alarm eksak**: jadwal jam tertentu memakai alarm bentuk alarm jam, jadi tidak digeser Doze.
@@ -72,7 +72,7 @@ Cocok untuk yang ingin backup rutin tanpa menyewa storage: Telegram sudah jadi t
 - **Alert pembaruan**: muncul di atas layar mana pun, dengan tombol Perbarui dan Nanti, progres unduh, dan tombol batal.
 - **Modal apa baru**: ringkasan perubahan tampil sekali setelah update.
 - **Troubleshooting**: status izin, panduan baterai per merek, sumber wake terakhir, dan popup kegagalan terakhir.
-- **Tour persiapan**: tiga langkah memandu izin bebas optimasi baterai dan autostart setelah setup.
+- **Tour persiapan**: empat langkah seusai setup meminta izin semua file, bebas optimasi baterai, dan autostart — tidak perlu backup manual dulu agar popup izinnya muncul.
 - **Tema terang dan gelap**: semua layar mengikuti token warna.
 
 ## Alur backup

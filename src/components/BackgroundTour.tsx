@@ -3,7 +3,11 @@ import { AppState, Modal, Pressable, StyleSheet, Text, View } from 'react-native
 import { useTheme } from '../theme/ThemeProvider';
 import { FONT, RADIUS, SPACE, tgTheme, TYPE } from '../theme/theme';
 import { TgIcon } from './ui';
-import { nativeStatus } from '../background/androidStatus';
+import {
+  hasAllFilesAccess,
+  nativeStatus,
+  openAllFilesSettings,
+} from '../background/androidStatus';
 import { guideFor } from '../background/oemGuide';
 import { mmkv } from '../state/mmkv';
 import { useSettingsStore } from '../state/settingsStore';
@@ -12,8 +16,10 @@ import { useTourStore } from '../state/tourStore';
 const DONE_KEY = 'bg_tour_done';
 
 /**
- * First-run tour for the two Android permissions that decide whether scheduled
- * backups actually happen. Shown once, right after setup; replayable from
+ * First-run tour for the grants that decide whether scheduled backups actually
+ * happen: all-files access (public Download/Documents), the battery exemption
+ * and autostart. Shown once, right after setup, so the user never has to run a
+ * manual backup before Android offers the screen; replayable from
  * Troubleshooting. Autostart cannot be toggled by an app on any OEM, so that
  * step opens the vendor screen and shows the path instead of pretending.
  */
@@ -22,11 +28,13 @@ export function BackgroundTour() {
   const TG = tgTheme(mode);
   const styles = createStyles(TG);
   const setupDone = useSettingsStore(state => state.setupDone);
+  const scheduledHour = useSettingsStore(state => state.config.scheduledTimeHour);
   const forced = useTourStore(state => state.open);
   const hide = useTourStore(state => state.hide);
   const [done, setDone] = useState(() => mmkv.getString(DONE_KEY) != null);
   const [step, setStep] = useState(0);
   const [granted, setGranted] = useState(false);
+  const [allFiles, setAllFiles] = useState(false);
 
   const visible = forced || (setupDone && !done);
 
@@ -37,9 +45,10 @@ export function BackgroundTour() {
     }
     const check = () => {
       native.isIgnoringBatteryOptimizations().then(setGranted).catch(() => undefined);
+      hasAllFilesAccess().then(setAllFiles).catch(() => undefined);
     };
     check();
-    // The exemption is granted in a system dialog, so the answer arrives after
+    // Both grants happen in system dialogs/screens, so the answer arrives after
     // the user comes back to the app rather than from a callback.
     const sub = AppState.addEventListener('change', state => {
       if (state === 'active') {
@@ -64,9 +73,11 @@ export function BackgroundTour() {
   const guide = guideFor(native?.manufacturer);
   const stepTitle = [
     'Supaya backup tidak terlewat',
+    'Izinkan akses semua file',
     'Bebaskan dari optimasi baterai',
     'Aktifkan autostart',
   ][step];
+  const hourLabel = `${String(scheduledHour).padStart(2, '0')}:00`;
 
   return (
     <Modal transparent animationType="fade" onRequestClose={finish}>
@@ -77,14 +88,35 @@ export function BackgroundTour() {
 
           {step === 0 ? (
             <Text style={styles.body}>
-              {'Android mematikan aplikasi di latar belakang untuk menghemat baterai. TeleVault\n'}
-              {'butuh dua hal agar jadwal backup benar-benar jalan:\n\n'}
+              {`Backup harian ${hourLabel} sudah aktif dan akan jalan sendiri.\n`}
+              {'Ada tiga izin agar jadwal itu tidak terlewat:\n\n'}
+              {'\u2022 Akses semua file (folder Download & Documents)\n'}
               {'\u2022 Dikecualikan dari optimasi baterai\n'}
               {'\u2022 Autostart aktif setelah HP dinyalakan ulang'}
             </Text>
           ) : null}
 
           {step === 1 ? (
+            <>
+              <Text style={styles.body}>
+                Android 11+ menutup folder Download dan Documents untuk aplikasi biasa. Ketuk
+                Izinkan, lalu aktifkan &quot;Allow management of all files&quot; di layar sistem.
+                Tanpa ini, berkas di folder publik tidak ikut tercadangkan.
+              </Text>
+              <View style={styles.statusRow}>
+                <TgIcon
+                  name={allFiles ? 'check' : 'warning'}
+                  color={allFiles ? TG.primary : TG.error}
+                  size={16}
+                />
+                <Text style={styles.statusText}>
+                  {allFiles ? 'Sudah aktif' : 'Belum aktif'}
+                </Text>
+              </View>
+            </>
+          ) : null}
+
+          {step === 2 ? (
             <>
               <Text style={styles.body}>
                 Ketuk Izinkan, lalu pilih Izinkan pada dialog Android. Tanpa ini, backup terjadwal
@@ -101,7 +133,7 @@ export function BackgroundTour() {
             </>
           ) : null}
 
-          {step === 2 ? (
+          {step === 3 ? (
             <>
               <Text style={styles.body}>
                 {guide
@@ -117,7 +149,7 @@ export function BackgroundTour() {
           ) : null}
 
           <View style={styles.dots}>
-            {[0, 1, 2].map(index => (
+            {[0, 1, 2, 3].map(index => (
               <View key={index} style={[styles.dot, index === step && styles.dotActive]} />
             ))}
           </View>
@@ -125,8 +157,24 @@ export function BackgroundTour() {
           {step === 1 ? (
             <Pressable
               onPress={() => {
-                if (granted) {
+                if (allFiles) {
                   setStep(2);
+                } else {
+                  openAllFilesSettings();
+                }
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={
+                allFiles ? 'Lanjut ke izin baterai' : 'Izinkan pengelolaan semua file'
+              }
+              style={({ pressed }) => [styles.button, pressed && styles.pressed]}>
+              <Text style={styles.buttonText}>{allFiles ? 'Lanjut' : 'Izinkan'}</Text>
+            </Pressable>
+          ) : step === 2 ? (
+            <Pressable
+              onPress={() => {
+                if (granted) {
+                  setStep(3);
                 } else {
                   nativeStatus()?.requestIgnoreBatteryOptimizations();
                 }
@@ -138,15 +186,15 @@ export function BackgroundTour() {
             </Pressable>
           ) : (
             <Pressable
-              onPress={() => (step === 2 ? finish() : setStep(step + 1))}
+              onPress={() => (step === 3 ? finish() : setStep(step + 1))}
               accessibilityRole="button"
-              accessibilityLabel={step === 2 ? 'Selesai' : 'Lanjut'}
+              accessibilityLabel={step === 3 ? 'Selesai' : 'Lanjut'}
               style={({ pressed }) => [styles.button, pressed && styles.pressed]}>
-              <Text style={styles.buttonText}>{step === 2 ? 'Selesai' : 'Lanjut'}</Text>
+              <Text style={styles.buttonText}>{step === 3 ? 'Selesai' : 'Lanjut'}</Text>
             </Pressable>
           )}
 
-          {step === 2 ? (
+          {step === 3 ? (
             <Pressable
               onPress={() => nativeStatus()?.openAutostartSettings()}
               accessibilityRole="button"
