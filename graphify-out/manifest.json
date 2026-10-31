@@ -24,8 +24,8 @@
     "semantic_hash": "6702c9a68a2d4515bb82ea0defed308f"
   },
   "__tests__/backupRunner.test.ts": {
-    "mtime": 1793278020.860849,
-    "seen": 1793278250.2165666,
+    "mtime": 1793278715.5712328,
+    "seen": 1793436740.7576022,
     "ast_hash": "509e44fbc6ca6ac2d9d2851c2817e173",
     "semantic_hash": ""
   },
@@ -42,8 +42,8 @@
     "semantic_hash": "38488667fe20dca9d1ddb62a407934f7"
   },
   "__tests__/fileScanner.test.ts": {
-    "mtime": 1793278020.8623917,
-    "seen": 1793278250.2165666,
+    "mtime": 1793278715.5724082,
+    "seen": 1793436740.7576022,
     "ast_hash": "59a7e5096e3887f037111a9b4d54dba3",
     "semantic_hash": ""
   },
@@ -66,15 +66,15 @@
     "semantic_hash": "74312f6437abbbb9b8d07bc21cbb2e23"
   },
   "__tests__/manifest.test.ts": {
-    "mtime": 1793277978.026889,
-    "seen": 1793278250.2165666,
+    "mtime": 1793278715.5739574,
+    "seen": 1793436740.7576022,
     "ast_hash": "1eae8d615792b3ce070ee3e77fb82848",
     "semantic_hash": ""
   },
   "__tests__/models.test.ts": {
-    "mtime": 1793277978.1534078,
-    "seen": 1793278250.2165666,
-    "ast_hash": "44a99a09eae240a7a99a1f54cb5f9f3b",
+    "mtime": 1793442523.4581647,
+    "seen": 1793442851.3692985,
+    "ast_hash": "f9aae56f3b5bdad1c7198ca9b4f255e9",
     "semantic_hash": ""
   },
   "__tests__/number.test.ts": {
@@ -84,8 +84,8 @@
     "semantic_hash": "8395fa8d8c390049213bfb7706263f47"
   },
   "__tests__/restoreRunner.test.ts": {
-    "mtime": 1793278153.0253477,
-    "seen": 1793278250.2165666,
+    "mtime": 1793278715.576755,
+    "seen": 1793436740.7576022,
     "ast_hash": "fe48aefd98e2dcee470c3342c61fa4c0",
     "semantic_hash": ""
   },
@@ -96,8 +96,8 @@
     "semantic_hash": "2fbfff5fd4c45323ecd1cffb89cf717d"
   },
   "__tests__/sessions.test.ts": {
-    "mtime": 1793278153.027471,
-    "seen": 1793278250.2165666,
+    "mtime": 1793278715.5777953,
+    "seen": 1793436740.7576022,
     "ast_hash": "76b0440516a6a0ece78b6141f4eec9fa",
     "semantic_hash": ""
   },
@@ -114,8 +114,8 @@
     "semantic_hash": "7cc20ee3795b8c62dcfa4ffd2e6b8330"
   },
   "__tests__/telegramApi.test.ts": {
-    "mtime": 1793278153.0285096,
-    "seen": 1793278250.2165666,
+    "mtime": 1793278715.5788312,
+    "seen": 1793436740.7576022,
     "ast_hash": "c7e652a5eec3bbf20e9517fc720c597a",
     "semantic_hash": ""
   },
@@ -132,9 +132,9 @@
     "semantic_hash": ""
   },
   "android/app/build.gradle": {
-    "mtime": 1792460531.3442879,
-    "seen": 1792647411.7125978,
-    "ast_hash": "db7c68f9a3f8a44841f26e2f7d13f210",
+    "mtime": 1793442537.0099986,
+    "seen": 1793442851.3692985,
+    "ast_hash": "a296ab7baa34820e8964d7c2a3bf88d5",
     "semantic_hash": ""
   },
   "android/app/src/main/java/com/telebotbackuprn/MainActivity.kt": {
@@ -222,9 +222,9 @@
     "semantic_hash": "0783b3967cccd36a5178af469efd5e1e"
   },
   "package.json": {
-    "mtime": 1792236136.8280938,
-    "seen": 1792647411.7125978,
-    "ast_hash": "ce198c773cfa46f916991dc02461dc84",
+    "mtime": 1793442537.0147662,
+    "seen": 1793442851.3692985,
+    "ast_hash": "c4edbb7df3f535b1e8bdd070ea4da10c",
     "semantic_hash": ""
   },
   "src/background/foregroundService.ts": {
@@ -252,8 +252,8 @@
     "semantic_hash": "18d1f8cdf2bb0085d8a5e8aee534224f"
   },
   "src/backup/backupRunner.ts": {
-    "mtime": 1793278020.8660352,
-    "seen": 1793278250.217079,
+    "mtime": 1793278715.5996902,
+    "seen": 1793436740.7576022,
     "ast_hash": "1d54d924bf328d8afbcad8ff548f7d00",
     "semantic_hash": ""
   },
@@ -270,8 +270,8 @@
     "semantic_hash": ""
   },
   "src/backup/fileScanner.ts": {
-    "mtime": 1793278020.86707,
-    "seen": 1793278250.217079,
+    "mtime": 1793278715.6007285,
+    "seen": 1793436740.7576022,
     "ast_hash": "94570bd9d25d5475db3cf0dfecb38021",
     "semantic_hash": ""
   },
@@ -288,8 +288,8 @@
     "semantic_hash": "578a404b59222caec9f6da42c19f84c2"
   },
   "src/backup/manifest.ts": {
-    "mtime": 1793277978.0299997,
-    "seen": 1793278250.217079,
+    "mtime": 1793278715.601775,
+    "seen": 1793436740.7576022,
     "ast_hash": "bfc5ac71b13613170891c38924c68c57",
     "semantic_hash": ""
   },
@@ -300,8 +300,8 @@
     "semantic_hash": ""
   },
   "src/backup/restoreRunner.ts": {
-    "mtime": 1793278153.0295355,
-    "seen": 1793278250.217079,
+    "mtime": 1793278715.6033344,
+    "seen": 1793436740.7576022,
     "ast_hash": "0441e925e377ee1d3ae19acf453149a3",
     "semantic_hash": ""
   },
@@ -342,8 +342,8 @@
     "semantic_hash": "83515bc158ff9a7d3c3b17af610c4c62"
   },
   "src/db/repositories/chunks.ts": {
-    "mtime": 1793278153.0300453,
-    "seen": 1793278250.217079,
+    "mtime": 1793278715.6054046,
+    "seen": 1793436740.7576022,
     "ast_hash": "9a924820c93fbb5f993972e5881670e4",
     "semantic_hash": ""
   },
@@ -354,8 +354,8 @@
     "semantic_hash": ""
   },
   "src/db/repositories/sessions.ts": {
-    "mtime": 1793278153.0305526,
-    "seen": 1793278250.217079,
+    "mtime": 1793278715.6069994,
+    "seen": 1793436740.7576022,
     "ast_hash": "8bace562afcff55b7989f8bf077a5ccc",
     "semantic_hash": ""
   },
@@ -378,8 +378,8 @@
     "semantic_hash": "542b4c40542d0851512e6c58b700701f"
   },
   "src/net/telegramApi.ts": {
-    "mtime": 1793278153.0310614,
-    "seen": 1793278250.217079,
+    "mtime": 1793278715.6080315,
+    "seen": 1793436740.7576022,
     "ast_hash": "26ce6a845b0eabfcad59a5ae586e3999",
     "semantic_hash": ""
   },
@@ -390,21 +390,21 @@
     "semantic_hash": ""
   },
   "src/screens/RestoreScreen.tsx": {
-    "mtime": 1793278153.0320911,
-    "seen": 1793278250.217079,
+    "mtime": 1793278715.6095965,
+    "seen": 1793436740.7576022,
     "ast_hash": "41ebbb7855c1b173f94cc270fcb5b9f3",
     "semantic_hash": ""
   },
   "src/screens/SettingsScreen.tsx": {
-    "mtime": 1793278020.869223,
-    "seen": 1793278250.217079,
+    "mtime": 1793278715.6106362,
+    "seen": 1793436740.7576022,
     "ast_hash": "a665fba52bb1d612dcb0cbfa8084d944",
     "semantic_hash": ""
   },
   "src/screens/SetupScreen.tsx": {
-    "mtime": 1792482054.5945892,
-    "seen": 1792647411.7135975,
-    "ast_hash": "c759d2f5d9b0bd37bdcc49e74c6b5f94",
+    "mtime": 1793442523.515308,
+    "seen": 1793442851.369868,
+    "ast_hash": "d1e5a87600dab7faa946316bead3e749",
     "semantic_hash": ""
   },
   "src/screens/StatsScreen.tsx": {
@@ -468,9 +468,9 @@
     "semantic_hash": ""
   },
   "src/types/models.ts": {
-    "mtime": 1793278020.87026,
-    "seen": 1793278250.217079,
-    "ast_hash": "f99c980fe4c296c49fae2cdc3d5e2289",
+    "mtime": 1793442523.5372658,
+    "seen": 1793442851.369868,
+    "ast_hash": "e23fb310caed85dbe138a9c176cc00fa",
     "semantic_hash": ""
   },
   "tsconfig.json": {
@@ -480,9 +480,9 @@
     "semantic_hash": "b5783f87a2a7475a698005e681560a34"
   },
   "README.md": {
-    "mtime": 1792860702.3349843,
-    "seen": 1792860729.1561303,
-    "ast_hash": "699bc5dde63756bd2d7dc5e915f09d34",
+    "mtime": 1793442523.4434054,
+    "seen": 1793442851.369868,
+    "ast_hash": "0d57c70c5399f63b7d2835d21707375e",
     "semantic_hash": ""
   },
   "android/app/src/main/res/mipmap-hdpi/ic_launcher.png": {
@@ -606,14 +606,14 @@
     "semantic_hash": ""
   },
   "__tests__/safFolder.test.ts": {
-    "mtime": 1793278020.8634286,
-    "seen": 1793278250.2165666,
+    "mtime": 1793278715.5772786,
+    "seen": 1793436740.7576022,
     "ast_hash": "d01a72334c291f407ca173f3d366d580",
     "semantic_hash": ""
   },
   "android/app/src/main/java/com/telebotbackuprn/SafFolderModule.kt": {
-    "mtime": 1793278020.864477,
-    "seen": 1793278250.217079,
+    "mtime": 1793278715.5798724,
+    "seen": 1793436740.7576022,
     "ast_hash": "c921687659f3a41df4a094441ac4a91f",
     "semantic_hash": ""
   },
@@ -624,8 +624,8 @@
     "semantic_hash": ""
   },
   "src/backup/safFolder.ts": {
-    "mtime": 1793278020.8676598,
-    "seen": 1793278250.217079,
+    "mtime": 1793278715.6048896,
+    "seen": 1793436740.7576022,
     "ast_hash": "848759223a609c953f40bd181f9e995e",
     "semantic_hash": ""
   },
@@ -738,9 +738,9 @@
     "semantic_hash": ""
   },
   "src/background/androidStatus.ts": {
-    "mtime": 1792820308.565789,
-    "seen": 1792820333.2662132,
-    "ast_hash": "67fcc456783a5ef953c5924616ecba01",
+    "mtime": 1793442523.4678237,
+    "seen": 1793442851.3692985,
+    "ast_hash": "c9433051899f691d5d2f822dbdcfea37",
     "semantic_hash": ""
   },
   "src/background/oemGuide.ts": {
@@ -774,8 +774,8 @@
     "semantic_hash": ""
   },
   "src/backup/restoreDrill.ts": {
-    "mtime": 1793277978.5452652,
-    "seen": 1793278250.217079,
+    "mtime": 1793278715.6022983,
+    "seen": 1793436740.7576022,
     "ast_hash": "7299ca8b15fb8a4a17ff729a8f25ac0f",
     "semantic_hash": ""
   },
@@ -786,9 +786,9 @@
     "semantic_hash": ""
   },
   "src/components/BackgroundTour.tsx": {
-    "mtime": 1792550228.4454465,
-    "seen": 1792647411.7135975,
-    "ast_hash": "b7fe4906f52118d5401c38b1f1ddbbab",
+    "mtime": 1793442523.4868357,
+    "seen": 1793442851.369868,
+    "ast_hash": "61a4d8ba1992594bbe9e6164f762c674",
     "semantic_hash": ""
   },
   "src/components/WhatsNewModal.tsx": {
@@ -834,9 +834,9 @@
     "semantic_hash": ""
   },
   "src/update/whatsNew.ts": {
-    "mtime": 1792860702.342669,
-    "seen": 1792860729.1556082,
-    "ast_hash": "41f900fef67cd4455bd8b37611017a00",
+    "mtime": 1793442550.2257514,
+    "seen": 1793442851.369868,
+    "ast_hash": "112fade710acc47bb529701e259b25d6",
     "semantic_hash": ""
   },
   ".github/workflows/release.yml": {
@@ -912,9 +912,9 @@
     "semantic_hash": ""
   },
   "__tests__/androidStatus.test.ts": {
-    "mtime": 1792803101.8428981,
-    "seen": 1792820333.2662132,
-    "ast_hash": "3834b1c90d5b9a2696a9e90b0bba405d",
+    "mtime": 1793442523.455531,
+    "seen": 1793442851.3692985,
+    "ast_hash": "3b0e0e3f5807f95a3a9956836649d0cc",
     "semantic_hash": ""
   },
   "__tests__/scheduler.test.ts": {
@@ -924,9 +924,2307 @@
     "semantic_hash": ""
   },
   "__tests__/restoreDrill.test.ts": {
-    "mtime": 1793277978.5437107,
-    "seen": 1793278250.2165666,
+    "mtime": 1793278715.5756116,
+    "seen": 1793436740.7576022,
     "ast_hash": "9b5736cbf8c920451dab36d8df4468cd",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/android_frame.jsx": {
+    "mtime": 1793348579.578679,
+    "seen": 1793436740.7576022,
+    "ast_hash": "bbd985975337987960bba269f95367b6",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/animations.jsx": {
+    "mtime": 1793348579.5791962,
+    "seen": 1793436740.7576022,
+    "ast_hash": "cd8d8d7c21e3710f5136ace48d136245",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/browser_window.jsx": {
+    "mtime": 1793348579.722846,
+    "seen": 1793436740.7576022,
+    "ast_hash": "f5976b2c884843db79acc8f3474bf3c7",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/cursor.jsx": {
+    "mtime": 1793348579.7233584,
+    "seen": 1793436740.7576022,
+    "ast_hash": "498406e6c1420d705353d26a90b45bb2",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/deck_stage.js": {
+    "mtime": 1793348579.7243834,
+    "seen": 1793436740.7576022,
+    "ast_hash": "53c02f38c549e6a744c27c047ffbbb38",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/design_canvas.jsx": {
+    "mtime": 1793348579.7248955,
+    "seen": 1793436740.7576022,
+    "ast_hash": "6450e24df662a205f2fa1138db1980a8",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/ios_frame.jsx": {
+    "mtime": 1793348579.726436,
+    "seen": 1793436740.7576022,
+    "ast_hash": "4b47e0bb1902ee6a0a4d5ffb09f2545c",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/macos_window.jsx": {
+    "mtime": 1793348579.7269473,
+    "seen": 1793436740.7576022,
+    "ast_hash": "c2aeb1679497bc197e3b7c96c92c4241",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/narration_stage.jsx": {
+    "mtime": 1793348579.7274644,
+    "seen": 1793436740.7576022,
+    "ast_hash": "254a77fd17df90ec1d8d1c7ad4972536",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/personal-asset-index.example.json": {
+    "mtime": 1793348579.7279787,
+    "seen": 1793436740.7576022,
+    "ast_hash": "29ce13ad528a9e5ca65810c3c0dc27e5",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/package.json": {
+    "mtime": 1793348579.9499502,
+    "seen": 1793436740.7576022,
+    "ast_hash": "801b24033b8cb0ec6b1ec29cf16452eb",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/add-music.sh": {
+    "mtime": 1793348579.9720678,
+    "seen": 1793436740.7576022,
+    "ast_hash": "0429abe5a037c16c67ca4da2c1117123",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/build_specimens.py": {
+    "mtime": 1793348579.9725747,
+    "seen": 1793436740.7576022,
+    "ast_hash": "ffe1451f3fb137c3dd3314b37dd06591",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/capabilities.py": {
+    "mtime": 1793348579.9725747,
+    "seen": 1793436740.7576022,
+    "ast_hash": "06ce58140db56d592bbc3a6fbc55b017",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/cloud/ai-review-video.py": {
+    "mtime": 1793348579.9735887,
+    "seen": 1793436740.7576022,
+    "ast_hash": "a0b94621a76cc48a7903e129f4a6b393",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/cloud/tts-doubao.mjs": {
+    "mtime": 1793348579.9740963,
+    "seen": 1793436740.7576022,
+    "ast_hash": "fa1e68bc4d820650288b6302e3833554",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/convert-formats.sh": {
+    "mtime": 1793348579.9746037,
+    "seen": 1793436740.7576022,
+    "ast_hash": "e23f208d056893e0e6d6ac737506dad6",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/design-gate-hook.sh": {
+    "mtime": 1793348579.9746037,
+    "seen": 1793436740.7576022,
+    "ast_hash": "cf6c310f65ab3e0772fc5e122a0e0815",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/design_lint.py": {
+    "mtime": 1793348579.9756196,
+    "seen": 1793436740.7576022,
+    "ast_hash": "a97535235d9e1b3b41fdc2b286187a16",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/export_deck_pdf.mjs": {
+    "mtime": 1793348579.9756196,
+    "seen": 1793436740.7576022,
+    "ast_hash": "c71e62a3074ada6886dbee1dab343e81",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/export_deck_pptx.mjs": {
+    "mtime": 1793348579.9761353,
+    "seen": 1793436740.7576022,
+    "ast_hash": "230fb5f03d9ede813b51b0650454beef",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/export_deck_stage_pdf.mjs": {
+    "mtime": 1793348579.9766443,
+    "seen": 1793436740.7576022,
+    "ast_hash": "b6cc480a6e63e2a51b05f9b47d0d202a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/fetch_images.py": {
+    "mtime": 1793348579.9771516,
+    "seen": 1793436740.7576022,
+    "ast_hash": "e63ad534c4b632567338d22e18b53a59",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/gen_deck_thumbs.mjs": {
+    "mtime": 1793348579.977659,
+    "seen": 1793436740.7576022,
+    "ast_hash": "dd4cd67b075e933da17537c25bcb93a1",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/html2pptx.js": {
+    "mtime": 1793348579.9781668,
+    "seen": 1793436740.7576022,
+    "ast_hash": "fd958ccd4be6d7e802dd561e468f9999",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/learn.py": {
+    "mtime": 1793348579.9786758,
+    "seen": 1793436740.7576022,
+    "ast_hash": "7cc50e220ade451ff8c8798d6da02341",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/mix-voiceover.sh": {
+    "mtime": 1793348579.9786758,
+    "seen": 1793436740.7576022,
+    "ast_hash": "d61e9773780beb55b1ab40a847a70b35",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/narrate-pipeline.mjs": {
+    "mtime": 1793348579.9791849,
+    "seen": 1793436740.7576022,
+    "ast_hash": "760ea097cebcb8b0e3e6459f21427ab7",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/pptx_from_rendered.py": {
+    "mtime": 1793348579.9797387,
+    "seen": 1793436740.7576022,
+    "ast_hash": "dc8d89ae9ef7f71d38f60e352ce10fb5",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/ref_board.py": {
+    "mtime": 1793348579.9802494,
+    "seen": 1793436740.7576022,
+    "ast_hash": "470e56b60f6ef2df8cf27598cf65e39d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/render-narration.sh": {
+    "mtime": 1793348579.98127,
+    "seen": 1793436740.7576022,
+    "ast_hash": "71b2b3fd0eee4a12bc0abc6f5b7636aa",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/render-video-seek.js": {
+    "mtime": 1793348579.981778,
+    "seen": 1793436740.7576022,
+    "ast_hash": "00cc2a5c044d70b893c72d5a7e017afd",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/render-video.js": {
+    "mtime": 1793348579.981778,
+    "seen": 1793436740.7576022,
+    "ast_hash": "632bf822d3bd94400b782241d7b40b47",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/sfx-cues.sh": {
+    "mtime": 1793348579.9822884,
+    "seen": 1793436740.7576022,
+    "ast_hash": "d0e372a6d47517ec11f847a46b4f0294",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/tests/test_design_lint.py": {
+    "mtime": 1793348579.986869,
+    "seen": 1793436740.7576022,
+    "ast_hash": "560b1bcbd0c629149e3414ff3c2bd7e0",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/tests/test_pptx_from_rendered.py": {
+    "mtime": 1793348579.9873772,
+    "seen": 1793436740.7576022,
+    "ast_hash": "b9c45cc9bdce9978c1f73cb8c6a6f277",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/verify-video.sh": {
+    "mtime": 1793348579.9873772,
+    "seen": 1793436740.7576022,
+    "ast_hash": "f69d39bf4eeb11ad89e5e5a7c52275fd",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/verify.py": {
+    "mtime": 1793348579.9878855,
+    "seen": 1793436740.7576022,
+    "ast_hash": "87661bdc456261134d4156602dfa5cbf",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/test-prompts.json": {
+    "mtime": 1793348579.988395,
+    "seen": 1793436740.7576022,
+    "ast_hash": "1ccc157af23518e60d7ce7fa38eaf919",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/README.en.md": {
+    "mtime": 1793348579.5766137,
+    "seen": 1793436740.7576022,
+    "ast_hash": "0635b03d6fe2b8e96d522c5301eab514",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/README.md": {
+    "mtime": 1793348579.5771296,
+    "seen": 1793436740.7576022,
+    "ast_hash": "9d61ba1fdbece90b5a686ae22aff0446",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/SECURITY.md": {
+    "mtime": 1793348579.5776458,
+    "seen": 1793436740.7576022,
+    "ast_hash": "7267085c709e9eac567058667292de85",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/SKILL.md": {
+    "mtime": 1793348579.5781627,
+    "seen": 1793436740.7576022,
+    "ast_hash": "b3d8ba2817d36e25c4e9340ade466dab",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/deck_index.html": {
+    "mtime": 1793348579.7238724,
+    "seen": 1793436740.7576022,
+    "ast_hash": "5d95c097ef8ad5a5ef9c44ba079d8c4a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/director-notes-samples/launch-film-30s-sample.md": {
+    "mtime": 1793348579.725922,
+    "seen": 1793436740.7576022,
+    "ast_hash": "28f53c03c1ecfcdfba519a7ba69bc8ea",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/INDEX.md": {
+    "mtime": 1793348579.752455,
+    "seen": 1793436740.7576022,
+    "ast_hash": "cb0a69523055d739fa4f60c0dcb6e931",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/cover/cover-build.html": {
+    "mtime": 1793348579.7534814,
+    "seen": 1793436740.7576022,
+    "ast_hash": "35dcda22d92952ac0f3dc1bae85ce42d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/cover/cover-pentagram.html": {
+    "mtime": 1793348579.7550213,
+    "seen": 1793436740.7576022,
+    "ast_hash": "154d9e333de67b7a86e5b1e555e43fe2",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/cover/cover-takram.html": {
+    "mtime": 1793348579.7560496,
+    "seen": 1793436740.7576022,
+    "ast_hash": "bccb60369e1c959892a9973cd39e3126",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/infographic/infographic-build.html": {
+    "mtime": 1793348579.758108,
+    "seen": 1793436740.7576022,
+    "ast_hash": "4c21375bc00cf461e97260c9b7d2ab24",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/infographic/infographic-pentagram.html": {
+    "mtime": 1793348579.760183,
+    "seen": 1793436740.7576022,
+    "ast_hash": "930d906dc7e5534758da2dfb0df5dfda",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/infographic/infographic-takram.html": {
+    "mtime": 1793348579.7617378,
+    "seen": 1793436740.7576022,
+    "ast_hash": "088ddf4305a248a58b43773c312a74d6",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/ppt/ppt-build.html": {
+    "mtime": 1793348579.7637963,
+    "seen": 1793436740.7576022,
+    "ast_hash": "db2e3304a0500b3e81ccd3b1631f1dda",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/ppt/ppt-pentagram.html": {
+    "mtime": 1793348579.7654243,
+    "seen": 1793436740.7576022,
+    "ast_hash": "afd3e9025a881b38d56429ab6a906f43",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/ppt/ppt-takram.html": {
+    "mtime": 1793348579.7669654,
+    "seen": 1793436740.7576022,
+    "ast_hash": "db1cfa0e9f0ec867ffe1db1a186dc122",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/website-ai-nav/ainav-build.html": {
+    "mtime": 1793348579.771091,
+    "seen": 1793436740.7576022,
+    "ast_hash": "70e65d62f1cdd5ed98d8153c4799fc69",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/website-ai-nav/ainav-pentagram.html": {
+    "mtime": 1793348579.7726505,
+    "seen": 1793436740.7576022,
+    "ast_hash": "07e7d37c1065e7c6b83efd0749f27c91",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/website-ai-nav/ainav-takram.html": {
+    "mtime": 1793348579.774197,
+    "seen": 1793436740.7576022,
+    "ast_hash": "6dc3f668bfc0991d6e5013427aa0230c",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/website-ai-writing/aiwriting-build.html": {
+    "mtime": 1793348579.7762656,
+    "seen": 1793436740.7576022,
+    "ast_hash": "c35517c0bd4312d45ef1827d43c4cedf",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/website-ai-writing/aiwriting-pentagram.html": {
+    "mtime": 1793348579.7783277,
+    "seen": 1793436740.7576022,
+    "ast_hash": "e4a4068940fd1e6d633f7368f43a72cb",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/website-ai-writing/aiwriting-takram.html": {
+    "mtime": 1793348579.7798696,
+    "seen": 1793436740.7576022,
+    "ast_hash": "d029d5e00cac427a21a8db64f305f3c7",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/website-devdocs/devdocs-build.html": {
+    "mtime": 1793348579.7826328,
+    "seen": 1793436740.7576022,
+    "ast_hash": "e4ed7f187dec94767e51a4d2018c9d6c",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/website-devdocs/devdocs-pentagram.html": {
+    "mtime": 1793348579.7841609,
+    "seen": 1793436740.7576022,
+    "ast_hash": "f95c8e86c926b660baf965744ad88135",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/website-devdocs/devdocs-takram.html": {
+    "mtime": 1793348579.7862067,
+    "seen": 1793436740.7576022,
+    "ast_hash": "4429a610ff8abadbd2c0b53bb8a42f0d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/website-homepage/homepage-build.html": {
+    "mtime": 1793348579.787744,
+    "seen": 1793436740.7576022,
+    "ast_hash": "20032640278d12539375fb7ea21e3437",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/website-homepage/homepage-pentagram.html": {
+    "mtime": 1793348579.7892752,
+    "seen": 1793436740.7576022,
+    "ast_hash": "587add041e60960792abe802f5512174",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/website-homepage/homepage-takram.html": {
+    "mtime": 1793348579.7903006,
+    "seen": 1793436740.7576022,
+    "ast_hash": "ab4ea0d855499febf36c060125d831c4",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/website-saas/saas-build.html": {
+    "mtime": 1793348579.792876,
+    "seen": 1793436740.7576022,
+    "ast_hash": "d9f1e94d76da9d4afad85951c4c8fb97",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/website-saas/saas-pentagram.html": {
+    "mtime": 1793348579.7944083,
+    "seen": 1793436740.7576022,
+    "ast_hash": "effe4dbb5ccac838747b6afaf41fb1cb",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/website-saas/saas-takram.html": {
+    "mtime": 1793348579.7959535,
+    "seen": 1793436740.7576022,
+    "ast_hash": "88159053a1ab3c0d2e0a5bcba25cf041",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/app/01-hardware-panel.html": {
+    "mtime": 1793348579.7986135,
+    "seen": 1793436740.7576022,
+    "ast_hash": "0cd041dfcec9f4ab943383bbff4c63fe",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/app/02-liquid-glass.html": {
+    "mtime": 1793348579.7996392,
+    "seen": 1793436740.7576022,
+    "ast_hash": "4dbc22cba51eac19092946c65c338e4c",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/app/03-playful-3d.html": {
+    "mtime": 1793348579.8011994,
+    "seen": 1793436740.7576022,
+    "ast_hash": "9250ea3cc78609c49725fdc9b59c647e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/app/04-friendly-fintech.html": {
+    "mtime": 1793348579.803278,
+    "seen": 1793436740.7576022,
+    "ast_hash": "60730bb3cd624ee76c989098a75bbc9f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/app/05-pro-camera.html": {
+    "mtime": 1793348579.8048296,
+    "seen": 1793436740.7576022,
+    "ast_hash": "a09115062eeb5fea737209585716a3bc",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/app/06-topo-outdoor.html": {
+    "mtime": 1793348579.8058622,
+    "seen": 1793436740.7576022,
+    "ast_hash": "cad5310558da11bf9013b5e07ab27544",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/app/07-feed-waterfall.html": {
+    "mtime": 1793348579.8074105,
+    "seen": 1793436740.7576022,
+    "ast_hash": "05448dddfa032598f41b53687c8c7c1e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/app/08-command-palette.html": {
+    "mtime": 1793348579.8089602,
+    "seen": 1793436740.7576022,
+    "ast_hash": "e4607e965d5d11735e8a34cc84b12bff",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/app/09-health-color-code.html": {
+    "mtime": 1793348579.8105247,
+    "seen": 1793436740.7576022,
+    "ast_hash": "2305162447a12b5bf860d3b33c717ca4",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/app/10-native-polish.html": {
+    "mtime": 1793348579.8122568,
+    "seen": 1793436740.7576022,
+    "ast_hash": "75d38f120d3300007678e7aa419f3e6e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/app/11-gentle-encouraging.html": {
+    "mtime": 1793348579.8148475,
+    "seen": 1793436740.7576022,
+    "ast_hash": "a5799594cc56409ffdfe63a577fa6323",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/app/12-editorial-reader.html": {
+    "mtime": 1793348579.816404,
+    "seen": 1793436740.7576022,
+    "ast_hash": "a2f5759ae0b40e8a3803a7eb4f5fd760",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/east/01-lu-jingren-bookcraft.html": {
+    "mtime": 1793348579.8179524,
+    "seen": 1793436740.7576022,
+    "ast_hash": "afd6959b54cbe6418f14180e1c09fc23",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/east/02-song-block-print.html": {
+    "mtime": 1793348579.8200245,
+    "seen": 1793436740.7576022,
+    "ast_hash": "607aa192c803e49b8e8765b358976990",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/east/03-republic-book-jacket.html": {
+    "mtime": 1793348579.8221016,
+    "seen": 1793436740.7576022,
+    "ast_hash": "4514a756c33a3e8380acb354681c1003",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/east/04-shanghai-deco-calendar.html": {
+    "mtime": 1793348579.8236392,
+    "seen": 1793436740.7576022,
+    "ast_hash": "7d1964a639eb7b3ba7678fea6d0cec3b",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/east/05-hanzi-experimental-poster.html": {
+    "mtime": 1793348579.8251832,
+    "seen": 1793436740.7576022,
+    "ast_hash": "f1ec5fa9aef5311672c9bd4d0d32ce61",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/east/06-hk-street-signs.html": {
+    "mtime": 1793348579.8268127,
+    "seen": 1793436740.7576022,
+    "ast_hash": "c6cac7fb364673bc21ca5b36cd0d9a8a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/east/07-traditional-colors-solar-terms.html": {
+    "mtime": 1793348579.8278406,
+    "seen": 1793436740.7576022,
+    "ast_hash": "e3b91cf33c1c0f6b68ca65048e55f25d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/east/08-sugiura-info-mandala.html": {
+    "mtime": 1793348579.8293726,
+    "seen": 1793436740.7576022,
+    "ast_hash": "c774cdf1c5474d0b5b0bd48048a8bf4a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/east/09-tanaka-geometric-poster.html": {
+    "mtime": 1793348579.831457,
+    "seen": 1793436740.7576022,
+    "ast_hash": "d0fcb258fca11ce32943d2d95cc0f638",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/east/10-hattori-playful-offset.html": {
+    "mtime": 1793348579.8324995,
+    "seen": 1793436740.7576022,
+    "ast_hash": "be9ea2a260c8cd9aac14d000ea20ed14",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/east/11-sato-minimal-symbol.html": {
+    "mtime": 1793348579.8340282,
+    "seen": 1793436740.7576022,
+    "ast_hash": "2226ce6d3bc47246d04f2822ed3dd6e6",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/east/12-japan-magazine-dense.html": {
+    "mtime": 1793348579.8350532,
+    "seen": 1793436740.7576022,
+    "ast_hash": "82af38d2e4a8348bda33377922e1e450",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/01-personal-annual-report.html": {
+    "mtime": 1793348579.8376293,
+    "seen": 1793436740.7576022,
+    "ast_hash": "7c523ed8d52857a21767b5ea96258c6a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/02-explanation-graphics.html": {
+    "mtime": 1793348579.839168,
+    "seen": 1793436740.7576022,
+    "ast_hash": "721a9d56b90e336e8e1780e20044d3f7",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/03-cross-section-epic.html": {
+    "mtime": 1793348579.8407054,
+    "seen": 1793436740.7576022,
+    "ast_hash": "2e3974905c7d02a69032676883fe5ae9",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/04-magazine-pop-data.html": {
+    "mtime": 1793348579.84293,
+    "seen": 1793436740.7576022,
+    "ast_hash": "222c027da8f0b34e3d01d8fe4068aa36",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/05-isotype.html": {
+    "mtime": 1793348579.8444815,
+    "seen": 1793436740.7576022,
+    "ast_hash": "730e18ab65dd04a2fde94c39fd95f984",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/06-data-humanism.html": {
+    "mtime": 1793348579.8460293,
+    "seen": 1793436740.7576022,
+    "ast_hash": "9b9b7f6372c2dadaf1151412a9538174",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/07-scrollytelling.html": {
+    "mtime": 1793348579.8475869,
+    "seen": 1793436740.7576022,
+    "ast_hash": "46cc893933c6d8a6adfa95845010b6b7",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/08-cartographic-lead.html": {
+    "mtime": 1793348579.849141,
+    "seen": 1793436740.7576022,
+    "ast_hash": "8103045b2515a3a50ed43ead7170d1e5",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/09-newsroom-chart.html": {
+    "mtime": 1793348579.850175,
+    "seen": 1793436740.7576022,
+    "ast_hash": "fe39525a6e48536a61fc3e68c8a32db9",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/10-computational-portrait.html": {
+    "mtime": 1793348579.8512182,
+    "seen": 1793436740.7576022,
+    "ast_hash": "0f1c1b792ad7fe99d42ed2a024424e58",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/11-beautiful-information.html": {
+    "mtime": 1793348579.8532846,
+    "seen": 1793436740.7576022,
+    "ast_hash": "da0b38265a3a255cee0e5a9a7a92f744",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/12-open-research-data.html": {
+    "mtime": 1793348579.8548229,
+    "seen": 1793436740.7576022,
+    "ast_hash": "940285becfe1c9bb50e5dc9484f13160",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/13-speculative-tech-diagram.html": {
+    "mtime": 1793348579.8558435,
+    "seen": 1793436740.7576022,
+    "ast_hash": "b2ba19a3afb3dcfa5a63374daee26aa8",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/14-pictogram-system.html": {
+    "mtime": 1793348579.8574762,
+    "seen": 1793436740.7576022,
+    "ast_hash": "9a82117824e5f8da614bfb1fdf86cd7c",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/15-small-multiples.html": {
+    "mtime": 1793348579.859027,
+    "seen": 1793436740.7576022,
+    "ast_hash": "933a0435ec22a3d4aa7676de6c95e573",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/16-topological-transit-map.html": {
+    "mtime": 1793348579.860054,
+    "seen": 1793436740.7576022,
+    "ast_hash": "298bc46f877ca8da00f7d2131bfac239",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/17-ma-emptiness.html": {
+    "mtime": 1793348579.8616002,
+    "seen": 1793436740.7576022,
+    "ast_hash": "70243ba56857fd2dc4a33e25d4153cdb",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/18-bookcraft-data.html": {
+    "mtime": 1793348579.8626466,
+    "seen": 1793436740.7576022,
+    "ast_hash": "852c37d1813570faac2bdd4e2e2f787b",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/19-scientific-figure-plate.html": {
+    "mtime": 1793348579.864709,
+    "seen": 1793436740.7576022,
+    "ast_hash": "f83b138ee2a1f866ca8a35b46cf5d923",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/20-swiss-grid-report.html": {
+    "mtime": 1793348579.8662517,
+    "seen": 1793436740.7576022,
+    "ast_hash": "c668cceec5d601cdb68b24de7206850e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/01-neo-swiss-billboard.html": {
+    "mtime": 1793348579.8677986,
+    "seen": 1793436740.7576022,
+    "ast_hash": "1d044f522745e6238b0affa3b6fb4a7e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/02-black-big-number-stage.html": {
+    "mtime": 1793348579.869344,
+    "seen": 1793436740.7576022,
+    "ast_hash": "d7366a3da1c510a395e7260dec43b409",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/03-mono-brand-type-hero.html": {
+    "mtime": 1793348579.8703818,
+    "seen": 1793436740.7576022,
+    "ast_hash": "a2e4f209f79d5742f491b0cd899de63d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/04-full-bleed-gradient-manifesto.html": {
+    "mtime": 1793348579.871429,
+    "seen": 1793436740.7576022,
+    "ast_hash": "a6ea58ac5387ae69486aa97bb708d402",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/05-candy-lecture-stage.html": {
+    "mtime": 1793348579.8731263,
+    "seen": 1793436740.7576022,
+    "ast_hash": "22ba347cfb39472a413df90db1373a05",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/06-playful-collins-editorial.html": {
+    "mtime": 1793348579.8741555,
+    "seen": 1793436740.7576022,
+    "ast_hash": "c0ef8f03477f864c93cb5c0de0d73377",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/07-irreverent-pop.html": {
+    "mtime": 1793348579.8756976,
+    "seen": 1793436740.7576022,
+    "ast_hash": "621eff1e27ecfae7478bf916f5b6b20b",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/08-y2k-inflated-wrapped.html": {
+    "mtime": 1793348579.8772416,
+    "seen": 1793436740.7576022,
+    "ast_hash": "a7be88c20ff2b2047c206950f0c3cf33",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/09-bento-grid.html": {
+    "mtime": 1793348579.8787892,
+    "seen": 1793436740.7576022,
+    "ast_hash": "8141b3eef00b40f043417df9e7b1bb97",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/10-dark-hairline-terminal.html": {
+    "mtime": 1793348579.8803394,
+    "seen": 1793436740.7576022,
+    "ast_hash": "731d9910527591f2612e71f5b07ee68b",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/11-two-font-consulting.html": {
+    "mtime": 1793348579.8819146,
+    "seen": 1793436740.7576022,
+    "ast_hash": "c3776483842ee8e184df27dacae8f249",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/12-diagram-isotype.html": {
+    "mtime": 1793348579.8834686,
+    "seen": 1793436740.7576022,
+    "ast_hash": "50687e81e0ad605fa08b7d330bf0c944",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/13-diagrammatic-minimalism.html": {
+    "mtime": 1793348579.8844972,
+    "seen": 1793436740.7576022,
+    "ast_hash": "caa2936364b4acd69834dd6077007457",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/14-narrative-sparkline.html": {
+    "mtime": 1793348579.886562,
+    "seen": 1793436740.7576022,
+    "ast_hash": "54dfc85de10fe8ad34bf4a82d96ec883",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/15-assertion-evidence.html": {
+    "mtime": 1793348579.8881948,
+    "seen": 1793436740.7576022,
+    "ast_hash": "898bd14ad5ce971a197e2b086f7c4990",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/16-institutional-swiss.html": {
+    "mtime": 1793348579.8892293,
+    "seen": 1793436740.7576022,
+    "ast_hash": "909ea35a2111fc5f9efd0de5c01df5f3",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/17-editorial-longform.html": {
+    "mtime": 1793348579.8902643,
+    "seen": 1793436740.7576022,
+    "ast_hash": "b65664b5d2876648414df821c775c224",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/18-humanist-rounded-cards.html": {
+    "mtime": 1793348579.8923385,
+    "seen": 1793436740.7576022,
+    "ast_hash": "fb7a74c73463f849a6c0a5bd79d1b40a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/19-dense-research-report.html": {
+    "mtime": 1793348579.8938842,
+    "seen": 1793436740.7576022,
+    "ast_hash": "3fe507c495da6fe5b9fc980619d753c7",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/20-all-text-manifesto.html": {
+    "mtime": 1793348579.894904,
+    "seen": 1793436740.7576022,
+    "ast_hash": "c68f59889a88e7bb22ce5a6a1488a495",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/01-editorial-brutalism.html": {
+    "mtime": 1793348579.904839,
+    "seen": 1793436740.7576022,
+    "ast_hash": "575e67e69e9df909a1ae62fab73a779e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/02-neo-brutalism.html": {
+    "mtime": 1793348579.9063869,
+    "seen": 1793436740.7576022,
+    "ast_hash": "3955c12fe7423c3818ce9194b7595dec",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/03-memphis-maximalism.html": {
+    "mtime": 1793348579.9079237,
+    "seen": 1793436740.7576022,
+    "ast_hash": "6a324f3695bac4e481477517c38ec505",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/04-friendly-candy.html": {
+    "mtime": 1793348579.9094696,
+    "seen": 1793436740.7576022,
+    "ast_hash": "e48f6ecadd393ae07d861e45f2e8e965",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/05-pure-css-art.html": {
+    "mtime": 1793348579.9110162,
+    "seen": 1793436740.7576022,
+    "ast_hash": "2f797da6b5ac055467dd290beca2065f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/06-bold-big-type.html": {
+    "mtime": 1793348579.9120367,
+    "seen": 1793436740.7576022,
+    "ast_hash": "46702e9c5b56a4671e8f37579ef26871",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/07-cosmic-retro-futurism.html": {
+    "mtime": 1793348579.9135866,
+    "seen": 1793436740.7576022,
+    "ast_hash": "82d3c815d982079718b35ae095bcae8c",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/08-cinematic-sound-viz.html": {
+    "mtime": 1793348579.9146256,
+    "seen": 1793436740.7576022,
+    "ast_hash": "1393f170f65732cdc4964fa9f6e15a2b",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/09-pixel-side-scroller.html": {
+    "mtime": 1793348579.9161747,
+    "seen": 1793436740.7576022,
+    "ast_hash": "13d82e7ba36b87aba86331f5414d8e09",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/10-bauhaus-geometric.html": {
+    "mtime": 1793348579.9172072,
+    "seen": 1793436740.7576022,
+    "ast_hash": "dff666daece5c5e5d9eca57986a4d3f6",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/11-dark-editorial.html": {
+    "mtime": 1793348579.9188454,
+    "seen": 1793436740.7576022,
+    "ast_hash": "d1a57784745b2ea35403a6bd000ed0d3",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/12-warm-editorial.html": {
+    "mtime": 1793348579.9203951,
+    "seen": 1793436740.7576022,
+    "ast_hash": "c10a9f4f1ce626dc2ae487256f19a7dd",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/13-glassmorphism-bento.html": {
+    "mtime": 1793348579.9214358,
+    "seen": 1793436740.7576022,
+    "ast_hash": "968d8cf715f9e13cbcbc43190353dfd4",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/14-angled-fluid-gradient.html": {
+    "mtime": 1793348579.9229925,
+    "seen": 1793436740.7576022,
+    "ast_hash": "72f57987dcd61ae27cc9544b0ce0bb9f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/15-utility-colorful-docs.html": {
+    "mtime": 1793348579.9245493,
+    "seen": 1793436740.7576022,
+    "ast_hash": "1828182ffeeda4f06a4d7841121539d8",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/16-terminal-core.html": {
+    "mtime": 1793348579.9261043,
+    "seen": 1793436740.7576022,
+    "ast_hash": "fd2d8523515ff0c0ef6270fab9ef947a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/17-functional-brutalism.html": {
+    "mtime": 1793348579.9271371,
+    "seen": 1793436740.7576022,
+    "ast_hash": "74108179f8a92f4f16b83f483b99d3d8",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/18-gallery-dark.html": {
+    "mtime": 1793348579.928685,
+    "seen": 1793436740.7576022,
+    "ast_hash": "ff621329d9d31a205a66f8492855de47",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/19-swiss-monochrome.html": {
+    "mtime": 1793348579.9297066,
+    "seen": 1793436740.7576022,
+    "ast_hash": "f8e261899dd042c03e9c4eb053f51470",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/20-kenya-hara-white-gallery.html": {
+    "mtime": 1793348579.9317732,
+    "seen": 1793436740.7576022,
+    "ast_hash": "5c0b2ae69de488f9277e52e21110acd0",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/demos/c1-ios-prototype-en.html": {
+    "mtime": 1793348579.9328005,
+    "seen": 1793436740.7576022,
+    "ast_hash": "699fef77da4f7a71583ba5099b74d0a5",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/demos/c1-ios-prototype.html": {
+    "mtime": 1793348579.9334502,
+    "seen": 1793436740.7576022,
+    "ast_hash": "c3a056526e12d9eb8c11f8a276ce0fb0",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/demos/c2-slides-pptx-en.html": {
+    "mtime": 1793348579.934471,
+    "seen": 1793436740.7576022,
+    "ast_hash": "c576e5abb11b39c6ace147d30ffa40b6",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/demos/c2-slides-pptx.html": {
+    "mtime": 1793348579.9349823,
+    "seen": 1793436740.7576022,
+    "ast_hash": "7e446e27735ee1a70a3268e89935afd6",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/demos/c3-motion-design-en.html": {
+    "mtime": 1793348579.9360054,
+    "seen": 1793436740.7576022,
+    "ast_hash": "c0249b700c748ae0d70a254c047fe867",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/demos/c3-motion-design.html": {
+    "mtime": 1793348579.9370284,
+    "seen": 1793436740.7576022,
+    "ast_hash": "f69cb98d6c05a2dce700880da288ca35",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/demos/c4-tweaks-en.html": {
+    "mtime": 1793348579.937541,
+    "seen": 1793436740.7576022,
+    "ast_hash": "724a57dbe03d061f80396191cde5cf78",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/demos/c4-tweaks.html": {
+    "mtime": 1793348579.93805,
+    "seen": 1793436740.7576022,
+    "ast_hash": "3e32ab7cce68aafce611b44f2212a784",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/demos/c5-infographic-en.html": {
+    "mtime": 1793348579.938561,
+    "seen": 1793436740.7576022,
+    "ast_hash": "5fcc59fa6c458506c410fcec73a37845",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/demos/c5-infographic.html": {
+    "mtime": 1793348579.9390726,
+    "seen": 1793436740.7576022,
+    "ast_hash": "32886660668388cd9b0b143afc1c543b",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/demos/c6-expert-review-en.html": {
+    "mtime": 1793348579.9395826,
+    "seen": 1793436740.7576022,
+    "ast_hash": "f71cd836012cfd28c28030e7dcd4fd3d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/demos/c6-expert-review.html": {
+    "mtime": 1793348579.940097,
+    "seen": 1793436740.7576022,
+    "ast_hash": "62c7db3402c5199b0f66a0284e3e5fe1",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/demos/hero-animation-v10-en.html": {
+    "mtime": 1793348579.9411273,
+    "seen": 1793436740.7576022,
+    "ast_hash": "6b568aaa5dd91d4137f19aa8424c3207",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/demos/md-html-narration/md-html-demo.html": {
+    "mtime": 1793348579.9421637,
+    "seen": 1793436740.7576022,
+    "ast_hash": "f0df44b74e37d67b110e63ff1c34d6c9",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/demos/md-html-narration/script.md": {
+    "mtime": 1793348579.9426737,
+    "seen": 1793436740.7576022,
+    "ast_hash": "2f1a2c29a3cebc28daa13767654cc4c1",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/demos/voiceover-demo/script.md": {
+    "mtime": 1793348579.9437032,
+    "seen": 1793436740.7576022,
+    "ast_hash": "219df18a0c57e254b94944b4dbc70883",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/demos/w1-brand-protocol-en.html": {
+    "mtime": 1793348579.9452517,
+    "seen": 1793436740.7576022,
+    "ast_hash": "b18c14a2b5c25543709f615dd6d0f977",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/demos/w1-brand-protocol.html": {
+    "mtime": 1793348579.9457643,
+    "seen": 1793436740.7576022,
+    "ast_hash": "49f5407ab8b0e32d4081bd6e59d74ad6",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/demos/w2-junior-designer-en.html": {
+    "mtime": 1793348579.9462807,
+    "seen": 1793436740.7576022,
+    "ast_hash": "edba62ad6bbcf33e1571ac371d5fca6c",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/demos/w2-junior-designer.html": {
+    "mtime": 1793348579.9473078,
+    "seen": 1793436740.7576022,
+    "ast_hash": "17d7ac772e2579719939980b831746e1",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/demos/w3-fallback-advisor-en.html": {
+    "mtime": 1793348579.9478264,
+    "seen": 1793436740.7576022,
+    "ast_hash": "c7aed3c18eef928b2cc79d44284eb8f3",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/demos/w3-fallback-advisor.html": {
+    "mtime": 1793348579.9489233,
+    "seen": 1793436740.7576022,
+    "ast_hash": "626ba9b1e39fe58a46303781bcf81081",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/about-author.md": {
+    "mtime": 1793348579.9504614,
+    "seen": 1793436740.7576022,
+    "ast_hash": "b305573d70706ea3a66e1fb79027fac5",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/ai-video-review.md": {
+    "mtime": 1793348579.9509742,
+    "seen": 1793436740.7576022,
+    "ast_hash": "2da75915ad774cdebbdb6c4304f0abd2",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/animation-best-practices.md": {
+    "mtime": 1793348579.951485,
+    "seen": 1793436740.7576022,
+    "ast_hash": "73d7296b6ae9e87c9fe4bd67107dbda9",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/animation-pitfalls.md": {
+    "mtime": 1793348579.9519925,
+    "seen": 1793436740.7576022,
+    "ast_hash": "9c101b4fdd1facbf9a5229c2b8b0582e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/animations.md": {
+    "mtime": 1793348579.9530268,
+    "seen": 1793436740.7576022,
+    "ast_hash": "ac4fca0d4fb5d173516e300bb74a6079",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/app-prototype.md": {
+    "mtime": 1793348579.9535372,
+    "seen": 1793436740.7576022,
+    "ast_hash": "4b69b9ab9c80ed3c0472966460e21a75",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/apple-gallery-showcase.md": {
+    "mtime": 1793348579.9540493,
+    "seen": 1793436740.7576022,
+    "ast_hash": "eb6530ad3967517ca99530f2a0d76665",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/audio-design-rules.md": {
+    "mtime": 1793348579.9545624,
+    "seen": 1793436740.7576022,
+    "ast_hash": "4675f07c94846eadf82b5df54fba01cc",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/brand-asset-protocol.md": {
+    "mtime": 1793348579.9545624,
+    "seen": 1793436740.7581122,
+    "ast_hash": "88db99f0ed771b32a8bb6ee9e36ed7e1",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/camera-language.md": {
+    "mtime": 1793348579.9550695,
+    "seen": 1793436740.7581122,
+    "ast_hash": "4068cc34e4aeb0c1f4b722ae54afc05f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/cinematic-patterns.md": {
+    "mtime": 1793348579.9555833,
+    "seen": 1793436740.7581122,
+    "ast_hash": "7352973cbd6ef1632982a8349b5fc6b8",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/content-guidelines.md": {
+    "mtime": 1793348579.956091,
+    "seen": 1793436740.7581122,
+    "ast_hash": "43214d755fbba7d3ddba1102ebde85f7",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/critique-guide.md": {
+    "mtime": 1793348579.9565983,
+    "seen": 1793436740.7581122,
+    "ast_hash": "086a4bbad49993b84e0f594fb33f119d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/design-context.md": {
+    "mtime": 1793348579.9571059,
+    "seen": 1793436740.7581122,
+    "ast_hash": "7c8ec516d9c9b6adb10c546ffd5976d3",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/design-styles.md": {
+    "mtime": 1793348579.958133,
+    "seen": 1793436740.7581122,
+    "ast_hash": "2f40c52afd0529c0539fea38909e9a27",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/directions.md": {
+    "mtime": 1793348579.959156,
+    "seen": 1793436740.7581122,
+    "ast_hash": "5e24cd2cc2b0c2b09f419392350cf170",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/editable-pptx.md": {
+    "mtime": 1793348579.9596677,
+    "seen": 1793436740.7581122,
+    "ast_hash": "3f93f83c23cdc241708e5c6a99df6b4f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/evolution.md": {
+    "mtime": 1793348579.9601777,
+    "seen": 1793436740.7581122,
+    "ast_hash": "d8240610ed12270325c3be6ce56d47f5",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/experience.md": {
+    "mtime": 1793348579.9606903,
+    "seen": 1793436740.7581122,
+    "ast_hash": "5d45f9ef1bd355a93c8eb365650a0c31",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/gsap-recipes.md": {
+    "mtime": 1793348579.9612052,
+    "seen": 1793436740.7581122,
+    "ast_hash": "049941458b0c918df1b3fd5fe6ed3750",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/hero-animation-case-study.md": {
+    "mtime": 1793348579.9617157,
+    "seen": 1793436740.7581122,
+    "ast_hash": "8ae9e545cb5f9ae4fe4f55e622c7b34f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/hyperframes-backend.md": {
+    "mtime": 1793348579.9622242,
+    "seen": 1793436740.7581122,
+    "ast_hash": "29299f8314d40ae92b1e125626e6b8e9",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/launch-film-director-notes.md": {
+    "mtime": 1793348579.962736,
+    "seen": 1793436740.7581122,
+    "ast_hash": "d3a296c1423b011b3157b7f702af65cc",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/materials.md": {
+    "mtime": 1793348579.962736,
+    "seen": 1793436740.7581122,
+    "ast_hash": "4003811be28f0882d70633eb8df3301d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/modules/deck.md": {
+    "mtime": 1793348579.9637537,
+    "seen": 1793436740.7581122,
+    "ast_hash": "ad69e2e4a9026a1b37c0c2771ff22388",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/modules/infographic.md": {
+    "mtime": 1793348579.9637537,
+    "seen": 1793436740.7581122,
+    "ast_hash": "39253d6b22132c7e0f22fe6d7e6a5fa1",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/modules/motion.md": {
+    "mtime": 1793348579.9644215,
+    "seen": 1793436740.7581122,
+    "ast_hash": "0ae7e2d30aed977e4d2cc95504bde23c",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/modules/web.md": {
+    "mtime": 1793348579.9649334,
+    "seen": 1793436740.7581122,
+    "ast_hash": "dc18b57549097cb593bbc62056337649",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/multi-perspective-parallel-case-study.md": {
+    "mtime": 1793348579.9654438,
+    "seen": 1793436740.7581122,
+    "ast_hash": "b05190610efc8d20414d93b31800edf3",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/pptx-from-rendered-html.md": {
+    "mtime": 1793348579.9659574,
+    "seen": 1793436740.7581122,
+    "ast_hash": "98107ae0ec9a0392f800ede8dc92fe90",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/react-setup.md": {
+    "mtime": 1793348579.9664657,
+    "seen": 1793436740.7581122,
+    "ast_hash": "d4a1f9d1989dce543ba12d8a08e693fa",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/scene-templates.md": {
+    "mtime": 1793348579.9669743,
+    "seen": 1793436740.7581122,
+    "ast_hash": "bc208247e1885a07c847ae7ff9975d5b",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/sfx-library.md": {
+    "mtime": 1793348579.9669743,
+    "seen": 1793436740.7581122,
+    "ast_hash": "efa9328e4bdcc50bdc75429e308fe0be",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/slide-decks.md": {
+    "mtime": 1793348579.9679935,
+    "seen": 1793436740.7581122,
+    "ast_hash": "a675b9acd99ab939b769c68bd0815489",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/storyboard-basics.md": {
+    "mtime": 1793348579.9685018,
+    "seen": 1793436740.7581122,
+    "ast_hash": "03ac8d4068b672d5ef8c210ec0769e25",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/tweaks-system.md": {
+    "mtime": 1793348579.9685018,
+    "seen": 1793436740.7581122,
+    "ast_hash": "76ddbbbbea4baa08625440587d489d5e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/typography.md": {
+    "mtime": 1793348579.96901,
+    "seen": 1793436740.7581122,
+    "ast_hash": "0105d173dd5bf2f00e1762435a913e37",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/ui-demo-animation.md": {
+    "mtime": 1793348579.96952,
+    "seen": 1793436740.7581122,
+    "ast_hash": "3a471912fe5479b2ccf1f8a16f5e2af6",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/verification.md": {
+    "mtime": 1793348579.9700294,
+    "seen": 1793436740.7581122,
+    "ast_hash": "5897226e6b68796d000431ca7d21991f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/video-export.md": {
+    "mtime": 1793348579.970541,
+    "seen": 1793436740.7581122,
+    "ast_hash": "4cdf1fc835e15f3f6d6127de0f6dbda0",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/voiceover-pipeline.md": {
+    "mtime": 1793348579.971048,
+    "seen": 1793436740.7581122,
+    "ast_hash": "024ae6473db3145d6b33fbc908d64729",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/references/workflow.md": {
+    "mtime": 1793348579.971557,
+    "seen": 1793436740.7581122,
+    "ast_hash": "e38a4a724a9463e24c137e7e97396e11",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/tests/fixtures/lint_broken.html": {
+    "mtime": 1793348579.9838135,
+    "seen": 1793436740.7581122,
+    "ast_hash": "d8e56c5d65fc7558ca89bf2d1a5dfafe",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/tests/fixtures/lint_clean.html": {
+    "mtime": 1793348579.9838135,
+    "seen": 1793436740.7581122,
+    "ast_hash": "021fd2f7345bd79f4232d7c7e24e2576",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/tests/fixtures/lint_offline.html": {
+    "mtime": 1793348579.9843228,
+    "seen": 1793436740.7581122,
+    "ast_hash": "c010aeb669c349fbe1cdba35bc4ca5e4",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/tests/fixtures/lint_reskin.html": {
+    "mtime": 1793348579.9848316,
+    "seen": 1793436740.7581122,
+    "ast_hash": "e9e8a4d4213756c5103ca33446a67f92",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/tests/fixtures/lint_slop.html": {
+    "mtime": 1793348579.9853425,
+    "seen": 1793436740.7581122,
+    "ast_hash": "f92251fbc2dde71d89c7a0609822c7ca",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/tests/fixtures/lint_tricky_bad.html": {
+    "mtime": 1793348579.9858499,
+    "seen": 1793436740.7581122,
+    "ast_hash": "e9ff72255ddcdc180f714c48fadb44a5",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/tests/fixtures/lint_tricky_ok.html": {
+    "mtime": 1793348579.9858499,
+    "seen": 1793436740.7581122,
+    "ast_hash": "0696242e09087f40e5489c523a6ce315",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/scripts/tests/fixtures/mixed_text.html": {
+    "mtime": 1793348579.986361,
+    "seen": 1793436740.7581122,
+    "ast_hash": "f628e19594aa6f9886d387666c5d4a9a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/banner.svg": {
+    "mtime": 1793348579.5797906,
+    "seen": 1793436740.7581122,
+    "ast_hash": "61169c32172958056592ddf4c1e820a0",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/cover/cover-build.png": {
+    "mtime": 1793348579.754509,
+    "seen": 1793436740.7581122,
+    "ast_hash": "cb0a3b41927550e94eeb3e05a08971b1",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/cover/cover-pentagram.png": {
+    "mtime": 1793348579.755534,
+    "seen": 1793436740.7581122,
+    "ast_hash": "4921a9314c3c567e8db08215939700d3",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/cover/cover-takram.png": {
+    "mtime": 1793348579.7575932,
+    "seen": 1793436740.7581122,
+    "ast_hash": "c984f4ab9d009665fabc67155eac79e8",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/infographic/infographic-build.png": {
+    "mtime": 1793348579.759663,
+    "seen": 1793436740.7581122,
+    "ast_hash": "600a4d66abe0908e6729aca0e4a8423e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/infographic/infographic-pentagram.png": {
+    "mtime": 1793348579.7612193,
+    "seen": 1793436740.7581122,
+    "ast_hash": "d8c50ec78de25784536bc576220260e9",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/infographic/infographic-takram.png": {
+    "mtime": 1793348579.7627697,
+    "seen": 1793436740.7581122,
+    "ast_hash": "966445dfbaba171d4bdf1b5b0facb27d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/ppt/ppt-build.png": {
+    "mtime": 1793348579.7648299,
+    "seen": 1793436740.7581122,
+    "ast_hash": "9aa4c6ec6ab8ccb587143e6889cf9a77",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/ppt/ppt-pentagram.png": {
+    "mtime": 1793348579.7664514,
+    "seen": 1793436740.7581122,
+    "ast_hash": "dd14ee64b5e95ba3a49d91c78a1da6bc",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/ppt/ppt-takram.png": {
+    "mtime": 1793348579.7700512,
+    "seen": 1793436740.7581122,
+    "ast_hash": "77ab8dfb27b8254340959b8a64c9b545",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/website-ai-nav/ainav-build.png": {
+    "mtime": 1793348579.7721279,
+    "seen": 1793436740.7581122,
+    "ast_hash": "b0cb0b3b3782add5fd24b5c61c80fc95",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/website-ai-nav/ainav-pentagram.png": {
+    "mtime": 1793348579.7736826,
+    "seen": 1793436740.7581122,
+    "ast_hash": "3005caf3282345fb0937c4d12de5b325",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/website-ai-nav/ainav-takram.png": {
+    "mtime": 1793348579.7757478,
+    "seen": 1793436740.7581122,
+    "ast_hash": "906e49f442e550fa252728c078f50181",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/website-ai-writing/aiwriting-build.png": {
+    "mtime": 1793348579.7778115,
+    "seen": 1793436740.7581122,
+    "ast_hash": "7c1b5be09669620616e80c573166168c",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/website-ai-writing/aiwriting-pentagram.png": {
+    "mtime": 1793348579.7793567,
+    "seen": 1793436740.7581122,
+    "ast_hash": "8bb3c93f0f6be4e0dd6b1e344678ec67",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/website-ai-writing/aiwriting-takram.png": {
+    "mtime": 1793348579.782121,
+    "seen": 1793436740.7581122,
+    "ast_hash": "b8b1f732d966fd6133ed24cdcbcf0d20",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/website-devdocs/devdocs-build.png": {
+    "mtime": 1793348579.783652,
+    "seen": 1793436740.7581122,
+    "ast_hash": "ff8da4c2850b4510e943a00af3b57ddc",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/website-devdocs/devdocs-pentagram.png": {
+    "mtime": 1793348579.7851827,
+    "seen": 1793436740.7581122,
+    "ast_hash": "ec6f1ada3d4663fdad02496f8e900423",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/website-devdocs/devdocs-takram.png": {
+    "mtime": 1793348579.7872324,
+    "seen": 1793436740.7581122,
+    "ast_hash": "4b3f0188e9fc8ed12f051e90792c3fb8",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/website-homepage/homepage-build.png": {
+    "mtime": 1793348579.788766,
+    "seen": 1793436740.7581122,
+    "ast_hash": "28eaea9117c0776e1fcd7f2747888147",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/website-homepage/homepage-pentagram.png": {
+    "mtime": 1793348579.7897916,
+    "seen": 1793436740.7581122,
+    "ast_hash": "9e81f7c4f4ecbf71ee218a1613b369a4",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/website-homepage/homepage-takram.png": {
+    "mtime": 1793348579.791849,
+    "seen": 1793436740.7581122,
+    "ast_hash": "0a478ef275a12c62153d7e9f7c5ece34",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/website-saas/saas-build.png": {
+    "mtime": 1793348579.7938993,
+    "seen": 1793436740.7581122,
+    "ast_hash": "78c9ed4589cf7af36634e7945e9e9707",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/website-saas/saas-pentagram.png": {
+    "mtime": 1793348579.7954376,
+    "seen": 1793436740.7581122,
+    "ast_hash": "238beb8a2cfa02c8c80a476e3556625a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/showcases/website-saas/saas-takram.png": {
+    "mtime": 1793348579.7970743,
+    "seen": 1793436740.7581122,
+    "ast_hash": "e60cf91fe1c4077745ca51f89f89d82e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/app/01-hardware-panel.jpg": {
+    "mtime": 1793348579.7991276,
+    "seen": 1793436740.7581122,
+    "ast_hash": "524779387c8e1b238c70fac9a3304dc7",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/app/02-liquid-glass.jpg": {
+    "mtime": 1793348579.8006766,
+    "seen": 1793436740.7581122,
+    "ast_hash": "b0010152d9c4e7beb0ebe5764ddce58c",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/app/03-playful-3d.jpg": {
+    "mtime": 1793348579.8022292,
+    "seen": 1793436740.7581122,
+    "ast_hash": "6900b82e11c1e886c9979fbdfded295d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/app/04-friendly-fintech.jpg": {
+    "mtime": 1793348579.8043122,
+    "seen": 1793436740.7581122,
+    "ast_hash": "62aa0443223e655baef8cbbd638b071e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/app/05-pro-camera.jpg": {
+    "mtime": 1793348579.8053463,
+    "seen": 1793436740.7581122,
+    "ast_hash": "e8859859e0fc77d93e11ac6b8a201eab",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/app/06-topo-outdoor.jpg": {
+    "mtime": 1793348579.8068955,
+    "seen": 1793436740.7581122,
+    "ast_hash": "725708b7e2af1d80324a5aa16382a46e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/app/07-feed-waterfall.jpg": {
+    "mtime": 1793348579.8084443,
+    "seen": 1793436740.7581122,
+    "ast_hash": "f1d04b8ae7699cb5072fe187a687318e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/app/08-command-palette.jpg": {
+    "mtime": 1793348579.8099985,
+    "seen": 1793436740.7581122,
+    "ast_hash": "4243ff75556f6e5805a853745e56a57b",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/app/09-health-color-code.jpg": {
+    "mtime": 1793348579.811732,
+    "seen": 1793436740.7581122,
+    "ast_hash": "5f33ca5b848fa030e1e4ff145bdd3cb2",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/app/10-native-polish.jpg": {
+    "mtime": 1793348579.8138077,
+    "seen": 1793436740.7581122,
+    "ast_hash": "225bd3ca680212d20a33a33f9c435ec9",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/app/11-gentle-encouraging.jpg": {
+    "mtime": 1793348579.8158884,
+    "seen": 1793436740.7581122,
+    "ast_hash": "dcba413b1175c6b438e583a2676e1da4",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/app/12-editorial-reader.jpg": {
+    "mtime": 1793348579.8174372,
+    "seen": 1793436740.7581122,
+    "ast_hash": "38b7107037efc7c3fd532eb71a5311c9",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/east/01-lu-jingren-bookcraft.jpg": {
+    "mtime": 1793348579.818983,
+    "seen": 1793436740.7581122,
+    "ast_hash": "c1692ae4492063af7337f3ba009bf1ab",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/east/02-song-block-print.jpg": {
+    "mtime": 1793348579.821589,
+    "seen": 1793436740.7581122,
+    "ast_hash": "44bc594708730d4af1281bd90977f72a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/east/03-republic-book-jacket.jpg": {
+    "mtime": 1793348579.8231273,
+    "seen": 1793436740.7581122,
+    "ast_hash": "df954f680038dd016b1684d65167e532",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/east/04-shanghai-deco-calendar.jpg": {
+    "mtime": 1793348579.824668,
+    "seen": 1793436740.7581122,
+    "ast_hash": "5e8fb09dccc07658d782c0eda2a5f9e6",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/east/05-hanzi-experimental-poster.jpg": {
+    "mtime": 1793348579.8262126,
+    "seen": 1793436740.7581122,
+    "ast_hash": "5af869340401401c7301e4b7e0138ab2",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/east/06-hk-street-signs.jpg": {
+    "mtime": 1793348579.8278406,
+    "seen": 1793436740.7581122,
+    "ast_hash": "c923acdd6c774cc7d5613425cb640853",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/east/07-traditional-colors-solar-terms.jpg": {
+    "mtime": 1793348579.828864,
+    "seen": 1793436740.7581122,
+    "ast_hash": "ddf55a4b0d1d8e22e4e3593ede3ec377",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/east/08-sugiura-info-mandala.jpg": {
+    "mtime": 1793348579.8309364,
+    "seen": 1793436740.7581122,
+    "ast_hash": "7026ca583710112b0cb45c2874e8053a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/east/09-tanaka-geometric-poster.jpg": {
+    "mtime": 1793348579.8319838,
+    "seen": 1793436740.7581122,
+    "ast_hash": "461069fea2d3ca2e7b83db224806b8ca",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/east/10-hattori-playful-offset.jpg": {
+    "mtime": 1793348579.8335204,
+    "seen": 1793436740.7581122,
+    "ast_hash": "2f741be273732ce0230aba977b7e3a02",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/east/11-sato-minimal-symbol.jpg": {
+    "mtime": 1793348579.8345387,
+    "seen": 1793436740.7581122,
+    "ast_hash": "5662e17aac58adb9bdafd1f9b78f3ef5",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/east/12-japan-magazine-dense.jpg": {
+    "mtime": 1793348579.8365924,
+    "seen": 1793436740.7581122,
+    "ast_hash": "b054d39036bd35cf424d16ad36056012",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/01-personal-annual-report.jpg": {
+    "mtime": 1793348579.8386579,
+    "seen": 1793436740.7581122,
+    "ast_hash": "5dc845f99cc8b93c2dfa5417bb3717ec",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/02-explanation-graphics.jpg": {
+    "mtime": 1793348579.8401923,
+    "seen": 1793436740.7581122,
+    "ast_hash": "9a904eed1be5558ad06c5db3c75f29ea",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/03-cross-section-epic.jpg": {
+    "mtime": 1793348579.8424168,
+    "seen": 1793436740.7581122,
+    "ast_hash": "953c2ac545147aee094a50b7475a8e52",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/04-magazine-pop-data.jpg": {
+    "mtime": 1793348579.843964,
+    "seen": 1793436740.7581122,
+    "ast_hash": "3a3e79c473a51b86ddccc992039eb0f9",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/05-isotype.jpg": {
+    "mtime": 1793348579.8455133,
+    "seen": 1793436740.7581122,
+    "ast_hash": "93781b5b6b9a17e8e3402e2b7fa91357",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/06-data-humanism.jpg": {
+    "mtime": 1793348579.847064,
+    "seen": 1793436740.7581122,
+    "ast_hash": "241e4b64a4cc0a60b62f16d13c66f261",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/07-scrollytelling.jpg": {
+    "mtime": 1793348579.8486204,
+    "seen": 1793436740.7581122,
+    "ast_hash": "40aa6450a0513206ead2d8f9ed25b867",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/08-cartographic-lead.jpg": {
+    "mtime": 1793348579.8496592,
+    "seen": 1793436740.7581122,
+    "ast_hash": "481b583781a765c163359979101e4d6c",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/09-newsroom-chart.jpg": {
+    "mtime": 1793348579.8512182,
+    "seen": 1793436740.7581122,
+    "ast_hash": "d38a7188d0ce8ba702c30497dd5f611f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/10-computational-portrait.jpg": {
+    "mtime": 1793348579.8527677,
+    "seen": 1793436740.7581122,
+    "ast_hash": "0a944ce7ad5ddacd11810dfba1ec2a89",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/11-beautiful-information.jpg": {
+    "mtime": 1793348579.8543134,
+    "seen": 1793436740.7581122,
+    "ast_hash": "1c6db0147900ed0384e9c06afdd2a8c7",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/12-open-research-data.jpg": {
+    "mtime": 1793348579.855331,
+    "seen": 1793436740.7581122,
+    "ast_hash": "ae04d582b95f466d12179aeb6ae686d3",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/13-speculative-tech-diagram.jpg": {
+    "mtime": 1793348579.8568766,
+    "seen": 1793436740.7581122,
+    "ast_hash": "90456bb9c8cb2a59c706e8cdef416652",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/14-pictogram-system.jpg": {
+    "mtime": 1793348579.858513,
+    "seen": 1793436740.7581122,
+    "ast_hash": "7b874b7f6b093c6c9bec6b7eaa73f186",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/15-small-multiples.jpg": {
+    "mtime": 1793348579.860054,
+    "seen": 1793436740.7581122,
+    "ast_hash": "6ddf856dd981e79ad9aeaacf9dff7d25",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/16-topological-transit-map.jpg": {
+    "mtime": 1793348579.8610835,
+    "seen": 1793436740.7581122,
+    "ast_hash": "f226140b36ca34e1a0cdfef6625076ff",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/17-ma-emptiness.jpg": {
+    "mtime": 1793348579.862129,
+    "seen": 1793436740.7581122,
+    "ast_hash": "977fa8394f20880c87baf502ac04f7ca",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/18-bookcraft-data.jpg": {
+    "mtime": 1793348579.8636754,
+    "seen": 1793436740.7581122,
+    "ast_hash": "105cacdbac57cfec128dcbfe46c9a223",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/19-scientific-figure-plate.jpg": {
+    "mtime": 1793348579.8657382,
+    "seen": 1793436740.7581122,
+    "ast_hash": "40e9c32ebe13193164b1160b126d7bb7",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/info/20-swiss-grid-report.jpg": {
+    "mtime": 1793348579.8672807,
+    "seen": 1793436740.7581122,
+    "ast_hash": "97b1298b174e509984a89bfb6a467543",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/01-neo-swiss-billboard.jpg": {
+    "mtime": 1793348579.868826,
+    "seen": 1793436740.7581122,
+    "ast_hash": "dc886decd6abace381217307807901c6",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/02-black-big-number-stage.jpg": {
+    "mtime": 1793348579.869865,
+    "seen": 1793436740.7581122,
+    "ast_hash": "75738fbeecb54646d067af59d1cd6b76",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/03-mono-brand-type-hero.jpg": {
+    "mtime": 1793348579.8709075,
+    "seen": 1793436740.7581122,
+    "ast_hash": "dd6e733e65f771d85fb8b9aececc70ae",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/04-full-bleed-gradient-manifesto.jpg": {
+    "mtime": 1793348579.8726108,
+    "seen": 1793436740.7581122,
+    "ast_hash": "d8c35d3eb68285addca3fb772080dbc1",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/05-candy-lecture-stage.jpg": {
+    "mtime": 1793348579.8736415,
+    "seen": 1793436740.7581122,
+    "ast_hash": "861f40f6cfaebbd099d83b02739f753a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/06-playful-collins-editorial.jpg": {
+    "mtime": 1793348579.8751829,
+    "seen": 1793436740.7581122,
+    "ast_hash": "4f4df0f798d155051b4a05a45fe28149",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/07-irreverent-pop.jpg": {
+    "mtime": 1793348579.8767269,
+    "seen": 1793436740.7581122,
+    "ast_hash": "cc362128549f15ba8e70cee13bafe8b3",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/08-y2k-inflated-wrapped.jpg": {
+    "mtime": 1793348579.8782725,
+    "seen": 1793436740.7581122,
+    "ast_hash": "dd86e6132d0e33ea7f81ee256350d040",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/09-bento-grid.jpg": {
+    "mtime": 1793348579.8798242,
+    "seen": 1793436740.7581122,
+    "ast_hash": "8fb52f5beb1e3565ed785a4fec32f0e7",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/10-dark-hairline-terminal.jpg": {
+    "mtime": 1793348579.8808577,
+    "seen": 1793436740.7581122,
+    "ast_hash": "08c5b182572c002be568250df61c76e6",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/11-two-font-consulting.jpg": {
+    "mtime": 1793348579.8829515,
+    "seen": 1793436740.7581122,
+    "ast_hash": "48863f9a43479a7e933a00cc49df3d39",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/12-diagram-isotype.jpg": {
+    "mtime": 1793348579.883983,
+    "seen": 1793436740.7581122,
+    "ast_hash": "1b027d2391b3549e514a8c6768dac240",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/13-diagrammatic-minimalism.jpg": {
+    "mtime": 1793348579.8860435,
+    "seen": 1793436740.7581122,
+    "ast_hash": "2a4ad367dd7278892247c3803099497b",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/14-narrative-sparkline.jpg": {
+    "mtime": 1793348579.8876774,
+    "seen": 1793436740.7581122,
+    "ast_hash": "1bb12abb3bbb0cdcffb234b029da4cfd",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/15-assertion-evidence.jpg": {
+    "mtime": 1793348579.8887117,
+    "seen": 1793436740.7581122,
+    "ast_hash": "f9da98a4ee83688e0d2e2a5083ccc1af",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/16-institutional-swiss.jpg": {
+    "mtime": 1793348579.889749,
+    "seen": 1793436740.7581122,
+    "ast_hash": "8f282cd854d8c1fe7115a6d2c34b15a1",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/17-editorial-longform.jpg": {
+    "mtime": 1793348579.8918147,
+    "seen": 1793436740.7581122,
+    "ast_hash": "eb065435c2444977760ec8e6fbfd33e2",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/18-humanist-rounded-cards.jpg": {
+    "mtime": 1793348579.893374,
+    "seen": 1793436740.7581122,
+    "ast_hash": "3cc58ec890dca542ce0642944aff6a8d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/19-dense-research-report.jpg": {
+    "mtime": 1793348579.8943954,
+    "seen": 1793436740.7581122,
+    "ast_hash": "3362d0a1017a5a653bee689fcb16e8e6",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/ppt/20-all-text-manifesto.jpg": {
+    "mtime": 1793348579.8954136,
+    "seen": 1793436740.7581122,
+    "ast_hash": "f7a238ed86be67ac25d9a8d40f3300ca",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/sheet-app.jpg": {
+    "mtime": 1793348579.8974555,
+    "seen": 1793436740.7581122,
+    "ast_hash": "059a5c9268c4f3d7269e113654f37be5",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/sheet-east.jpg": {
+    "mtime": 1793348579.8989887,
+    "seen": 1793436740.7581122,
+    "ast_hash": "c8e82a83f5883aaa3a2181ebf9edb7fe",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/sheet-info.jpg": {
+    "mtime": 1793348579.9005284,
+    "seen": 1793436740.7581122,
+    "ast_hash": "b33224d280983aed6bd26056ccb790aa",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/sheet-ppt.jpg": {
+    "mtime": 1793348579.9020731,
+    "seen": 1793436740.7581122,
+    "ast_hash": "bb0bc9c9b7a5c34411c8670b65031392",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/sheet-web.jpg": {
+    "mtime": 1793348579.904322,
+    "seen": 1793436740.7581122,
+    "ast_hash": "edab7fe380cbe13acfda31f58a247739",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/01-editorial-brutalism.jpg": {
+    "mtime": 1793348579.9058712,
+    "seen": 1793436740.7581122,
+    "ast_hash": "11b3909bc308ef0d25d0ebe24ce78d46",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/02-neo-brutalism.jpg": {
+    "mtime": 1793348579.9074109,
+    "seen": 1793436740.7581122,
+    "ast_hash": "9846564c067c2bb8494259dfda9ad656",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/03-memphis-maximalism.jpg": {
+    "mtime": 1793348579.908955,
+    "seen": 1793436740.7581122,
+    "ast_hash": "e31afa4d91b7dbfe90abdb3549557bed",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/04-friendly-candy.jpg": {
+    "mtime": 1793348579.9105058,
+    "seen": 1793436740.7581122,
+    "ast_hash": "b98cb25a06d943645b9f5a9ed0c97d25",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/05-pure-css-art.jpg": {
+    "mtime": 1793348579.9115255,
+    "seen": 1793436740.7581122,
+    "ast_hash": "de2e7c04ce68f6f13501c43f2e9cf854",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/06-bold-big-type.jpg": {
+    "mtime": 1793348579.9130702,
+    "seen": 1793436740.7581122,
+    "ast_hash": "ba656f7cdfab68a8bd3c21c96d117d72",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/07-cosmic-retro-futurism.jpg": {
+    "mtime": 1793348579.9146256,
+    "seen": 1793436740.7581122,
+    "ast_hash": "d2b9435141de33988dfd92467d7e3723",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/08-cinematic-sound-viz.jpg": {
+    "mtime": 1793348579.9156582,
+    "seen": 1793436740.7581122,
+    "ast_hash": "c2d0c483ad909bcbe833b769eee108ec",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/09-pixel-side-scroller.jpg": {
+    "mtime": 1793348579.9172072,
+    "seen": 1793436740.7581122,
+    "ast_hash": "63c133137e0f85cb385b99f4bca261b0",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/10-bauhaus-geometric.jpg": {
+    "mtime": 1793348579.9183245,
+    "seen": 1793436740.7581122,
+    "ast_hash": "18699c3198532cb3659e5207593ed9d0",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/11-dark-editorial.jpg": {
+    "mtime": 1793348579.9198797,
+    "seen": 1793436740.7581122,
+    "ast_hash": "783e7cf75fc8d426d191d6d300a6784b",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/12-warm-editorial.jpg": {
+    "mtime": 1793348579.9209168,
+    "seen": 1793436740.7581122,
+    "ast_hash": "bdbdb313b1136c6522cda43f7ec7768c",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/13-glassmorphism-bento.jpg": {
+    "mtime": 1793348579.9224753,
+    "seen": 1793436740.7581122,
+    "ast_hash": "eba0e1f8e8d1f89d68ba3ec2551a1b30",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/14-angled-fluid-gradient.jpg": {
+    "mtime": 1793348579.9240296,
+    "seen": 1793436740.7581122,
+    "ast_hash": "3fbf227582743f91f0e46a99966fdf27",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/15-utility-colorful-docs.jpg": {
+    "mtime": 1793348579.9255872,
+    "seen": 1793436740.7581122,
+    "ast_hash": "cc92e4456393ce72fd3552063bc67d56",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/16-terminal-core.jpg": {
+    "mtime": 1793348579.9266207,
+    "seen": 1793436740.7581122,
+    "ast_hash": "5c227b6ad5c130fef5c517ca0bb6f661",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/17-functional-brutalism.jpg": {
+    "mtime": 1793348579.9281683,
+    "seen": 1793436740.7581122,
+    "ast_hash": "c1095006305222b96c326bf4d382ccfe",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/18-gallery-dark.jpg": {
+    "mtime": 1793348579.9291954,
+    "seen": 1793436740.7581122,
+    "ast_hash": "368490d8b9eccf00aef33eabea6549e4",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/19-swiss-monochrome.jpg": {
+    "mtime": 1793348579.9312634,
+    "seen": 1793436740.7581122,
+    "ast_hash": "a1f2373fb89f4f675b4b225b3f36063c",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/style-specimens/web/20-kenya-hara-white-gallery.jpg": {
+    "mtime": 1793348579.9322844,
+    "seen": 1793436740.7581122,
+    "ast_hash": "0c53c9a8a26e13305c9181c2071b7111",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/bgm-ad.mp3": {
+    "mtime": 1793348579.6059873,
+    "seen": 1793436740.7581122,
+    "ast_hash": "6db2ace059c7ae6a739ed10493e09fc0",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/bgm-educational-alt.mp3": {
+    "mtime": 1793348579.6276445,
+    "seen": 1793436740.7581122,
+    "ast_hash": "8048d4ba32c8453f7f3863b806b4ad8d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/bgm-educational.mp3": {
+    "mtime": 1793348579.6461165,
+    "seen": 1793436740.7581122,
+    "ast_hash": "547191cfbb3002093ccb7640463b979a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/bgm-tech.mp3": {
+    "mtime": 1793348579.6729538,
+    "seen": 1793436740.7581122,
+    "ast_hash": "c8481c0ac994dcdcae9b471bbb5038ee",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/bgm-tutorial-alt.mp3": {
+    "mtime": 1793348579.6940026,
+    "seen": 1793436740.7581122,
+    "ast_hash": "3c62ebec1779c548e299a8b10b8cfc1a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/bgm-tutorial.mp3": {
+    "mtime": 1793348579.7223332,
+    "seen": 1793436740.7581122,
+    "ast_hash": "d633d7ff98b807f890999e5a2fcfe96d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/container/card-flip.mp3": {
+    "mtime": 1793348579.7289991,
+    "seen": 1793436740.7581122,
+    "ast_hash": "12420c52972f5be6a923456c9626b37d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/container/card-snap.mp3": {
+    "mtime": 1793348579.7295113,
+    "seen": 1793436740.7581122,
+    "ast_hash": "27cbb5dc45241726030e4f456ab971bd",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/container/modal-open.mp3": {
+    "mtime": 1793348579.7305539,
+    "seen": 1793436740.7581122,
+    "ast_hash": "69c787d7e53958fb7baa33c484e8c070",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/container/stack-collapse.mp3": {
+    "mtime": 1793348579.7310662,
+    "seen": 1793436740.7581122,
+    "ast_hash": "ade954877ca28a147f7e08b5872d4333",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/feedback/achievement.mp3": {
+    "mtime": 1793348579.732101,
+    "seen": 1793436740.7581122,
+    "ast_hash": "b82bf318379ec749a47dd81b8a240cf6",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/feedback/error-tone.mp3": {
+    "mtime": 1793348579.7326138,
+    "seen": 1793436740.7581122,
+    "ast_hash": "cd09a9a9339fcd9ba2278899b8395ca1",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/feedback/notification-pop.mp3": {
+    "mtime": 1793348579.733125,
+    "seen": 1793436740.7581122,
+    "ast_hash": "69dddfc3ccade268b7d8a290cfbb2448",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/feedback/success-chime.mp3": {
+    "mtime": 1793348579.7336347,
+    "seen": 1793436740.7581122,
+    "ast_hash": "ad039e7abfc5ecb0c32161d63cb61b8d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/impact/brand-stamp.mp3": {
+    "mtime": 1793348579.7342455,
+    "seen": 1793436740.7581122,
+    "ast_hash": "2b3fac49505d4d364bcccf2a00c04fa4",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/impact/drop-thud.mp3": {
+    "mtime": 1793348579.7347586,
+    "seen": 1793436740.7581122,
+    "ast_hash": "90183edd34ab5e2ea35671b8f8b045b8",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/impact/logo-reveal-v2.mp3": {
+    "mtime": 1793348579.7357845,
+    "seen": 1793436740.7581122,
+    "ast_hash": "e91971d6df642ff5af76627931e13591",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/impact/logo-reveal.mp3": {
+    "mtime": 1793348579.73682,
+    "seen": 1793436740.7581122,
+    "ast_hash": "e91971d6df642ff5af76627931e13591",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/keyboard/delete-key.mp3": {
+    "mtime": 1793348579.7373323,
+    "seen": 1793436740.7581122,
+    "ast_hash": "0939ebdf0e1439aaf79834d3fc6c8c99",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/keyboard/enter.mp3": {
+    "mtime": 1793348579.7378502,
+    "seen": 1793436740.7581122,
+    "ast_hash": "ac50d42d8fa0f0d3135404b86e617811",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/keyboard/space-tap.mp3": {
+    "mtime": 1793348579.7383654,
+    "seen": 1793436740.7581122,
+    "ast_hash": "10d6886cc07c03a517c6c698f0eb3948",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/keyboard/type-fast.mp3": {
+    "mtime": 1793348579.7388756,
+    "seen": 1793436740.7581122,
+    "ast_hash": "87d1d6a344185ebc7bb9a80d042817a8",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/keyboard/type.mp3": {
+    "mtime": 1793348579.739389,
+    "seen": 1793436740.7581122,
+    "ast_hash": "5aedc785ce284cf288b5d71333c80ac2",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/magic/ai-process.mp3": {
+    "mtime": 1793348579.7404253,
+    "seen": 1793436740.7581122,
+    "ast_hash": "bc334cc7dd339a1a4c2aefff86138a3c",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/magic/sparkle.mp3": {
+    "mtime": 1793348579.7409456,
+    "seen": 1793436740.7581122,
+    "ast_hash": "31243a92b82602b0050857409628c2fe",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/magic/transform.mp3": {
+    "mtime": 1793348579.7414613,
+    "seen": 1793436740.7581122,
+    "ast_hash": "87220625825742167c114052d2e49dd4",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/progress/complete-done.mp3": {
+    "mtime": 1793348579.7424998,
+    "seen": 1793436740.7581122,
+    "ast_hash": "3ae5c57cfac31125c6a263b5caf8b6fa",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/progress/generate-start.mp3": {
+    "mtime": 1793348579.7430122,
+    "seen": 1793436740.7581122,
+    "ast_hash": "f23ce491954affbdcd21271fe5a283d5",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/progress/loading-tick.mp3": {
+    "mtime": 1793348579.7435248,
+    "seen": 1793436740.7581122,
+    "ast_hash": "d1917482e87574e310884715055602c1",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/terminal/command-execute.mp3": {
+    "mtime": 1793348579.7440383,
+    "seen": 1793436740.7581122,
+    "ast_hash": "7fa8abe4514edfd5c995617616925aa8",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/terminal/cursor-blink.mp3": {
+    "mtime": 1793348579.7445548,
+    "seen": 1793436740.7581122,
+    "ast_hash": "7dddbe25a97e615062eeeed791b9978a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/terminal/output-appear.mp3": {
+    "mtime": 1793348579.7450716,
+    "seen": 1793436740.7581122,
+    "ast_hash": "b07a34e2f8ab66b632f5e2f1f2da949e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/transition/dissolve.mp3": {
+    "mtime": 1793348579.7461019,
+    "seen": 1793436740.7581122,
+    "ast_hash": "2106f172b63ba890a05fb506165dff27",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/transition/slide-in.mp3": {
+    "mtime": 1793348579.7461019,
+    "seen": 1793436740.7581122,
+    "ast_hash": "1b87f9f84ee32d16fd722fd7730befac",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/transition/swipe-horizontal.mp3": {
+    "mtime": 1793348579.7471385,
+    "seen": 1793436740.7581122,
+    "ast_hash": "297fc5858d395356cbade6d1162b6f74",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/transition/whoosh-fast.mp3": {
+    "mtime": 1793348579.7476547,
+    "seen": 1793436740.7581122,
+    "ast_hash": "3434664911e67dbda96a0c16ca79d6ac",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/transition/whoosh.mp3": {
+    "mtime": 1793348579.7481768,
+    "seen": 1793436740.7581122,
+    "ast_hash": "a93a2121d83a84c727b2fee04c2a38eb",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/ui/click-soft.mp3": {
+    "mtime": 1793348579.748693,
+    "seen": 1793436740.7581122,
+    "ast_hash": "0b227527dde3315d0bdabca9e5d84dd1",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/ui/click.mp3": {
+    "mtime": 1793348579.749208,
+    "seen": 1793436740.7581122,
+    "ast_hash": "1bcbd3c0d93b863fd26a87f1235bcc7a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/ui/focus.mp3": {
+    "mtime": 1793348579.7498822,
+    "seen": 1793436740.7581122,
+    "ast_hash": "61d1fac081d1e99cc65d183d6f712267",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/ui/hover-subtle.mp3": {
+    "mtime": 1793348579.750399,
+    "seen": 1793436740.7581122,
+    "ast_hash": "a2e38b1f2c869cfb233e612ddce5c3d4",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/ui/tap-finger.mp3": {
+    "mtime": 1793348579.7509131,
+    "seen": 1793436740.7581122,
+    "ast_hash": "e7b650aac8a5ce893dc3249aee340154",
+    "semantic_hash": ""
+  },
+  ".agents/skills/huashu-design/assets/sfx/ui/toggle-on.mp3": {
+    "mtime": 1793348579.7514272,
+    "seen": 1793436740.7581122,
+    "ast_hash": "48df5d46fda59d547ce347fad4a7a204",
     "semantic_hash": ""
   }
 }
