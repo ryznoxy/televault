@@ -171,6 +171,68 @@ class VaultStatusModule(reactContext: ReactApplicationContext) :
     )
   }
 
+  /**
+   * How the previous process of this app died: Android's own verdict. A run
+   * that disappears when the UI opens (or on its own) leaves either an LMKD
+   * kill, a crash, or an ANR behind, and the three need different fixes.
+   * `trace` carries the stack for crashes; it is empty for everything else.
+   */
+  @ReactMethod
+  fun lastExitReason(promise: Promise) {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+      promise.resolve(null)
+      return
+    }
+    try {
+      val manager = reactApplicationContext.getSystemService(android.app.ActivityManager::class.java)
+      val info = manager
+        ?.getHistoricalProcessExitReasons(reactApplicationContext.packageName, 0, 1)
+        ?.firstOrNull()
+      if (info == null) {
+        promise.resolve(null)
+        return
+      }
+      promise.resolve(
+        com.facebook.react.bridge.Arguments.createMap().apply {
+          putDouble("at", info.timestamp.toDouble())
+          putString("reason", exitReasonName(info.reason))
+          putString("description", info.description ?: "")
+          putString("trace", traceSnippet(info))
+        },
+      )
+    } catch (error: Exception) {
+      promise.reject("EEXITINFO", error.message, error)
+    }
+  }
+
+  private fun traceSnippet(info: android.app.ApplicationExitInfo): String =
+    try {
+      // A Java crash puts the stack in here. Reading it line by line keeps a
+      // tombstone-sized blob out of the JS log.
+      info.traceInputStream?.use { stream ->
+        stream.bufferedReader().readLines().take(20).joinToString("\n")
+      } ?: ""
+    } catch (_: Exception) {
+      ""
+    }
+
+  private fun exitReasonName(reason: Int): String = when (reason) {
+    android.app.ApplicationExitInfo.REASON_EXIT_SELF -> "EXIT_SELF"
+    android.app.ApplicationExitInfo.REASON_SIGNALED -> "SIGNALED"
+    android.app.ApplicationExitInfo.REASON_LOW_MEMORY -> "LOW_MEMORY"
+    android.app.ApplicationExitInfo.REASON_CRASH -> "CRASH"
+    android.app.ApplicationExitInfo.REASON_CRASH_NATIVE -> "CRASH_NATIVE"
+    android.app.ApplicationExitInfo.REASON_ANR -> "ANR"
+    android.app.ApplicationExitInfo.REASON_INITIALIZATION_FAILURE -> "INIT_FAILURE"
+    android.app.ApplicationExitInfo.REASON_PERMISSION_CHANGE -> "PERMISSION_CHANGE"
+    android.app.ApplicationExitInfo.REASON_EXCESSIVE_RESOURCE_USAGE -> "RESOURCE_USAGE"
+    android.app.ApplicationExitInfo.REASON_USER_REQUESTED -> "USER_REQUESTED"
+    android.app.ApplicationExitInfo.REASON_USER_STOPPED -> "USER_STOPPED"
+    android.app.ApplicationExitInfo.REASON_DEPENDENCY_DIED -> "DEPENDENCY_DIED"
+    android.app.ApplicationExitInfo.REASON_OTHER -> "OTHER"
+    else -> "UNKNOWN"
+  }
+
   @ReactMethod
   fun requestIgnoreBatteryOptimizations() {
     val ask = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)

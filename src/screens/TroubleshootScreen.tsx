@@ -25,6 +25,12 @@ import { clearErrorLog, getErrorLog, logError, type ErrorLogEntry } from '../sta
 import { OEM_GUIDE } from '../background/oemGuide';
 import { nativeStatus } from '../background/androidStatus';
 import { lastWake, type WakeSource } from '../background/wake';
+import {
+  exitReasonLabel,
+  getLastExit,
+  isSuspiciousExit,
+  type LastExit,
+} from '../state/lastExit';
 import { relativeTime } from '../background/statusText';
 import { CATEGORY_NAMES_ID } from '../types/models';
 import { formatBytes } from '../components/number';
@@ -49,6 +55,8 @@ type Diagnostics = {
   encryption: string;
   background: string;
   lastWake: string;
+  lastExit: string;
+  exitSuspicious: boolean;
 };
 
 const EMPTY_DIAGNOSTICS: Diagnostics = {
@@ -59,6 +67,8 @@ const EMPTY_DIAGNOSTICS: Diagnostics = {
   encryption: 'Nonaktif',
   background: 'Menunggu',
   lastWake: 'Belum pernah',
+  lastExit: 'Tidak ada data',
+  exitSuspicious: false,
 };
 
 /**
@@ -91,6 +101,8 @@ export default function TroubleshootScreen({ navigation }: Props) {
   const [errorLog, setErrorLog] = useState<ErrorLogEntry[]>([]);
   const [failure, setFailure] = useState<SessionRecord | null>(null);
   const [showFailure, setShowFailure] = useState(false);
+  const [lastExit, setLastExit] = useState<LastExit | null>(null);
+  const [showExit, setShowExit] = useState(false);
 
   const load = useCallback(async () => {
     setErrorLog(getErrorLog());
@@ -105,6 +117,8 @@ export default function TroubleshootScreen({ navigation }: Props) {
     setFailure(failed ?? null);
     const current = useSettingsStore.getState().config;
     const wake = lastWake();
+    const exit = getLastExit();
+    setLastExit(exit);
     setDiag({
       configured,
       lastBackup: last ? relativeTime(last.finished_at ?? last.started_at) : 'Belum ada',
@@ -117,6 +131,8 @@ export default function TroubleshootScreen({ navigation }: Props) {
           ? 'Manual'
           : 'Aktif',
       lastWake: wake == null ? 'Belum pernah' : `${relativeTime(wake.at)} (${wakeLabel(wake.source)})`,
+      lastExit: exit == null ? 'Tidak ada data' : `${relativeTime(exit.at)} — ${exitReasonLabel(exit.reason)}`,
+      exitSuspicious: exit != null && isSuspiciousExit(exit.reason),
     });
   }, []);
 
@@ -229,6 +245,13 @@ export default function TroubleshootScreen({ navigation }: Props) {
                 label="Jadwal terakhir bangun"
                 value={diag.lastWake}
                 tone={diag.lastWake === 'Belum pernah' ? 'warn' : 'plain'}
+              />
+              <InfoRow
+                icon="warning"
+                label="Alasan app terakhir tertutup"
+                value={diag.lastExit}
+                tone={diag.exitSuspicious ? 'error' : 'plain'}
+                onPress={lastExit ? () => setShowExit(true) : undefined}
               />
             </View>
           </View>
@@ -435,6 +458,52 @@ export default function TroubleshootScreen({ navigation }: Props) {
             ) : null}
             <Pressable
               onPress={() => setShowFailure(false)}
+              accessibilityRole="button"
+              accessibilityLabel="Tutup"
+              style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}>
+              <Text style={styles.primaryButtonText} numberOfLines={1}>
+                Tutup
+              </Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <Modal
+        visible={showExit}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowExit(false)}>
+        <Pressable style={styles.modalBackdrop} onPress={() => setShowExit(false)}>
+          <Pressable style={styles.modalCard} onPress={() => undefined}>
+            <Text style={styles.modalTitle} numberOfLines={1}>
+              Alasan Proses Terakhir Berhenti
+            </Text>
+            {lastExit ? (
+              <View style={styles.modalBody}>
+                <DetailLine label="Waktu" value={relativeTime(lastExit.at)} />
+                <DetailLine label="Alasan" value={exitReasonLabel(lastExit.reason)} />
+                <DetailLine label="Kode sistem" value={lastExit.reason} />
+                {lastExit.description ? (
+                  <View style={styles.modalSection}>
+                    <Text style={styles.modalSectionLabel}>Keterangan sistem</Text>
+                    <Text style={styles.modalReason} selectable>
+                      {lastExit.description}
+                    </Text>
+                  </View>
+                ) : null}
+                {lastExit.trace ? (
+                  <View style={styles.modalSection}>
+                    <Text style={styles.modalSectionLabel}>Jejak crash</Text>
+                    <Text style={styles.modalReason} selectable>
+                      {lastExit.trace}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+            ) : null}
+            <Pressable
+              onPress={() => setShowExit(false)}
               accessibilityRole="button"
               accessibilityLabel="Tutup"
               style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}>
