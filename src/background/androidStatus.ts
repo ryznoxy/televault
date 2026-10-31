@@ -3,6 +3,7 @@ import { sessionsRepo } from '../db/repositories/sessions';
 import { getConfig, useSettingsStore } from '../state/settingsStore';
 import { ScheduleMode, type BackupConfig } from '../types/models';
 import { statusBody, statusVisible } from './statusText';
+import type { LastExit } from '../state/lastExit';
 
 type VaultStatusNative = {
   versionName?: string;
@@ -18,6 +19,8 @@ type VaultStatusNative = {
   isUnmetered: () => Promise<boolean>;
   isCharging: () => Promise<boolean>;
   hasAllFilesAccess: () => Promise<boolean>;
+  /** Android 11+: how the previous process of this app died. */
+  lastExitReason?: () => Promise<LastExit | null>;
   openAllFilesSettings: () => void;
   requestIgnoreBatteryOptimizations: () => void;
   openAutostartSettings: () => void;

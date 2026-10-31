@@ -12,14 +12,19 @@ import { logError } from '../state/errorLog';
 /**
  * `run` decides where the backup executes: the foreground service for a
  * JobScheduler wake-up, or the alarm's own service for an exact scheduled run.
+ *
+ * `atScheduledSlot` is set by the exact alarm, which fires at the user's hour
+ * and is therefore allowed to run the very first backup of a fresh install.
  */
 export async function runScheduledBackup(
   run: () => Promise<BackupResult> = runBackupInForeground,
+  atScheduledSlot = false,
 ): Promise<void> {
   const config = getConfig();
-  const last = await sessionsRepo.lastSuccess();
-  const lastAt = last ? (last.finished_at ?? last.started_at) : null;
-  if (!shouldRunNow(config, lastAt, Date.now())) {
+  // The last attempt, not the last success: a slot that ran and failed today
+  // must not be retried by every JobScheduler wake until tomorrow.
+  const lastAt = await sessionsRepo.lastAttemptAt();
+  if (!shouldRunNow(config, lastAt, Date.now(), atScheduledSlot)) {
     return;
   }
   await run();

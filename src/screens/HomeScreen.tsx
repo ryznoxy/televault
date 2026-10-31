@@ -149,6 +149,7 @@ export default function HomeScreen({ navigation }: Props) {
   const setCompressZip = useSettingsStore(state => state.setCompressZip);
   const setAutomationPaused = useSettingsStore(state => state.setAutomationPaused);
   const addWatchedFolder = useSettingsStore(state => state.addWatchedFolder);
+  const updateWatchedFolder = useSettingsStore(state => state.updateWatchedFolder);
 
   const { toast } = useToast('bottom');
 
@@ -260,7 +261,15 @@ export default function HomeScreen({ navigation }: Props) {
 
   const onAddFolder = async () => {
     try {
-      const result = await pickDirectory();
+      // `requestLongTermAccess` persists the SAF grant across reboots; without
+      // it the folder reads fine until the next reboot and the run then marks
+      // it "perlu pilih ulang" for a grant Android had never stored.
+      const result = await pickDirectory({ requestLongTermAccess: true });
+      const existing = config.watchedFolders.find(folder => folder.uri === result.uri);
+      if (existing) {
+        updateWatchedFolder(existing.id, { invalid: false });
+        return;
+      }
       addWatchedFolder(makeWatchedFolder(result.uri));
     } catch {
       // user cancelled

@@ -10,9 +10,11 @@ import { StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AppNav from './src/navigation/AppNav';
 import { configureScheduler } from './src/background/scheduler';
+import { nativeStatus } from './src/background/androidStatus';
 import { PROCESS_START } from './src/backup/backupRunner';
 import { sessionsRepo } from './src/db/repositories/sessions';
 import { logError } from './src/state/errorLog';
+import { captureLastExit } from './src/state/lastExit';
 import { useSettingsStore } from './src/state/settingsStore';
 import { ThemeProvider, useTheme } from './src/theme/ThemeProvider';
 
@@ -38,6 +40,9 @@ function App() {
   // that will never finish. `PROCESS_START` (the same instant `runBackup` uses)
   // keeps a genuinely running headless/scheduled backup untouched.
   useEffect(() => {
+    // Record how the previous process died before anything else touches state:
+    // the exit reason is Android's own verdict on a run that vanished.
+    captureLastExit(nativeStatus()).catch(() => undefined);
     sessionsRepo.failStaleRunning(PROCESS_START).catch(() => undefined);
   }, []);
 

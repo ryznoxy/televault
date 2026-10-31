@@ -110,6 +110,19 @@ export const sessionsRepo = {
     return result.rows.map(asRecord);
   },
 
+  /**
+   * Start time of the most recent run in any state, including failed ones.
+   * The daily schedule gates on this: a slot that ran and failed today must not
+   * be retried by every JobScheduler wake until midnight.
+   */
+  async lastAttemptAt(): Promise<number | null> {
+    const result = await getDb().execute(
+      'SELECT started_at FROM backup_sessions ORDER BY started_at DESC LIMIT 1',
+    );
+    const row = result.rows[0];
+    return row ? Number(row.started_at) : null;
+  },
+
   /** Latest run that finished and left something to show for it; partial counts. */
   async lastFinished(): Promise<SessionRecord | null> {
     const result = await getDb().execute(
