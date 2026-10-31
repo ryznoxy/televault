@@ -9,6 +9,14 @@ export type WhatsNew = {
 };
 
 export const WHATS_NEW: Record<string, WhatsNew> = {
+  '1.7.2': {
+    title: 'Apa baru di v1.7.2',
+    items: [
+      'Backup otomatis tidak lagi jalan di jam acak: instal baru menunggu alarm 02:00, dan slot yang gagal tidak diulang-ulang seharian',
+      'Folder pantauan bertahan setelah HP restart: izin folder kini disimpan permanen. Folder bertanda "perlu pilih ulang" cukup dipilih ulang sekali',
+      'Troubleshooting mencatat alasan aplikasi terakhir berhenti (kehabisan memori, crash, atau dihentikan sistem), untuk menelusuri backup yang terputus',
+    ],
+  },
   '1.7.1': {
     title: 'Apa baru di v1.7.1',
     items: [
